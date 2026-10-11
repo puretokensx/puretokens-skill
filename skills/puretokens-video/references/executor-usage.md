@@ -67,6 +67,7 @@ Use `--record <absolute-task-json>` in an explicit workspace/user location by de
 <executor> submit --host codex --request <request-file> --record <absolute-task-json>
 <executor> resume --host codex --record <absolute-task-json>
 <executor> content --host codex --record <absolute-task-json> --index 0 --output-dir <existing-absolute-output-directory>
+<executor> redeliver --host codex --record <absolute-task-json> --index 0
 <executor> delivered --record <absolute-task-json> --index 0
 ```
 
@@ -76,7 +77,7 @@ Across computers or operating systems, keep the original record unchanged and
 use the current explicitly selected host's own connection. Never copy credentials.
 If old paths are unavailable, choose an existing absolute directory on this
 computer with `content --output-dir`; retrieve only the undelivered index 0 of
-the same task. A fully delivered record returns `done` without downloading again.
+the same task. A fully delivered record returns `done` without downloading again. When the user explicitly asks to receive that file again, use `redeliver --host <host> --record <record> --index <index>`; ordinary `content` does not re-deliver a historically delivered index.
 Missing legacy download proofs do not authorize overwriting old files or
 inventing proof: preserve them and retrieve the same index into another directory.
 
@@ -112,3 +113,21 @@ Its `request_id`, when present, correlates the latest HTTP response, not the
 whole task. It is neither a task ID nor an idempotency key and cannot recover
 an unknown submission. Older executors may omit this block; do not rerun a
 paid request to obtain it.
+
+## Explicit re-delivery and historical failures
+
+`redeliver` requires an existing absolute record and explicit user intent to receive
+one previously delivered index again. It verifies the recorded local file first,
+without credentials or network. If missing, it may retrieve that same task/index;
+changed or conflicting files are preserved, so select another existing directory
+with `--output-dir`. Never resubmit or edit record proofs to recover a file.
+`pending_redelivery_index` preserves this request across interruption; `resume`
+continues it without inventing another one. Historical delivered indexes remain
+unchanged. A `redelivery_index` receipt still needs actual new host handoff before
+`delivered --record <record> --index <index>` clears the pending marker.
+
+Terminal failure records retain only allowlisted classification in `last_failure`.
+A recovered `failure_source=task_record` describes that historical failure, not a
+fresh API request. Legacy records with no evidence remain cause-unknown; do not
+assume they lack a permission, quota or content restriction to recommend a model
+switch. A transient failed status GET must not replace terminal cause evidence.

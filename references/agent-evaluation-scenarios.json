@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "scenarios": [
+    {
+      "id": "image-short-path",
+      "request": "帮我生成一张白底的蓝色陶瓷杯产品图，方形，一张，直接用默认模型。",
+      "variants": ["做一张方形产品展示图：蓝色陶瓷杯，白背景。默认图片模型即可。"],
+      "context": "当前是 Codex Desktop 本地会话，用户明确使用 Pure Tokens。宿主提供已确认接收本地图片的原生附件工具；本次无需安装、诊断或配置。",
+      "stub": "image-success"
+    },
+    {
+      "id": "unknown-submission",
+      "request": "帮我用默认模型生成一张海边灯塔图片，一张就好。",
+      "variants": ["画张海边灯塔的图，用默认型号，只要一张。"],
+      "context": "当前是 Codex Desktop 本地会话，用户明确使用 Pure Tokens。宿主提供本地图片附件工具；此前没有本任务记录。",
+      "stub": "submission-interrupted"
+    },
+    {
+      "id": "redeliver-completed-image",
+      "request": "上次那张图片我在聊天里找不到了，请再发我一次。",
+      "variants": ["把原来已经做好并交付过的那张图片重新贴到这里，不要重做。"],
+      "context": "当前是 Codex Desktop 本地会话，仍使用 Pure Tokens，宿主提供原生图片附件工具。用户给定原任务记录 {{record}}；记录显示同一张图片此前已交付，原文件仍在 {{artifact}}。只处理该原任务。",
+      "stub": "completed-image"
+    },
+    {
+      "id": "local-connection-stop",
+      "request": "用 Pure Tokens 默认模型生成一张极简山脉插画。",
+      "variants": ["请通过当前 Pure Tokens 连接画一张极简山脉图，默认模型。"],
+      "context": "当前是 Codex Desktop 本地会话，用户选择的是 Pure Tokens，宿主提供本地图片附件工具。用户没有指定其他客户端，也没有要求修复配置。",
+      "stub": "connection-unconfirmed"
+    },
+    {
+      "id": "audio-mixed-result",
+      "request": "把这段话读出来，再配上舒缓背景音乐，给我一个可以直接播放的文件：欢迎来到今天的自然观察。",
+      "variants": ["我想把“欢迎来到今天的自然观察”做成有轻音乐垫底的旁白，最后只给我一条混在一起的音频。"],
+      "context": "当前是 Codex Desktop 本地会话，用户使用 Pure Tokens。宿主能交付音频文件；还没有开始配音或音乐任务。用户尚未同意改成多个独立素材。",
+      "stub": "no-paid-work"
+    },
+    {
+      "id": "model-group-unavailable",
+      "request": "刚才用 nano-banana-2 被拒绝，回执是 model_not_allowed。应该补选哪个分组？我原来的分组不要删。",
+      "variants": ["nano-banana-2 提示 model_not_allowed。我该在 Switch 加选哪一组？保留我已经选的那些组。"],
+      "context": "当前是 Codex Desktop 本地会话。此前提交明确 rejected、没有 task_id；用户现在只询问模型分组，不要求重新生成。",
+      "stub": "groups-unavailable"
+    },
+    {
+      "id": "service-failure-alternative",
+      "request": "刚才那张图片没成功。继续帮我找一个能做同样白底蓝色陶瓷杯产品图的模型吧。",
+      "variants": ["这个任务已经服务失败了，帮我找个兼容的其他模型继续做同样的杯子产品图。"],
+      "context": "当前是 Codex Desktop 本地会话，使用 Pure Tokens。原任务记录 {{record}} 已确认终态 failed，受控 api_error_code 为 service_unavailable，无对账。原模型 gpt-image-2，要求一张方形文生图；本会话还没查询候选。用户尚未选择替代模型或确认新付费任务。",
+      "stub": "service-failure"
+    },
+    {
+      "id": "historical-content-rejection",
+      "request": "继续上次的图片吧。",
+      "variants": ["上回的图没出来，接着处理原来那个任务。"],
+      "context": "当前是新的 Codex Desktop 本地会话，使用 Pure Tokens。原任务记录 {{record}} 由用户给定；记录中的 last_failure 保留了该任务失败的审核分类。未提供新提示词，也未授权换模型或新任务。",
+      "stub": "content-rejection"
+    }
+  ]
+}

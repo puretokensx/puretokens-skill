@@ -205,7 +205,7 @@ test("media entrypoints route exceptional detail without weakening support priva
     assert.match(skill, /不先查余额、init、doctor、preflight 或实时目录/);
     assert.match(skill, /累计两个窗口/);
     assert.match(skill, /取消、失败回执、网络超时、未知状态或对账均停止自动续接/);
-    assert.match(skill, /实际交付后才执行/);
+    assert.match(skill, /实际交接后才执行/);
     assert.match(failure, /api_request_attempted=true/);
     assert.match(failure, /不自动导出、上传、读取凭据或追加诊断/);
     assert.match(receipt.failure.conditionalFields.support, /never the whole receipt/);
@@ -240,7 +240,7 @@ for (const kind of ["image", "video"]) {
     assert.match(shortPath, /不能把 submit、wait、content 合成一个命令/);
     assert.match(skill, /先告知返回的 task_id 和状态/);
     assert.match(skill, /累计两个窗口/);
-    assert.match(skill, /实际交付后才执行/);
+    assert.match(skill, /实际交接后才执行/);
     assert.match(skill, /media_operation/);
     assert.match(skill, /没有声明的传输方式就停止/);
   });
@@ -280,7 +280,8 @@ test("source installer synchronizes Skills and exactly one native executor", asy
   const { stdout } = await execFile("sh", [installer, "sync", "--target", target, "--source", repositoryRoot], { cwd: repositoryRoot });
   assertSynchronized(stdout);
   assert.match(stdout, /Pure Tokens Skill init: host ID was not supplied, so the connection check was deferred/);
-  assert.match(stdout, /Pure Tokens Skill 使用须知/);
+  assert.match(stdout, /Example \(not executed\):/);
+  assert.doesNotMatch(stdout, /Pure Tokens Skill 使用须知/);
   assert.deepEqual((await readdir(target)).filter((entry) => skillNames.includes(entry)).sort(), [...skillNames].sort());
   await assert.rejects(readFile(path.join(target, ".puretokens-runtime", "runtime.json"), "utf8"));
   const executor = path.join(target, ".puretokens-executor", process.platform === "win32" ? "puretokens-api.exe" : "puretokens-api");
@@ -288,15 +289,17 @@ test("source installer synchronizes Skills and exactly one native executor", asy
   assert.equal(version.trim(), packageManifest.version);
 });
 
-test("source installer exposes an explicit init command and usage guide", async (t) => {
+test("source installer exposes explicit init with compact guidance and on-demand help", async (t) => {
   const target = await mkdtemp(path.join(os.tmpdir(), "puretokens-skill-init-"));
   t.after(() => rm(target, { recursive: true, force: true }));
   const installer = path.join(repositoryRoot, "runtime", "puretokens-skill-install.sh");
   await execFile("sh", [installer, "sync", "--target", target, "--source", repositoryRoot], { cwd: repositoryRoot });
   const { stdout } = await execFile("sh", [installer, "init", "--target", target], { cwd: repositoryRoot });
   assert.match(stdout, /Pure Tokens Skill init: host ID was not supplied, so the connection check was deferred/);
-  assert.match(stdout, /生成一张日落时分的山间湖泊图片/);
-  assert.match(stdout, /更新 Pure Tokens Skills/);
+  assert.equal(stdout.split("Example (not executed):").length - 1, 2);
+  assert.match(stdout, /read the local usage guide without a network request/);
+  assert.doesNotMatch(stdout, /## 操作与恢复|# Pure Tokens Skill 使用须知/);
+  assert.ok(Buffer.byteLength(stdout) < 2200);
 });
 
 test("catalog freshness gate remains present for releases", async () => {

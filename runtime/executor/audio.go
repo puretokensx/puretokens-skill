@@ -82,6 +82,7 @@ type audioReceipt struct {
 	APIErrorCode      string            `json:"api_error_code,omitempty"`
 	ErrorMessage      string            `json:"error_message,omitempty"`
 	NextAction        string            `json:"next_action,omitempty"`
+	Validation        *audioValidation  `json:"validation,omitempty"`
 }
 
 func audioFailure(outcome, phase, code, message string, status int) audioReceipt {
@@ -142,6 +143,8 @@ func runAudioVerify(output io.Writer, file string) error {
 	if (format != "mp3" && format != "wav") || audioMIME(format) != artifact.MediaType {
 		return fail()
 	}
+	finishVerificationTiming := timingsForWriter(output).enter("verification")
+	defer finishVerificationTiming()
 	info, err := os.Lstat(artifact.Path)
 	if err != nil || !info.Mode().IsRegular() || info.Size() != int64(artifact.Bytes) {
 		return fail()
@@ -172,19 +175,21 @@ func runAudioVerify(output io.Writer, file string) error {
 
 func decodeAudioRequest(data []byte) (audioRequest, error) {
 	request := audioRequest{}
-	fail := errors.New("invalid audio request")
 	value, err := strictEvaluationJSON(bytes.TrimPrefix(data, []byte{0xef, 0xbb, 0xbf}), maxAudioRequest)
 	fields, ok := value.(map[string]any)
 	if err != nil || !ok {
-		return request, fail
+		return request, audioIssue("request", "invalid_json", maxAudioRequest)
 	}
 	encoded, _ := json.Marshal(fields)
 	if json.Unmarshal(encoded, &request) != nil {
-		return request, fail
+		return request, audioIssue("request", "invalid_type", 0)
 	}
 	profile, ok := audioProfiles()[request.Model]
-	if !ok || request.Operation != profile.Operation {
-		return request, fail
+	if !ok {
+		return request, audioIssue("model", "unsupported", 0)
+	}
+	if request.Operation != profile.Operation {
+		return request, audioIssue("operation", "model_mismatch", 0)
 	}
 	allowed := map[string]bool{"operation": true, "model": true}
 	switch request.Operation {
@@ -192,35 +197,62 @@ func decodeAudioRequest(data []byte) (audioRequest, error) {
 		for _, key := range []string{"input", "voice", "speed", "response_format", "output_dir", "instruction"} {
 			allowed[key] = true
 		}
-		if strings.TrimSpace(request.Input) == "" || utf8.RuneCountInString(request.Input) > profile.MaxInputCharacters ||
-			profile.Voices[request.Voice] == "" || (request.Speed != nil && (*request.Speed < 0.5 || *request.Speed > 2)) {
-			return request, fail
+		if strings.TrimSpace(request.Input) == "" {
+			return request, audioIssue("input", "required", 0)
 		}
-		if _, exists := fields["instruction"]; exists && (!profile.SupportsInstruction || strings.TrimSpace(request.Instruction) == "" || utf8.RuneCountInString(request.Instruction) > 500) {
-			return request, fail
+		if utf8.RuneCountInString(request.Input) > profile.MaxInputCharacters {
+			return request, audioIssue("input", "max_characters", profile.MaxInputCharacters)
+		}
+		if profile.Voices[request.Voice] == "" {
+			return request, audioIssue("voice", "unsupported", 0)
+		}
+		if request.Speed != nil && (*request.Speed < 0.5 || *request.Speed > 2) {
+			return request, audioIssue("speed", "out_of_range", 0)
+		}
+		if _, exists := fields["instruction"]; exists {
+			if !profile.SupportsInstruction {
+				return request, audioIssue("instruction", "unsupported", 0)
+			}
+			if strings.TrimSpace(request.Instruction) == "" {
+				return request, audioIssue("instruction", "required", 0)
+			}
+			if utf8.RuneCountInString(request.Instruction) > 500 {
+				return request, audioIssue("instruction", "max_characters", 500)
+			}
 		}
 	case "generate":
 		for _, key := range []string{"instruction", "response_format", "output_dir"} {
 			allowed[key] = true
 		}
-		if strings.TrimSpace(request.Instruction) == "" || utf8.RuneCountInString(request.Instruction) > profile.MaxInstructionCharacters {
-			return request, fail
+		if strings.TrimSpace(request.Instruction) == "" {
+			return request, audioIssue("instruction", "required", 0)
+		}
+		if utf8.RuneCountInString(request.Instruction) > profile.MaxInstructionCharacters {
+			return request, audioIssue("instruction", "max_characters", profile.MaxInstructionCharacters)
 		}
 	case "transcribe":
 		allowed["file"] = true
 		if !filepath.IsAbs(request.File) {
-			return request, fail
+			return request, audioIssue("file", "absolute_path_required", 0)
 		}
 	default:
-		return request, fail
+		return request, audioIssue("operation", "unsupported", 0)
 	}
 	for key, value := range fields {
-		if !allowed[key] || value == nil {
-			return request, fail
+		if !allowed[key] {
+			return request, audioIssue("request", "undeclared_field", 0)
+		}
+		if value == nil {
+			return request, audioIssue(key, "invalid_type", 0)
 		}
 	}
-	if request.Operation != "transcribe" && (!filepath.IsAbs(request.OutputDir) || (request.ResponseFormat != "mp3" && request.ResponseFormat != "wav")) {
-		return request, fail
+	if request.Operation != "transcribe" {
+		if !filepath.IsAbs(request.OutputDir) {
+			return request, audioIssue("output_dir", "absolute_path_required", 0)
+		}
+		if request.ResponseFormat != "mp3" && request.ResponseFormat != "wav" {
+			return request, audioIssue("response_format", "unsupported", 0)
+		}
 	}
 	return request, nil
 }
@@ -294,8 +326,19 @@ func runAudioCommand(output io.Writer, svc service, host, file string) error {
 		writeJSON(output, audioFailure("not_submitted", "validation", code, message, 0))
 		return errors.New("audio preparation failed")
 	}
-	if err != nil || decodeErr != nil {
+	if err != nil {
 		return fail("audio_request_invalid", "Use one absolute UTF-8 request file with a reviewed audio model, operation and declared fields. No API request was sent.")
+	}
+	if decodeErr != nil {
+		var issue *audioValidation
+		if !errors.As(decodeErr, &issue) {
+			issue = audioIssue("request", "invalid_json", maxAudioRequest)
+		}
+		result := audioFailure("not_submitted", "validation", "audio_request_invalid", issue.message(), 0)
+		result.Validation = issue
+		result.NextAction = "Correct only the identified request construction error before any POST. If correction changes the user's text, voice, format, speed or request count, obtain that choice first; never truncate, replace or split silently. This receipt describes only this unsubmitted attempt."
+		writeJSON(output, result)
+		return errors.New("audio preparation failed")
 	}
 	body, contentType, err := prepareAudioBody(request)
 	if err != nil {
@@ -343,6 +386,8 @@ func executeAudio(output io.Writer, svc service, request audioRequest, body []by
 		req.Header.Set("Accept", audioMIME(request.ResponseFormat))
 	}
 	svc.support.beginRequest(http.MethodPost, path)
+	finishRequestTiming := svc.timePhase("request")
+	defer finishRequestTiming()
 	response, err := fixedClient(svc.client).Do(req)
 	svc.support.observeResponse(response)
 	failure := func(outcome, phase, code, message string, status int, apiCode string) error {
@@ -372,6 +417,9 @@ func executeAudio(output io.Writer, svc service, request audioRequest, body []by
 		limit = 128 << 10
 	}
 	data, readErr := io.ReadAll(io.LimitReader(response.Body, int64(limit)+1))
+	finishRequestTiming()
+	finishVerificationTiming := svc.timePhase("verification")
+	defer finishVerificationTiming()
 	invalid := func() error {
 		return failure("unknown", "submission", "audio_response_invalid", "The audio response could not be verified. This does not prove that processing failed or that no charge occurred.", response.StatusCode, "")
 	}

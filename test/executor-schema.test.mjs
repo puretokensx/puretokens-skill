@@ -15,7 +15,7 @@ const schemaNames = [
   "balance-receipt.schema.json", "init-receipt.schema.json", "doctor-receipt.schema.json",
   "support-summary.schema.json", "evaluation-request.schema.json", "evaluation-receipt.schema.json",
   "audio-request.schema.json", "audio-receipt.schema.json", "audio-artifact-verify-request.schema.json",
-  "model-groups-request.schema.json", "model-groups-receipt.schema.json"
+  "model-groups-request.schema.json", "model-groups-receipt.schema.json", "timings.schema.json"
 ];
 const documents = await Promise.all(schemaNames.map(async (name) =>
   JSON.parse(await readFile(path.join(repositoryRoot, "schemas", name), "utf8"))));
@@ -225,6 +225,68 @@ test("task records reject credentials, raw inputs and invalid progress", () => {
     const changed = structuredClone(record);
     delete changed[field];
     rejects("task-record.schema.json", changed, "required");
+  }
+});
+
+test("recorded task failures and explicit redelivery preserve safe evidence", () => {
+  const record = example("recorded-failure-artifact");
+  assert.deepEqual(record.last_failure, { category: "model_permission", phase: "status", task_status: "failed", api_error_code: "model_not_allowed" });
+  const restored = example("recorded-failure-resume");
+  assert.equal(restored.failure_category, "model_permission");
+  assert.equal(restored.failure_source, "task_record");
+  assert.equal(restored.support.api_request_attempted, false);
+  assert.equal(restored.support.api_error_code, undefined, "historical task evidence is not this invocation's API failure");
+  for (const extra of [{ message: "private" }, { api_error_code: "private_provider_code" }, { category: "private_provider" }, { phase: "content" }, { task_status: "pending" }]) {
+    rejects("task-record.schema.json", { ...record, last_failure: { ...record.last_failure, ...extra } });
+  }
+  const pending = example("explicit-redelivery-artifact");
+  assert.deepEqual(pending.delivered, [0]);
+  assert.equal(pending.pending_redelivery_index, 0);
+  for (const name of ["explicit-redelivery-receipt", "explicit-redelivery-resume"]) {
+    const result = example(name);
+    assert.equal(result.redelivery_index, 0);
+    assert.equal(result.next_step, "deliver");
+    assert.deepEqual(result.delivered_indexes, [0]);
+    assert.equal(result.downloaded_paths.length, 1);
+  }
+  const done = example("explicit-redelivery-ack");
+  assert.equal(done.next_step, "done");
+  assert.equal(done.redelivery_index, undefined);
+  assert.equal(example("adaptive-receipt").parameters.aspect_ratio, "adaptive");
+  rejects("task-record.schema.json", { ...pending, pending_redelivery_index: 6 });
+});
+
+test("invocation timings are measured phases without private or unobserved labels", () => {
+  const samples = examples.filter(entry => entry.schema === "timings.schema.json");
+  assert.ok(samples.length > 0, "actual command timing examples missing");
+  for (const { document } of samples) {
+    const sum = Object.entries(document).filter(([phase]) => phase !== "total").reduce((sum, [, ms]) => sum + ms, 0);
+    assert.ok(sum <= document.total, "overlapping phases exceed observed command time");
+  }
+  const sample = samples[0].document;
+  for (const addition of [{ total: -1 }, { request: 1.5 }, { server_generation: 12 }, { host_handoff: 2 }, { path: "/private/result.png" }]) {
+    rejects("timings.schema.json", { ...sample, ...addition });
+  }
+  for (const entry of examples.filter(entry => entry.schema === "support-summary.schema.json" || entry.schema === "task-record.schema.json")) {
+    assert.equal(entry.document.timings_ms, undefined, `${entry.name}: per-command timing was persisted or shared`);
+  }
+});
+
+test("audio construction diagnostics identify only the invalid field and reviewed limit", () => {
+  const voice = example("audio-diagnostic-unknown-voice");
+  const limit = example("audio-diagnostic-unicode-limit");
+  assert.deepEqual(voice.validation, {field: "voice", reason: "unsupported"});
+  assert.deepEqual(limit.validation, {field: "input", reason: "max_characters", limit: 1000});
+  for (const receipt of [voice, limit]) {
+    assert.equal(receipt.submission_outcome, "not_submitted");
+    assert.equal(receipt.support.api_request_attempted, false);
+    assert.equal(receipt.support.validation, undefined);
+    assert.equal(receipt.support.input, undefined);
+    assert.equal(receipt.support.voice, undefined);
+    assert.equal(receipt.timings_ms.request, undefined);
+    for (const extra of [{field: "private-name"}, {reason: "private-reason"}, {value: "private-input"}, {limit: 0}]) {
+      rejects("audio-receipt.schema.json", {...receipt, validation: {...receipt.validation, ...extra}});
+    }
   }
 });
 

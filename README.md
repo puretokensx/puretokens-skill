@@ -45,7 +45,7 @@ Install or update the official Pure Tokens Skills from https://github.com/PureTo
 
 5. 复用脚本的同步与自动 init 结果，不另跑 init、doctor、余额或模型查询。自动 init 最多两次只读请求，共用 20 秒预算；安装成功而 init 失败应报告“安装已完成，连接验证未完成”。同版完整性校验通过的快速返回表示“已是当前稳定版且文件完整”，无需再下载、写入或初始化。
 
-6. 完成后简要汇报实际客户端、实际安装版本、安装状态和连接验证状态（已验证／未验证／未执行）。按实际安装版本的本地使用指南列出可用能力，给出两条可复制的使用示例，仅展示、不执行。实际同步后提醒我新开对话加载 Skills；不要声称当前会话已经加载，不自动开始生成或付费体验。
+6. 完成后简要汇报实际客户端、实际安装版本、安装状态和连接验证状态（已验证／未验证／未执行）。复用安装回执中当前宿主适用的能力摘要与最多两条可复制示例，仅展示、不执行；完整使用指南仅在用户询问时读取。复用脚本给出的当前宿主加载步骤和简短示例；ZCode 需刷新并启用 Skills。没有 API 适配器的宿主不展示生成示例。不要声称当前会话已经加载，不自动开始生成或付费体验。
 ```
 
 ### English installation prompt
@@ -69,7 +69,7 @@ Install or update the official Pure Tokens Skills for the client I am currently 
 
 5. Reuse the script's synchronization and automatic init results. Do not add init, doctor, balance or model queries. Automatic init allows at most two read-only requests within one 20-second budget. Successful synchronization followed by failed init means “Installed; connection not verified.” A same-version verified fast return means “Already on the current stable version; files verified,” with no further download, writes or initialization.
 
-6. Briefly report the actual client, installed version, installation status and connection verification status (verified / unverified / not run). List capabilities from that installed version's local usage guide and show two copyable examples without executing them. After actual synchronization, remind me to open a new conversation to load the Skills. Do not claim they are already loaded in this session or automatically start generation or a paid demo.
+6. Briefly report the actual client, installed version, installation status and connection verification status (verified / unverified / not run). Reuse the receipt's host-appropriate capability summary and at most two copyable examples without executing them; read the full usage guide only when requested. Reuse the script's host-specific loading steps and short examples; ZCode requires refreshing and enabling Skills. Do not show generation examples for a host without an API adapter. Do not claim the current session has loaded the Skills or start a paid demo.
 ```
 
 The agent saves the latest official stable release's `puretokens-skill-fetch.sh` (Windows: `.ps1`) locally and runs install with the current host ID. The fixed bootstrap URL is `https://github.com/PureTokens/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh`; Windows uses the `.ps1` suffix. Installed copies in `.puretokens-executor` provide check-update and update. Never pipe remote content into a shell or fall back to main, source archives or mirrors when stable assets are absent.
@@ -77,6 +77,8 @@ The agent saves the latest official stable release's `puretokens-skill-fetch.sh`
 Installation boundary: after identifying the host, save the official fetch script locally and run it once. Let it pin the commit, download, verify, sync and initialize. Do not add full-script audits, PowerShell capability probes, duplicate inventory checks or doctor to ordinary installation. Respect required host approvals. On launch denial, unavailable output, timeout, download or verification failure, report the completed stage and sanitized failure, then stop. Do not create probes, shims or Python patches, modify official scripts, switch launch paths or retry automatically. Debugging requires a separate user request.
 
 After the user resolves a permission issue and explicitly asks to continue, resume according to the last confirmed phase. Before synchronization, use the same official fetch workflow once; it resolves and verifies the stable release again, without reusing partial downloads. If synchronization succeeded and only init failed, perform one init only when the user asks to continue connection verification; do not reinstall. Unknown output or interrupted synchronization needs a separately authorized local installation diagnosis, not an automatic rerun. Never use this installation recovery to resubmit a media task.
+
+For missing files, local changes or interrupted installation, request a read-only installation inspection. `install-inspect` classifies missing, modified, additional and transaction entries. Only an explicit repair request runs the official fetch `repair` path, verifies the current stable package and preserves customizations and unknown files. Ordinary update does not repair automatically. See [installation inspection and recovery](skills/puretokens-update/references/installation-recovery.md).
 
 ## What is installed
 

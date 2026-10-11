@@ -55,7 +55,7 @@
         },
         "aspect_ratio": {
           "type": "string",
-          "pattern": "^(auto|[1-9][0-9]{0,2}:[1-9][0-9]{0,2})$"
+          "pattern": "^(auto|adaptive|[1-9][0-9]{0,2}:[1-9][0-9]{0,2})$"
         },
         "width": {
           "type": "number"
@@ -210,6 +210,84 @@
       "minimum": 0,
       "maximum": 2,
       "description": "Saturated count of completed foreground wait windows. Preserve across continuation; two ends automatic continuation."
+    },
+    "last_failure": {
+      "type": "object",
+      "description": "Curated evidence from a confirmed terminal task result. Temporary HTTP read failures never overwrite it; no original message is persisted.",
+      "required": [
+        "category",
+        "phase",
+        "task_status"
+      ],
+      "properties": {
+        "category": {
+          "enum": [
+            "unknown",
+            "quota",
+            "balance",
+            "authentication",
+            "model_permission",
+            "permission",
+            "model_unavailable",
+            "invalid_request",
+            "content_policy",
+            "rate_limit",
+            "service_unavailable",
+            "task_unavailable"
+          ]
+        },
+        "phase": {
+          "enum": [
+            "submission",
+            "status"
+          ]
+        },
+        "task_status": {
+          "enum": [
+            "failed",
+            "cancelled",
+            "canceled",
+            "expired",
+            "error"
+          ]
+        },
+        "api_error_code": {
+          "enum": [
+            "insufficient_quota",
+            "insufficient_balance",
+            "auth_required",
+            "invalid_api_key",
+            "authentication_error",
+            "model_not_allowed",
+            "permission_denied",
+            "query_denied",
+            "model_not_found",
+            "invalid_request",
+            "invalid_request_error",
+            "invalid_parameter",
+            "unsupported_parameter",
+            "unsupported_operation",
+            "content_policy_violation",
+            "content_moderation",
+            "moderation_blocked",
+            "rate_limit",
+            "rate_limited",
+            "rate_limit_exceeded",
+            "upstream_unavailable",
+            "service_unavailable",
+            "internal_error",
+            "task_not_found",
+            "task_expired"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "pending_redelivery_index": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5,
+      "description": "One explicitly requested repeat handoff. Preserve historical delivered indexes and clear only after delivered acknowledges this index."
     }
   },
   "additionalProperties": false,
@@ -250,6 +328,9 @@
               }
             },
             "additionalProperties": false
+          },
+          "pending_redelivery_index": {
+            "const": 0
           }
         }
       }

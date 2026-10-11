@@ -122,5 +122,5 @@
     "balanceRequiresExistingAccountSession": false,
     "doesNotUseMcpOrFallbackTransport": true
   },
-  "sourceSha256": "50e747bedae329efcb7e161f089c84acb31551c57c64157610da898c4c3e9b3c"
+  "sourceSha256": "172d7d4effa99a7ba3c1e7f140c3efc1e9eebae27144c971c2e758ce73120bce"
 }

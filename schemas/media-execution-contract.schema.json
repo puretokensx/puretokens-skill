@@ -229,7 +229,9 @@
         "downloadProofFields",
         "reuseRequiresMatchingProof",
         "legacyRecordWithoutProof",
-        "unknownSubmissionNeverResubmits"
+        "unknownSubmissionNeverResubmits",
+        "failureClassification",
+        "redelivery"
       ],
       "properties": {
         "optional": {
@@ -244,6 +246,7 @@
             "wait",
             "resume",
             "content",
+            "redeliver",
             "delivered"
           ]
         },
@@ -261,7 +264,9 @@
             "delivered_indexes",
             "retry_not_before",
             "reconciliation_required",
-            "wait_windows_completed"
+            "wait_windows_completed",
+            "last_failure",
+            "pending_redelivery_index"
           ]
         },
         "excludes": {
@@ -296,6 +301,12 @@
         },
         "unknownSubmissionNeverResubmits": {
           "const": true
+        },
+        "failureClassification": {
+          "const": "reviewed_terminal_failure_only_no_raw_errors_legacy_reason_unknown"
+        },
+        "redelivery": {
+          "const": "explicit_same_task_index_local_proof_first_never_submit_ack_after_new_handoff"
         }
       },
       "additionalProperties": false

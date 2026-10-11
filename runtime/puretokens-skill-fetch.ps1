@@ -3,7 +3,7 @@
 [CmdletBinding()]
 param(
   [Parameter(Position = 0, Mandatory = $true)]
-  [ValidateSet("check-update", "install", "update")]
+  [ValidateSet("check-update", "install", "update", "repair")]
   [string]$Command,
   [Alias("Host")]
   [ValidateSet("claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop")]
@@ -118,7 +118,7 @@ try {
   $archive = Join-Path $downloadRoot "source.zip"
   $artifact = $release.files.PSObject.Properties[$platform].Value
   if ($null -eq $artifact -or $artifact.filename -cne "puretokens-skill-$availableVersion-$platform.zip" -or $artifact.sha256 -cnotmatch '^[0-9a-f]{64}$' -or $artifact.executorSha256 -cnotmatch '^[0-9a-f]{64}$') { Fail "published platform metadata is invalid" }
-  if ($installedVersion -eq $availableVersion) {
+  if ($installedVersion -eq $availableVersion -and $Command -ne "repair") {
     $executor = Join-Path $Target ".puretokens-executor/puretokens-api.exe"
     if (-not (Test-Path -LiteralPath $executor -PathType Leaf) -or ((Get-Item -LiteralPath $executor).Attributes -band [IO.FileAttributes]::ReparsePoint)) { Fail "installed executor is missing or unsupported; existing files were preserved" }
     if ((Get-FileHash -LiteralPath $executor -Algorithm SHA256).Hash.ToLowerInvariant() -cne $artifact.executorSha256) { Fail "installed executor checksum mismatch; existing files were preserved" }
@@ -147,8 +147,10 @@ try {
   if ((Get-FileHash -LiteralPath (Join-Path $sourceRoot "runtime/puretokens-skill-install.ps1") -Algorithm SHA256).Hash.ToLowerInvariant() -cne $selector.sha256) { Fail "archive selector does not match the stable release" }
   if ((Get-FileHash -LiteralPath (Join-Path $sourceRoot "runtime/executor/bin/puretokens-api-$platform.exe") -Algorithm SHA256).Hash.ToLowerInvariant() -cne $artifact.executorSha256) { Fail "archive executor does not match the stable release" }
   $syncOptions = @{ Source = $sourceRoot; Target = $Target }
+  if ($Command -ne "repair") { $syncOptions.NoRecovery = $true }
   if ($HostId) { $syncOptions.HostId = $HostId }
-  & (Join-Path $sourceRoot "runtime/puretokens-skill-install.ps1") sync @syncOptions
+  $syncCommand = if ($Command -eq "repair") { "repair" } else { "sync" }
+  & (Join-Path $sourceRoot "runtime/puretokens-skill-install.ps1") $syncCommand @syncOptions
 } finally {
   if (Test-Path -LiteralPath $downloadRoot) {
     try { Remove-Item -LiteralPath $downloadRoot -Recurse -Force -ErrorAction Stop }

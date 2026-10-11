@@ -45,7 +45,7 @@ Install or update the official Pure Tokens Skills from https://github.com/PureTo
 
 5. 复用脚本的同步与自动 init 结果，不另跑 init、doctor、余额或模型查询。自动 init 最多两次只读请求，共用 20 秒预算；安装成功而 init 失败应报告“安装已完成，连接验证未完成”。同版完整性校验通过的快速返回表示“已是当前稳定版且文件完整”，无需再下载、写入或初始化。
 
-6. 完成后简要汇报实际客户端、实际安装版本、安装状态和连接验证状态（已验证／未验证／未执行）。按实际安装版本的本地使用指南列出可用能力，给出两条可复制的使用示例，仅展示、不执行。实际同步后提醒我新开对话加载 Skills；不要声称当前会话已经加载，不自动开始生成或付费体验。
+6. 完成后简要汇报实际客户端、实际安装版本、安装状态和连接验证状态（已验证／未验证／未执行）。复用安装回执中当前宿主适用的能力摘要与最多两条可复制示例，仅展示、不执行；完整使用指南仅在用户询问时读取。复用脚本给出的当前宿主加载步骤和简短示例；ZCode 需刷新并启用 Skills。没有 API 适配器的宿主不展示生成示例。不要声称当前会话已经加载，不自动开始生成或付费体验。
 ```
 
 ### 英文安装提示词
@@ -69,7 +69,7 @@ Install or update the official Pure Tokens Skills for the client I am currently 
 
 5. Reuse the script's synchronization and automatic init results. Do not add init, doctor, balance or model queries. Automatic init allows at most two read-only requests within one 20-second budget. Successful synchronization followed by failed init means “Installed; connection not verified.” A same-version verified fast return means “Already on the current stable version; files verified,” with no further download, writes or initialization.
 
-6. Briefly report the actual client, installed version, installation status and connection verification status (verified / unverified / not run). List capabilities from that installed version's local usage guide and show two copyable examples without executing them. After actual synchronization, remind me to open a new conversation to load the Skills. Do not claim they are already loaded in this session or automatically start generation or a paid demo.
+6. Briefly report the actual client, installed version, installation status and connection verification status (verified / unverified / not run). Reuse the receipt's host-appropriate capability summary and at most two copyable examples without executing them; read the full usage guide only when requested. Reuse the script's host-specific loading steps and short examples; ZCode requires refreshing and enabling Skills. Do not show generation examples for a host without an API adapter. Do not claim the current session has loaded the Skills or start a paid demo.
 ```
 
 Agent 从官方仓库最新正式发布的附件下载 `puretokens-skill-fetch.sh`（Windows 为 `.ps1`）到本地文件，使用当前宿主 ID 执行 install。固定下载入口为 `https://github.com/PureTokens/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh`，Windows 将末尾 `.sh` 改为 `.ps1`。已安装时使用同级 `.puretokens-executor` 中的 fetch 执行 check-update 或 update。下载不能直接管道进 shell；没有正式发布资源就停止，不改用 main、源码归档或镜像。
@@ -77,6 +77,8 @@ Agent 从官方仓库最新正式发布的附件下载 `puretokens-skill-fetch.s
 安装执行边界：确认宿主后，将官方 fetch 下载为本地文件并执行一次，由脚本完成提交固定、下载、校验、同步和 init。不要在正常安装中额外审计整份脚本、逐项探测 PowerShell 能力、重复核对清单或再跑 doctor。必要的宿主审批照常遵守。遇到启动被拒绝、输出不可用、超时、下载或校验失败，报告已完成阶段与脱敏失败并停止；不得创建 probe、shim、Python 补丁、修改官方脚本、换启动路径或自动重试。只有用户另行要求开发排查时才进入调试流程。
 
 用户处理权限问题并明确要求继续后，按最后确认的阶段恢复：尚未同步时，在原宿主使用同一官方 fetch 流程一次，由脚本重新解析并校验稳定发布，不复用半成品下载；同步已成功且仅 init 失败时，用户要求继续连接验证才执行一次 init，不重装。输出不确定或同步中断时，先按用户另行授权诊断本地安装状态，不自动重跑。安装恢复不适用于重新提交媒体任务。
+
+遇到文件缺失、改动或安装事务中断时，可主动要求只读安装检查。新版执行器的 `install-inspect` 会区分缺失、修改、额外文件和事务；明确要求修复后才能运行官方 fetch 的 `repair`，重新校验当前稳定包，保留定制和未知文件。普通 update 不自动修复。详见[安装检查与修复](skills/puretokens-update/references/installation-recovery.md)。
 
 ## 包含的 Skill
 

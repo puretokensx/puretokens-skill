@@ -96,3 +96,10 @@ prompt、凭据、参考URL或音频。用户可保留明确输出文件，不�
 只问音乐用法读取本指南；明确查询当前可见音乐模型用
 `models --host <同宿主> --request <筛选文件>`，筛选为
 `{"kind":"audio","operation":"music"}`，目录可见不等于接口部署、价格或授权。
+
+## 明确再次交付
+
+用户明确要求再发已经交付的音乐时，使用 `redeliver --host <当前宿主> --record <原记录> --index 0`，
+先校验本地原文件，缺失才取同一音乐任务结果；文件变化时保留原文件并指定另一个现有输出目录。
+不调用 submit、同步 audio 或 audio-verify。历史 delivered 不代表本次交付，必须实际附加后再
+对原记录执行 delivered；未完成的本次交付由 pending_redelivery_index 保存，resume 可续接。

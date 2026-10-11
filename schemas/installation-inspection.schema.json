@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://puretokensx.com/schemas/installation-inspection.schema.json",
+  "title": "Read-only managed installation inspection",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "status", "findings", "truncated"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "status": {"enum": ["clean", "attention_required"]},
+    "truncated": {"type": "boolean"},
+    "findings": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["category", "path", "code"],
+        "properties": {
+          "category": {"enum": ["missing", "modified", "additional", "transaction", "unreadable"]},
+          "path": {"type": "string", "maxLength": 220, "pattern": "^[A-Za-z0-9._/-]+$"},
+          "code": {"enum": ["installation_root_unavailable", "transaction_requires_review", "managed_directory_missing", "managed_directory_unreadable_or_unsafe", "managed_inventory_unavailable", "managed_file_missing", "unmanaged_entry_present", "managed_file_modified"]}
+        }
+      }
+    }
+  }
+}

@@ -23,6 +23,7 @@ type supportReceiptWriter struct {
 	requestID       string
 	httpStatus      int
 	operationsEvent string
+	timings         *commandTimings
 }
 
 func (writer *supportReceiptWriter) Write(data []byte) (int, error) {
@@ -92,6 +93,9 @@ func (writer *supportReceiptWriter) writeJSON(value any) {
 	summary := writer.summary(document)
 	writer.operationsEvent = operationsEvent(writer.command, writer.attempted, document)
 	document["support"], _ = json.Marshal(summary)
+	if timings := writer.timings.snapshot(); timings != nil {
+		document["timings_ms"], _ = json.Marshal(timings)
+	}
 	writeJSON(writer.output, document)
 }
 
@@ -111,7 +115,7 @@ func (writer *supportReceiptWriter) summary(document map[string]json.RawMessage)
 	}
 	switch writer.command {
 	case "init", "doctor", "connection", "balance", "models", "model-groups", "preflight", "submit",
-		"status", "wait", "content", "resume", "delivered", "evaluate", "audio", "audio-verify":
+		"status", "wait", "content", "resume", "redeliver", "delivered", "evaluate", "audio", "audio-verify":
 		summary["command"] = writer.command
 	}
 	if writer.attempted {
@@ -131,7 +135,7 @@ func (writer *supportReceiptWriter) summary(document map[string]json.RawMessage)
 	if id := text("task_id"); validTaskID(id) && safePublicString(id) == id {
 		summary["task_id"] = id
 	}
-	if code := text("api_error_code"); publicErrorMessages[code] != "" {
+	if code := text("api_error_code"); writer.attempted && text("failure_source") != "task_record" && publicErrorMessages[code] != "" {
 		summary["api_error_code"] = code
 	}
 	for key, allowed := range map[string]string{

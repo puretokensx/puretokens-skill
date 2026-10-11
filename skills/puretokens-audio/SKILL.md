@@ -5,7 +5,7 @@ description: 当前宿主使用 Pure Tokens 连接，用户要求文字配音、
 
 # Pure Tokens Audio
 
-宿主绑定与本地失败停止：首次调用前根据当前应用或用户明确指定确定一个 host；本次任务所有 Skill 和执行器命令沿用该 host，不从安装目录推断宿主。任何命令返回 `active_connection_*`、`workbuddy_*` 或 `host_credential_adapter_unavailable` 本地失败时，立即停止本次 API 流程并返回脱敏说明；不得自动调用 puretokens-connection、init、doctor、models 或其他 Skill 重复探测，不得枚举、更换 `--host` 或借用其他客户端凭据。保留用户原任务和已有 task ID；本次调用未发请求不代表此前没有提交任务，不自动重提。只有用户明确要求重查或出现可验证的新诊断依据时，才在原 host 做一次相应检查；“继续生成”本身不是切换宿主或重复探测的授权。改变执行宿主必须有用户明确指定，不能把失败恢复当作指定。
+宿主绑定与本地失败停止：首次调用前按当前应用或用户明确指定绑定一个 host，全部命令沿用，不从安装目录推断。`active_connection_*`、`workbuddy_*` 或 `host_credential_adapter_unavailable` 本地失败后停止 API 流程，保留用户原任务和已有 task ID；不得自动调用 puretokens-connection、init、doctor、models 或其他 Skill 探测，不得枚举、更换 `--host` 或借用凭据。仅用户明确重查或有可验证的新依据时，在原 host 检查一次；换宿主须用户明确指定。“继续生成”本身不是重查、换宿主或重提授权；本次未发送不代表此前未提交。
 
 ## 需求与操作
 
@@ -20,7 +20,7 @@ description: 当前宿主使用 Pure Tokens 连接，用户要求文字配音、
 文件路径／下载回执不等于交付；附件须实际附加，文本须展示校验后的结果。未知提交不证明未处理或未扣费，均不自动重发。
 <!-- /generated:operations -->
 
-克隆声音、音频翻译、实时对话尚未接入，不用其他操作替代。
+克隆声音、音频翻译、实时对话尚未接入，不用其他操作替代。配音加背景音乐只产出独立文件；未明确接受独立素材时先读组合流程并澄清，再提交。
 配音最多1000个 Unicode 字符；转写为8 MiB内的一份 MP3/WAV/OGG；
 声音描述最多500字符。完整限制只读所选 profile。
 
@@ -44,15 +44,16 @@ description: 当前宿主使用 Pure Tokens 连接，用户要求文字配音、
 2. 配音保留用户原文、标点和换行；音色未指定可用已审核的 `cixingnansheng`，格式默认 MP3。用户要求具体风格／音色时仅映射已声明值，有歧义再澄清。语速范围 0.5–2；`instruction` 仅用于对应 profile 明确支持的模型。不要为达到情绪效果擅自修改朗读原文或插入控制标签。转写需要宿主提供本次明确附件的本地字节路径，无法获得就停止，不上传、转换、重托管或用摘要代替。
 3. 仅缺命令或请求格式时读 [请求示例](references/executor-usage.md)，与必要 profile 合并读取；已读且仍有效的资料不重读。创建权限受限、绝对路径的 UTF-8 临时 JSON 文件。配音／声音生成提供现有、可写的用户输出目录；转写不提供输出目录。正文、附件路径不放在命令行。执行后清理本次请求文件；音频结果是用户文件，不作为隐式缓存删除。
 4. 从本 SKILL.md 绝对目录解析 `../.puretokens-executor/puretokens-api`（Windows 为 `puretokens-api.exe`）。运行 `<执行器> audio --host <当前宿主> --request <绝对请求文件>`。执行器验证后只提交一次，同步等待最多 90 秒。无 task_id、wait、resume、content 或自动重试。
-5. `next_step=deliver`：用宿主原生附件能力交付 `artifact.path` 的实际音频文件，只有附件交付成功才说已交付。路径、链接、SHA-256 和文字回执不等于音频。`next_step=done`：展示 `result.text`；这是模型转写，可能有识别或规范化差异，不保证逐字准确，也不擅自概括、翻译。其他回执按停止条件处理。
+5. `next_step=deliver`：按当前宿主已声明的附件工具或本地媒体格式交付 `artifact.path` 的原音频；方式不明确才读 [客户端交付](references/host-delivery.md)。只有实际交接成功才说已交付，不在媒体回复发出前预先确认；无需每次要求用户确认播放。路径、链接、SHA-256 和文字回执不等于音频。`next_step=done`：展示 `result.text`；这是模型转写，可能有识别或规范化差异，不保证逐字准确，也不擅自概括、翻译。其他回执按停止条件处理。
 
-必须使用安装的原生执行器和当前宿主连接；不读／展示宿主配置，不另索 Key，不新增 SDK、Node、Python、MCP、代理、后台服务或浏览器传输，也不调用其他音频／媒体 Skill 回退。当前宿主 ID 为 claude-code、codex、workbuddy、gemini-cli、grok-build、opencode、trae、claude-desktop、dsh-desktop、deepseek-harness、minimax-code、zcode、kimi-code、qoder、pi、hermes、evox、vscode、octop。
+必须使用安装的原生执行器和当前宿主连接；不读／展示宿主配置，不另索 Key，不新增 SDK、Node、Python、MCP、代理、后台服务或浏览器传输，也不调用其他音频／媒体 Skill 回退。沿用当前已绑定的 host；宿主与模式说明见 [客户端交付](references/host-delivery.md)，普通请求不增加检查步骤。
 
 ## 配音／转写／声音场景的交付与停止条件
 
 - 生成音频在收到响应时保存到明确输出目录；回执含路径、格式、字节数、SHA-256。它只证明下载完成，不能证明宿主已经附加或用户已经播放。
 - 已下载但交付失败：保留原 `artifact`，写成 `{"artifact":<原对象>}` 的临时文件，运行 `<执行器> audio-verify --host <原宿主> --request <绝对文件>`。该命令只校验本地文件，不读取凭据或联网；成功后重新附加同一文件。文件丢失／变化则停止，不重新生成。用户要求保存进度时可将回执作为明确工作区文件保存，不记录输入正文或凭据。
 - `not_submitted` 才表示本次未提交。`unknown` 包含网络中断、超时或无法校验的响应，不能推断未处理／未扣费。`accepted` 但文件保存失败也不能自动重发。没有同步结果查询恢复、服务端幂等或退款保证；用户基于“超时没扣费”要求重做时，先纠正误解，再依其知情后的决定执行。
+- 本次 validation + not_submitted 回执按 `validation.field/reason/limit` 精确解释；请求拼装错误可按已明确要求修正再首次提交，改变用户正文／音色／格式／次数则先确认。不要把历史任务当作未提交。
 - 超长文本、过大文件或不支持格式：说明限制和所需选择，不静默截断、改写、转换或拆成更多收费请求。有限批量先说明次数，逐项串行并交付；遇失败停止，用户明确继续仅处理未尝试项，未知项不自动重做。
 - 本地 profile 不是当前权限或价格承诺。未列出的模型、音色、实时／克隆接口不试探；`stepaudio-3-tts` 尚无本 Skill 审核音色，不自动继承其他模型音色。网关把部分 ASR 的 SSE 聚合成 JSON，不要求宿主自行解析供应商流。
 - 失败只展示受控类别、阶段及下一步；不展示原始响应、请求体、内部地址或上传录音。不把转写或音频结果写进支持摘要。诊断细节按需读 `references/execution-contract.json` 与 `references/behavior-scenarios.json`。

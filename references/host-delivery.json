@@ -1,0 +1,81 @@
+{
+  "$schema": "https://puretokensx.com/schemas/host-delivery.schema.json",
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-11",
+  "scope": "delivery_guidance_not_real_host_acceptance",
+  "defaultProtocol": "session-native",
+  "ordinaryGenerationPreflight": false,
+  "unknownMeansUnsupported": false,
+  "nativeFileRequired": true,
+  "protocols": [
+    {
+      "id": "session-native",
+      "title": "当前会话声明的原生文件交付",
+      "modes": ["desktop-local", "ide-local", "cli-local", "remote"],
+      "media": ["image", "video", "audio"],
+      "requirement": "当前会话已有工具或宿主说明明确支持该类本地文件；不假设每个终端、插件或聊天面板都能渲染附件。",
+      "action": "按当前工具的实际参数传入执行器校验后的绝对路径，或采用宿主明确声明的本地媒体格式。只发送已有文件，不重下、不转换、不安装插件或另接传输。",
+      "confirmation": "原生工具确认接收，或宿主明确规定该媒体项发送成功即完成文件交接，才记录已交付；仅返回本地路径、打印标签或读取文件给模型看不算。",
+      "evidenceKind": "current_session_contract",
+      "evidence": "依据当前会话实际提供的工具 schema 与宿主指令；注册表、目录、init 和下载成功均不能代替。",
+      "sources": []
+    },
+    {
+      "id": "codex-desktop-local-media",
+      "title": "Codex Desktop 的本地媒体消息",
+      "modes": ["desktop-local"],
+      "media": ["image", "video", "audio"],
+      "requirement": "当前 Codex Desktop 会话明确声明以 Markdown 图片语法展示本地图片、视频或音频；这是当前应用的条件协议，不推广至 Codex CLI、IDE 或远程执行模式。",
+      "action": "在用户可见回复中发出 ![图片](/absolute/output.png)、![视频](/absolute/output.mp4) 或 ![音频](/absolute/output.mp3)，路径必须来自本次已校验结果，使用真实绝对路径；有原生预览或附件工具时按其 schema 使用。",
+      "confirmation": "先发送当前应用声明支持的媒体项，再按该协议判断是否完成交接；不能在尚未发送回复时预先标记 delivered，也不能据此声称用户已经打开或播放。",
+      "evidenceKind": "current_session_contract",
+      "evidence": "Codex Desktop 当前会话注入的 Images/Visuals/Files 协议；未得到这一声明的会话使用通用原生文件协议。公开通用文档不作为此格式的静态保证。",
+      "sources": []
+    },
+    {
+      "id": "vscode-artifacts",
+      "title": "VS Code 的原生 artifacts 工具",
+      "modes": ["ide-local"],
+      "media": ["image", "video"],
+      "requirement": "当前聊天确实提供 artifacts 工具且接受当前工作区的本地文件。官方页面将其标为 Preview；功能入口或工具不可用时，不虚构调用。",
+      "action": "按实际工具 schema 提交校验后的本地图片或视频。工具每次更新会替换当前 artifacts 列表，更新时保留本次任务已经展示的其他文件；不把用户输入图片功能当作输出交付能力。",
+      "confirmation": "以工具确认文件已进入 artifacts／媒体展示为交接依据；聊天中的裸路径和未验证预览不算。音频仍使用当前会话明确提供的原生能力，不能从图片／视频文档推断。",
+      "evidenceKind": "official_documentation",
+      "evidence": "VS Code 官方 Artifacts 页面：图片和视频 carousel、内置 artifacts 工具、每次更新替换列表。文档说明不是本项目实机验收。",
+      "sources": ["https://code.visualstudio.com/docs/agents/run/artifacts"]
+    },
+    {
+      "id": "claude-desktop-preview-entry",
+      "title": "Claude Desktop 的本地媒体预览入口",
+      "modes": ["desktop-local"],
+      "media": ["image", "video"],
+      "requirement": "当前是 Claude Desktop 本地 Code 会话。官方文档只声明用户点击聊天中的本地图片／视频路径可在 Browser pane 打开。",
+      "action": "可提供已校验文件的本地入口供用户点击；如当前会话另有原生附件工具，优先按通用协议交付。只靠文件入口不能承诺聊天已附加媒体，音频能力不从这段文档推断。",
+      "confirmation": "文件入口本身不完成附件交付，不据此执行 delivered。只有当前宿主确认实际文件交接，或用户明确确认该原文件已经收到，才更新交付记录；不代用户控制浏览器验证。",
+      "evidenceKind": "official_documentation",
+      "evidence": "Claude Code Desktop 官方 Preview your app：点击图片／视频文件路径打开预览。该入口不是新的 API 传输或本项目附件验收。",
+      "sources": ["https://code.claude.com/docs/en/desktop#preview-your-app"]
+    }
+  ],
+  "hosts": [
+    { "id": "claude-code", "protocols": ["session-native"] },
+    { "id": "codex", "protocols": ["codex-desktop-local-media", "session-native"] },
+    { "id": "workbuddy", "protocols": ["session-native"] },
+    { "id": "gemini-cli", "protocols": ["session-native"] },
+    { "id": "grok-build", "protocols": ["session-native"] },
+    { "id": "opencode", "protocols": ["session-native"] },
+    { "id": "trae", "protocols": ["session-native"] },
+    { "id": "claude-desktop", "protocols": ["claude-desktop-preview-entry", "session-native"] },
+    { "id": "dsh-desktop", "protocols": ["session-native"] },
+    { "id": "deepseek-harness", "protocols": ["session-native"] },
+    { "id": "minimax-code", "protocols": ["session-native"] },
+    { "id": "zcode", "protocols": ["session-native"] },
+    { "id": "kimi-code", "protocols": ["session-native"] },
+    { "id": "qoder", "protocols": ["session-native"] },
+    { "id": "pi", "protocols": ["session-native"] },
+    { "id": "hermes", "protocols": ["session-native"] },
+    { "id": "evox", "protocols": ["session-native"] },
+    { "id": "vscode", "protocols": ["vscode-artifacts", "session-native"] },
+    { "id": "octop", "protocols": ["session-native"] }
+  ]
+}

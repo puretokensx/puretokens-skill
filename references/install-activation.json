@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "default": {
+    "activation": "Follow this client's Skill loading controls, then start a new conversation. Loading has not been verified in this session.",
+    "apiSupport": "implementation_available",
+    "examples": ["Generate an image of a lake at sunset.", "Generate a 5-second video of a paper boat on a river."]
+  },
+  "hosts": {
+    "zcode": {
+      "activation": "Refresh and enable the installed Skills in ZCode, then start a new conversation. Loading has not been verified in this session.",
+      "evidence": "references/desktop-hosts.md#zcode"
+    },
+    "trae": {
+      "activation": "This is a historical installation directory; Skill discovery in current TraeWork is not confirmed.",
+      "apiSupport": "unsupported",
+      "examples": [],
+      "evidence": "references/switch-skill-compatibility.md#trae"
+    }
+  }
+}

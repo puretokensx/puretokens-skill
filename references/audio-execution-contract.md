@@ -29,6 +29,13 @@ Sound sends only `model`, `instruction` (max 500), `response_format`, fixed
 It does not send local paths, original filenames or upload to another service.
 The request file is bounded to 64 KiB; no implicit paid chunking or conversion.
 
+Local request errors include a controlled `validation` object (`field`, `reason`,
+optional numeric `limit`). It never echoes input values, paths or unknown field
+names. `not_submitted` permits correcting a construction error before the first
+POST, but never silent truncation, voice substitution or extra paid chunks.
+Combining speech and music produces independent files; a required mixed track
+needs clarification before either paid operation because mixing is unsupported.
+
 `runtime/executor/audio-profiles.json` is the reviewed source embedded in the
 executor. `npm run docs:sync-guidance` generates the installed compact index and
 one file per model. Changes to voices, fields, limits or IDs must synchronize

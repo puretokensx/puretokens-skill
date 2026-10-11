@@ -108,9 +108,10 @@
   "contentRetrieval": {
     "fetchOnlyAfterTerminalSuccess": true,
     "oneInFlightContentReadPerTask": true,
-    "neverPrefetchOrRefetchDeliveredContent": true,
     "handoffBeforeNextContentRead": true,
-    "existingOutputReuse": "explicit_record_matching_sha256_bytes_media_type_only_otherwise_preserve_and_choose_another_directory"
+    "existingOutputReuse": "explicit_record_matching_sha256_bytes_media_type_only_otherwise_preserve_and_choose_another_directory",
+    "neverAutomaticallyPrefetchOrRefetchDeliveredContent": true,
+    "explicitRedelivery": "user_requested_same_task_index_verify_local_first_otherwise_content_get_never_post_preserve_historical_delivery"
   },
   "parameterValidation": {
     "defaultModel": "minimax_h3",
@@ -201,10 +202,11 @@
         "authentication_or_permission_denial",
         "balance_or_quota",
         "rate_limit",
-        "content_rejection"
+        "content_rejection",
+        "legacy_terminal_failure_cause_unknown"
       ],
       "candidateEvidence": "same_current_connection_authenticated_catalog_and_executor_supported_profile_matching_all_required_inputs",
-      "catalogRead": "reuse_valid_current_evidence_or_one_post_rejection_query_otherwise_require_explicit_discovery_request",
+      "catalogRead": "reuse_current_evidence_or_one_necessary_read_after_model_rejection_or_confirmed_unblocked_terminal_failure_with_user_continuation_intent",
       "visibilityIsNotPermissionOrHealthProof": true,
       "preservesPromptMediaAndRequiredCapabilities": true,
       "requiresExplicitNewTaskConsent": true,
@@ -255,6 +257,7 @@
       "wait",
       "resume",
       "content",
+      "redeliver",
       "delivered"
     ],
     "preserves": [
@@ -270,7 +273,9 @@
       "delivered_indexes",
       "retry_not_before",
       "reconciliation_required",
-      "wait_windows_completed"
+      "wait_windows_completed",
+      "last_failure",
+      "pending_redelivery_index"
     ],
     "excludes": [
       "credentials",
@@ -288,6 +293,8 @@
     ],
     "reuseRequiresMatchingProof": true,
     "legacyRecordWithoutProof": "continue_same_task_but_download_into_another_directory_before_handoff",
-    "unknownSubmissionNeverResubmits": true
+    "unknownSubmissionNeverResubmits": true,
+    "failureClassification": "reviewed_terminal_failure_only_no_raw_errors_legacy_reason_unknown",
+    "redelivery": "explicit_same_task_index_local_proof_first_never_submit_ack_after_new_handoff"
   }
 }

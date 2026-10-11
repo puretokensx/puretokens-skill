@@ -5,7 +5,7 @@ description: 当前宿主使用 Pure Tokens 连接，用户要求用 Jev／JEV�
 
 # Pure Tokens Evaluate
 
-宿主绑定与本地失败停止：首次调用前根据当前应用或用户明确指定确定一个 host；本次任务所有 Skill 和执行器命令沿用该 host，不从安装目录推断宿主。任何命令返回 `active_connection_*`、`workbuddy_*` 或 `host_credential_adapter_unavailable` 本地失败时，立即停止本次 API 流程并返回脱敏说明；不得自动调用 puretokens-connection、init、doctor、models 或其他 Skill 重复探测，不得枚举、更换 `--host` 或借用其他客户端凭据。保留用户原任务和已有 task ID；本次调用未发请求不代表此前没有提交任务，不自动重提。只有用户明确要求重查或出现可验证的新诊断依据时，才在原 host 做一次相应检查；“继续生成”本身不是切换宿主或重复探测的授权。改变执行宿主必须有用户明确指定，不能把失败恢复当作指定。
+宿主绑定与本地失败停止：首次调用前按当前应用或用户明确指定绑定一个 host，全部命令沿用，不从安装目录推断。`active_connection_*`、`workbuddy_*` 或 `host_credential_adapter_unavailable` 本地失败后停止 API 流程，保留用户原任务和已有 task ID；不得自动调用 puretokens-connection、init、doctor、models 或其他 Skill 探测，不得枚举、更换 `--host` 或借用凭据。仅用户明确重查或有可验证的新依据时，在原 host 检查一次；换宿主须用户明确指定。“继续生成”本身不是重查、换宿主或重提授权；本次未发送不代表此前未提交。
 
 ## 适用范围
 
@@ -35,7 +35,7 @@ description: 当前宿主使用 Pure Tokens 连接，用户要求用 Jev／JEV�
 4. 从本 SKILL.md 绝对目录解析 `../.puretokens-executor/puretokens-api`，Windows 为 `puretokens-api.exe`。执行 `<执行器> evaluate --host <当前宿主> --request <绝对请求文件>`，随后清理本次临时文件。提示词、state 和凭据不进命令行。
 5. 执行器同步等待最多 90 秒，仅 POST 一次到 `https://api.puretokensx.com/typesafe/v1/systemone`。`next_step=done` 才展示成功结果；失败按回执停止。没有 task_id、wait、resume 或 content，不追加查询或下载。
 
-必须使用安装的原生执行器；它是唯一 API 传输。仅执行器在内存中使用当前宿主匹配连接，不读／展示宿主配置、不索取另一套 Key，不新增 Node、Python、SDK、MCP、代理、浏览器或其他 Skill 作为回退。当前宿主 ID 为 claude-code、codex、workbuddy、gemini-cli、grok-build、opencode、trae、claude-desktop、dsh-desktop、deepseek-harness、minimax-code、zcode、kimi-code、qoder、pi、hermes、evox、vscode、octop。
+必须使用安装的原生执行器；它是唯一 API 传输。仅执行器在内存中使用当前宿主匹配连接，不读／展示宿主配置、不索取另一套 Key，不新增 Node、Python、SDK、MCP、代理、浏览器或其他 Skill 作为回退。沿用当前已绑定的 host；宿主与模式说明见 [客户端交付](references/host-delivery.md)。Jev 直接展示文本或结构化结果，不要求媒体附件工具。
 
 ## 结果与停止条件
 

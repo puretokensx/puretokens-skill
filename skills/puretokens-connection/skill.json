@@ -126,5 +126,5 @@
     "doesNotUseMcpOrFallbackTransport": true,
     "identityDoesNotVerifyCredentials": true
   },
-  "sourceSha256": "3c913e90df4a2be4c23177f2f5fa15c3a048c83e065696ecb2ef85c042af2e47"
+  "sourceSha256": "8b915aefb49a386f73abbec80731c552b9a39e474b74674df33c3abf2e2cb5ce"
 }

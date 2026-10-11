@@ -135,6 +135,51 @@
       "minLength": 1,
       "maxLength": 2000,
       "pattern": "\\S"
+    },
+    "validation": {
+      "type": "object",
+      "required": [
+        "field",
+        "reason"
+      ],
+      "properties": {
+        "field": {
+          "enum": [
+            "request",
+            "model",
+            "operation",
+            "input",
+            "voice",
+            "speed",
+            "instruction",
+            "response_format",
+            "file",
+            "output_dir"
+          ]
+        },
+        "reason": {
+          "enum": [
+            "invalid_json",
+            "invalid_type",
+            "unsupported",
+            "model_mismatch",
+            "required",
+            "max_characters",
+            "out_of_range",
+            "absolute_path_required",
+            "undeclared_field"
+          ]
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65536
+        }
+      },
+      "additionalProperties": false
+    },
+    "timings_ms": {
+      "$ref": "timings.schema.json"
     }
   },
   "allOf": [
@@ -408,6 +453,32 @@
               "unknown",
               "rejected"
             ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "validation"
+        ]
+      },
+      "then": {
+        "properties": {
+          "ok": {
+            "const": false
+          },
+          "command": {
+            "const": "audio"
+          },
+          "failure_phase": {
+            "const": "validation"
+          },
+          "submission_outcome": {
+            "const": "not_submitted"
+          },
+          "local_error_code": {
+            "const": "audio_request_invalid"
           }
         }
       }

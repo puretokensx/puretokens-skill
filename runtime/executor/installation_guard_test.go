@@ -2,10 +2,116 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
 )
+
+func TestInstallationInspectReportsBoundedRelativeDifferences(t *testing.T) {
+	root := t.TempDir()
+	dir := filepath.Join(root, "puretokens-image")
+	os.Mkdir(dir, 0700)
+	os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte("original"), 0600)
+	os.WriteFile(filepath.Join(dir, "missing.md"), []byte("original"), 0600)
+	writeInventoryFixture(t, dir, "puretokens-image")
+	os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte("private content never printed"), 0600)
+	os.Remove(filepath.Join(dir, "missing.md"))
+	os.WriteFile(filepath.Join(dir, ".DS_Store"), []byte("private finder bytes"), 0600)
+	os.Mkdir(filepath.Join(root, ".puretokens-skill-stage.interrupted"), 0700)
+	var output bytes.Buffer
+	if err := runInstallationGuard([]string{"install-inspect", "--directory", root}, &output); err != nil {
+		t.Fatal(err)
+	}
+	var result installationInspection
+	if err := json.Unmarshal(output.Bytes(), &result); err != nil {
+		t.Fatal(err)
+	}
+	seen := map[string]bool{}
+	for _, finding := range result.Findings {
+		seen[finding.Category+":"+finding.Path] = true
+	}
+	for _, want := range []string{"modified:puretokens-image/SKILL.md", "missing:puretokens-image/missing.md", "additional:puretokens-image/.DS_Store", "transaction:.puretokens-skill-stage.interrupted"} {
+		if !seen[want] {
+			t.Errorf("missing finding %s: %s", want, output.String())
+		}
+	}
+	if bytes.Contains(output.Bytes(), []byte(root)) || bytes.Contains(output.Bytes(), []byte("private")) {
+		t.Fatal("private data disclosed")
+	}
+}
+
+func TestInstallationRepairOnlyAllowsMissingManagedFiles(t *testing.T) {
+	for _, change := range []string{"missing", "modified", "additional", "marker", "symlink"} {
+		t.Run(change, func(t *testing.T) {
+			dir := t.TempDir()
+			os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte("original"), 0600)
+			writeInventoryFixture(t, dir, "puretokens-image")
+			switch change {
+			case "missing":
+				os.Remove(filepath.Join(dir, "SKILL.md"))
+			case "modified":
+				os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte("custom"), 0600)
+			case "additional":
+				os.WriteFile(filepath.Join(dir, "mine.txt"), []byte("custom"), 0600)
+			case "marker":
+				os.Remove(filepath.Join(dir, inventoryFile))
+			case "symlink":
+				if os.Symlink("SKILL.md", filepath.Join(dir, "link")) != nil {
+					t.Skip("symlinks unavailable")
+				}
+			}
+			var output bytes.Buffer
+			err := runInstallationGuard([]string{"install-repair-verify", "--directory", dir, "--name", "puretokens-image"}, &output)
+			if (err == nil) != (change == "missing") {
+				t.Fatalf("%s: %v", change, err)
+			}
+		})
+	}
+}
+
+func TestInstallationTransactionVerifiesAllCopiesBeforeRecovery(t *testing.T) {
+	for _, change := range []string{"none", "backup", "target", "unknown", "duplicate-plan", "symlink", "unplanned-backup"} {
+		t.Run(change, func(t *testing.T) {
+			root := t.TempDir()
+			stage := filepath.Join(root, ".puretokens-skill-stage.test")
+			os.MkdirAll(filepath.Join(stage, "backup"), 0700)
+			os.WriteFile(filepath.Join(stage, "transaction-v1"), nil, 0600)
+			os.WriteFile(filepath.Join(stage, "plan"), []byte("replace puretokens-image\n"), 0600)
+			for _, base := range []string{root, filepath.Join(stage, "backup")} {
+				dir := filepath.Join(base, "puretokens-image")
+				os.Mkdir(dir, 0700)
+				os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte("original"), 0600)
+				writeInventoryFixture(t, dir, "puretokens-image")
+			}
+			switch change {
+			case "backup":
+				os.WriteFile(filepath.Join(stage, "backup/puretokens-image/SKILL.md"), []byte("keep"), 0600)
+			case "target":
+				os.WriteFile(filepath.Join(root, "puretokens-image/my.txt"), []byte("keep"), 0600)
+			case "unknown":
+				os.WriteFile(filepath.Join(stage, "my.txt"), []byte("keep"), 0600)
+			case "duplicate-plan":
+				os.WriteFile(filepath.Join(stage, "plan"), []byte("replace puretokens-image\nreplace puretokens-image\n"), 0600)
+			case "symlink":
+				os.Remove(filepath.Join(stage, "plan"))
+				if os.Symlink(filepath.Join(root, "puretokens-image/SKILL.md"), filepath.Join(stage, "plan")) != nil {
+					t.Skip("symlinks unavailable")
+				}
+			case "unplanned-backup":
+				dir := filepath.Join(stage, "backup/puretokens-video")
+				os.Mkdir(dir, 0700)
+				os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte("keep"), 0600)
+				writeInventoryFixture(t, dir, "puretokens-video")
+			}
+			var output bytes.Buffer
+			err := runInstallationGuard([]string{"install-transaction-verify", "--directory", stage, "--target-directory", root}, &output)
+			if (err == nil) != (change == "none") {
+				t.Fatalf("%s: %v", change, err)
+			}
+		})
+	}
+}
 
 func writeInventoryFixture(t *testing.T, directory, name string) {
 	t.Helper()
@@ -15,6 +121,84 @@ func writeInventoryFixture(t *testing.T, directory, name string) {
 	}
 	if err := os.WriteFile(filepath.Join(directory, inventoryFile), out.Bytes(), 0600); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestInterruptedRepairAcceptsOnlyMissingOriginalTargets(t *testing.T) {
+	for _, state := range []string{"before-move", "after-rollback", "changed-original", "missing-new-target", "ordinary-update"} {
+		t.Run(state, func(t *testing.T) {
+			root := t.TempDir()
+			name := "puretokens-image"
+			stage := filepath.Join(root, ".puretokens-skill-stage.repair")
+			os.MkdirAll(filepath.Join(stage, "backup"), 0700)
+			os.WriteFile(filepath.Join(stage, "transaction-v1"), nil, 0600)
+			if state != "ordinary-update" {
+				os.WriteFile(filepath.Join(stage, "repair-v1"), nil, 0600)
+			}
+			os.WriteFile(filepath.Join(stage, "plan"), []byte("replace "+name+"\n"), 0600)
+			for _, base := range []string{root, stage} {
+				dir := filepath.Join(base, name)
+				os.Mkdir(dir, 0700)
+				os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte("original"), 0600)
+				os.WriteFile(filepath.Join(dir, "guide.md"), []byte("guide"), 0600)
+				writeInventoryFixture(t, dir, name)
+			}
+			os.Remove(filepath.Join(root, name, "guide.md"))
+			switch state {
+			case "after-rollback":
+				os.RemoveAll(filepath.Join(stage, name))
+			case "changed-original":
+				os.WriteFile(filepath.Join(root, name, "SKILL.md"), []byte("keep my changes"), 0600)
+			case "missing-new-target":
+				os.Rename(filepath.Join(stage, name), filepath.Join(stage, "backup", name))
+			}
+			err := verifyInstallationTransaction(stage, root, "")
+			wantValid := state == "before-move" || state == "after-rollback"
+			if (err == nil) != wantValid {
+				t.Fatalf("%s: %v", state, err)
+			}
+		})
+	}
+}
+
+func TestInstallationInventoryAcceptsPowerShellUTF8BOM(t *testing.T) {
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte("original"), 0600)
+	writeInventoryFixture(t, dir, "puretokens-image")
+	marker := filepath.Join(dir, inventoryFile)
+	body, err := os.ReadFile(marker)
+	if err != nil {
+		t.Fatal(err)
+	}
+	os.WriteFile(marker, append([]byte{0xef, 0xbb, 0xbf}, body...), 0600)
+	for _, command := range []string{"install-verify", "install-repair-verify"} {
+		var output bytes.Buffer
+		if err := runInstallationGuard([]string{command, "--directory", dir, "--name", "puretokens-image"}, &output); err != nil {
+			t.Fatalf("%s: %v", command, err)
+		}
+	}
+}
+
+func TestInstallationTransactionAdoptsOnlyExactExplicitSource(t *testing.T) {
+	root, source := t.TempDir(), t.TempDir()
+	name := "puretokens-image"
+	stage := filepath.Join(root, ".puretokens-skill-stage.legacy")
+	backup := filepath.Join(stage, "backup", name)
+	for _, dir := range []string{backup, filepath.Join(source, "skills", name)} {
+		os.MkdirAll(dir, 0700)
+		os.WriteFile(filepath.Join(dir, "SKILL.md"), []byte("official"), 0600)
+	}
+	os.WriteFile(filepath.Join(stage, "transaction-v1"), nil, 0600)
+	os.WriteFile(filepath.Join(stage, "plan"), []byte("replace "+name+"\n"), 0600)
+	if verifyInstallationTransaction(stage, root, "") == nil {
+		t.Fatal("unmarked backup accepted without explicit source")
+	}
+	if err := verifyInstallationTransaction(stage, root, source); err != nil {
+		t.Fatalf("verified exact legacy source was rejected: %v", err)
+	}
+	os.WriteFile(filepath.Join(backup, "SKILL.md"), []byte("keep my changes"), 0600)
+	if verifyInstallationTransaction(stage, root, source) == nil {
+		t.Fatal("changed legacy backup accepted")
 	}
 }
 

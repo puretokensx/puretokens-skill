@@ -1,11 +1,11 @@
 ---
 name: puretokens-connection
-description: 用户询问固定 Pure Tokens API 公开身份或一般连接检查时使用；认证初始化和安装诊断使用 puretokens-update。
+description: 用户询问 Pure Tokens API 的服务身份或公开标识时使用；检查当前连接能否使用、验证认证和安装诊断使用 puretokens-update。
 ---
 
 # Pure Tokens Connection
 
-宿主绑定与本地失败停止：首次调用前根据当前应用或用户明确指定确定一个 host；本次任务所有 Skill 和执行器命令沿用该 host，不从安装目录推断宿主。任何命令返回 `active_connection_*`、`workbuddy_*` 或 `host_credential_adapter_unavailable` 本地失败时，立即停止本次 API 流程并返回脱敏说明；不得自动调用 puretokens-connection、init、doctor、models 或其他 Skill 重复探测，不得枚举、更换 `--host` 或借用其他客户端凭据。保留用户原任务和已有 task ID；本次调用未发请求不代表此前没有提交任务，不自动重提。只有用户明确要求重查或出现可验证的新诊断依据时，才在原 host 做一次相应检查；“继续生成”本身不是切换宿主或重复探测的授权。改变执行宿主必须有用户明确指定，不能把失败恢复当作指定。
+宿主绑定与本地失败停止：首次调用前按当前应用或用户明确指定绑定一个 host，全部命令沿用，不从安装目录推断。`active_connection_*`、`workbuddy_*` 或 `host_credential_adapter_unavailable` 本地失败后停止 API 流程，保留用户原任务和已有 task ID；不得自动调用 puretokens-connection、init、doctor、models 或其他 Skill 探测，不得枚举、更换 `--host` 或借用凭据。仅用户明确重查或有可验证的新依据时，在原 host 检查一次；换宿主须用户明确指定。“继续生成”本身不是重查、换宿主或重提授权；本次未发送不代表此前未提交。
 
 通过安装的单次 Go 执行器查询固定 API 公开身份。从当前 SKILL.md 的绝对目录解析同级 `../.puretokens-executor/puretokens-api`；Windows 使用 `puretokens-api.exe`，不要依赖工作目录或 PATH。调用 `<绝对执行器路径> connection --host <当前宿主 ID>`。仅执行器私密读取文档列出的当前宿主明确连接记录；凭据格式夹具通过不代表项目／会话覆盖或真实宿主端到端验收。Skill 不读取配置、不传 Key／Base URL，不自行 HTTP，也不使用其他传输。
 
@@ -17,7 +17,7 @@ description: 用户询问固定 Pure Tokens API 公开身份或一般连接检�
 
 ## 身份检查
 
-- “检查当前 Pure Tokens 连接”默认指本页的公开身份检查，不证明凭据认证；用户明确要求初始化或验证认证时使用 puretokens-update 的 init，不先执行 connection 再重复 init。安装故障使用 doctor，用法问题只读本地指南。
+- “这个服务是谁／是不是 Pure Tokens API”使用本页的公开身份检查；“检查当前连接／我的连接还能用吗／能否认证”使用 puretokens-update 的有界 init，检查身份与认证。一个意图只选一个入口，不先执行 connection 再重复 init。安装故障使用对应诊断，用法问题只读本地指南。
 - 每次用户查询只调用一次 `GET https://api.puretokensx.com/v1`；不得调用模型目录、Images、Videos、余额、任务或其他路径，也不得重试。
 - 只有响应 JSON 同时明确返回 `status: "ok"`、`name: "Pure Tokens API"`、`base_url: "/v1"` 时，才回答：`固定 API 返回了 Pure Tokens API 的公开身份标识；此检查未验证凭据、余额、模型权限或媒体可用性。`
 - 响应不可读、字段缺失、值不匹配或请求失败时，只能回答：`固定 Pure Tokens API 未返回可确认的标识，当前无法完成检查。` 不得把该结果归因于用户 Base URL、API Key 或 provider 配置，也不得读取或要求用户粘贴它们。

@@ -196,10 +196,11 @@
         "authentication_or_permission_denial",
         "balance_or_quota",
         "rate_limit",
-        "content_rejection"
+        "content_rejection",
+        "legacy_terminal_failure_cause_unknown"
       ],
       "candidateEvidence": "same_current_connection_authenticated_catalog_and_executor_supported_profile_matching_all_required_inputs",
-      "catalogRead": "reuse_valid_current_evidence_or_one_post_rejection_query_otherwise_require_explicit_discovery_request",
+      "catalogRead": "reuse_current_evidence_or_one_necessary_read_after_model_rejection_or_confirmed_unblocked_terminal_failure_with_user_continuation_intent",
       "visibilityIsNotPermissionOrHealthProof": true,
       "preservesPromptMediaAndRequiredCapabilities": true,
       "requiresExplicitNewTaskConsent": true,
@@ -207,7 +208,8 @@
       "automaticModelSwitch": false,
       "taskIdentity": "one_new_submission_with_new_task_identity_and_separate_record_preserving_original",
       "noAutomaticModelRotation": true
-    }
+    },
+    "terminalFailureRecovery": "persist_only_reviewed_terminal_failure_category_phase_status_and_optional_public_code_never_infer_missing_legacy_cause"
   },
   "mediaDeliveryResourceBounds": {
     "oneInFlightStatusReadPerTask": true,
@@ -215,14 +217,15 @@
     "readContentOnlyAfterTerminalSuccess": true,
     "oneInFlightContentReadPerTask": true,
     "sequentialImageContentIndexes": true,
-    "neverPrefetchOrRefetchDeliveredContent": true,
     "handoffNativeBytesBeforeNextRead": true,
     "doesNotPersistMediaBytesInSkillStateOrLogs": true,
     "confirmedDeliveryEndsCurrentResponse": true,
     "pngJpegValidation": "bounded_standard_decoder_checks_pixel_payload_before_download_success_and_proof_reuse",
     "maxPngJpegDecodedPixels": 33554432,
     "webpValidation": "complete_container_and_nonempty_frame_payload_checks_not_full_codec_decode",
-    "fallback": "If the executor cannot hand off validated native media bytes, report same-task delivery as unavailable. Do not substitute a URL, HTML, SVG, status text, or a re-submitted task."
+    "fallback": "If the executor cannot hand off validated native media bytes, report same-task delivery as unavailable. Do not substitute a URL, HTML, SVG, status text, or a re-submitted task.",
+    "neverAutomaticallyPrefetchOrRefetchDeliveredContent": true,
+    "explicitRedelivery": "user_requested_same_task_index_verify_local_first_otherwise_content_get_never_post_preserve_historical_delivery"
   },
   "balance": {
     "url": "https://console.puretokensx.com/api/product/console/api-keys/usage",

@@ -3,39 +3,306 @@
   "$id": "https://puretokensx.com/schemas/support-summary.schema.json",
   "title": "Local allowlisted support summary for one executor invocation",
   "type": "object",
-  "required": ["format", "executor_version", "os", "arch", "observed_at", "ok", "api_request_attempted"],
+  "required": [
+    "format",
+    "executor_version",
+    "os",
+    "arch",
+    "observed_at",
+    "ok",
+    "api_request_attempted"
+  ],
   "properties": {
-    "format": {"const": "puretokens-support-v1"},
-    "executor_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
-    "os": {"enum": ["darwin", "linux", "windows"]},
-    "arch": {"enum": ["amd64", "arm64"]},
-    "observed_at": {"type": "string", "format": "date-time"},
-    "ok": {"type": "boolean"},
-    "api_request_attempted": {"type": "boolean", "description": "The HTTP client was invoked; this does not prove server receipt, authentication, task acceptance or billing."},
-    "host": {"enum": ["codex", "claude-code", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop"]},
-    "command": {"enum": ["init", "doctor", "connection", "balance", "models", "preflight", "submit", "status", "wait", "content", "resume", "delivered", "evaluate", "audio", "audio-verify", "model-groups"]},
-    "request_phase": {"enum": ["identity", "catalog", "balance_usage", "balance_metadata", "submission", "status", "content"]},
-    "http_status": {"type": "integer", "minimum": 100, "maximum": 599},
-    "request_id": {"type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", "description": "Validated gateway correlation for the latest HTTP attempt, never a task ID or idempotency key."},
-    "task_id": {"type": "string", "pattern": "^[A-Za-z0-9_-][A-Za-z0-9._:-]{0,255}$(?![\\s\\S])"},
-    "kind": {"enum": ["image", "video", "music"]},
-    "failure_phase": {"enum": ["validation", "submission", "status", "content"]},
-    "submission_outcome": {"enum": ["accepted", "rejected", "unknown", "not_submitted"]},
-    "next_step": {"enum": ["wait", "content", "deliver", "await_user", "done"]},
-    "status": {"enum": ["pending", "queued", "processing", "running", "in_progress", "completed", "succeeded", "success", "failed", "cancelled", "canceled", "expired", "error", "unknown"]},
-    "reconciliation_required": {"type": "boolean"},
-    "api_error_code": {"enum": ["invalid_request", "invalid_request_error", "invalid_parameter", "unsupported_parameter", "unsupported_operation", "model_not_found", "model_not_allowed", "content_policy_violation", "content_moderation", "moderation_blocked", "auth_required", "invalid_api_key", "authentication_error", "permission_denied", "query_denied", "insufficient_quota", "insufficient_balance", "rate_limit", "rate_limited", "rate_limit_exceeded", "upstream_unavailable", "service_unavailable", "internal_error", "task_not_found", "task_expired"]},
-    "local_error_code": {"enum": ["active_connection_endpoint_missing", "active_connection_endpoint_unsupported", "active_connection_not_puretokens", "active_connection_unavailable", "active_connection_credential_missing", "active_connection_format_unsupported", "active_connection_selection_unconfirmed", "host_credential_adapter_unavailable", "active_connection_record_missing", "active_connection_ambiguous", "workbuddy_record_format_unsupported", "workbuddy_connection_not_found", "workbuddy_record_missing", "workbuddy_record_unreadable", "workbuddy_connection_ambiguous", "workbuddy_credential_missing", "balance_usage_unavailable", "balance_usage_auth_rejected", "balance_unit_metadata_unavailable", "download_integrity_unverified", "task_record_write_failed", "task_record_unavailable", "retry_wait_required", "output_directory_unavailable", "original_count_unknown", "media_download_incomplete", "media_size_limit_exceeded", "invalid_media_content", "output_permission_denied", "media_download_timeout", "output_file_conflict", "api_response_unreadable", "api_network_unavailable", "api_identity_rejected", "api_identity_unreadable", "credential_unverified", "api_identity_unconfirmed", "task_response_unreadable", "task_id_missing", "task_id_invalid", "evaluation_request_invalid", "evaluation_response_invalid", "evaluation_request_failed", "audio_request_invalid", "audio_request_failed", "audio_response_invalid", "audio_output_unavailable", "audio_artifact_invalid", "model_groups_request_invalid", "model_groups_unavailable", "model_groups_response_unreadable"]}
+    "format": {
+      "const": "puretokens-support-v1"
+    },
+    "executor_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "os": {
+      "enum": [
+        "darwin",
+        "linux",
+        "windows"
+      ]
+    },
+    "arch": {
+      "enum": [
+        "amd64",
+        "arm64"
+      ]
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "api_request_attempted": {
+      "type": "boolean",
+      "description": "The HTTP client was invoked; this does not prove server receipt, authentication, task acceptance or billing."
+    },
+    "host": {
+      "enum": [
+        "codex",
+        "claude-code",
+        "workbuddy",
+        "gemini-cli",
+        "grok-build",
+        "opencode",
+        "trae",
+        "claude-desktop",
+        "dsh-desktop",
+        "deepseek-harness",
+        "minimax-code",
+        "zcode",
+        "kimi-code",
+        "qoder",
+        "pi",
+        "hermes",
+        "evox",
+        "vscode",
+        "octop"
+      ]
+    },
+    "command": {
+      "enum": [
+        "init",
+        "doctor",
+        "connection",
+        "balance",
+        "models",
+        "preflight",
+        "submit",
+        "status",
+        "wait",
+        "content",
+        "resume",
+        "delivered",
+        "evaluate",
+        "audio",
+        "audio-verify",
+        "model-groups",
+        "redeliver"
+      ]
+    },
+    "request_phase": {
+      "enum": [
+        "identity",
+        "catalog",
+        "balance_usage",
+        "balance_metadata",
+        "submission",
+        "status",
+        "content"
+      ]
+    },
+    "http_status": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 599
+    },
+    "request_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "description": "Validated gateway correlation for the latest HTTP attempt, never a task ID or idempotency key."
+    },
+    "task_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-][A-Za-z0-9._:-]{0,255}$(?![\\s\\S])"
+    },
+    "kind": {
+      "enum": [
+        "image",
+        "video",
+        "music"
+      ]
+    },
+    "failure_phase": {
+      "enum": [
+        "validation",
+        "submission",
+        "status",
+        "content"
+      ]
+    },
+    "submission_outcome": {
+      "enum": [
+        "accepted",
+        "rejected",
+        "unknown",
+        "not_submitted"
+      ]
+    },
+    "next_step": {
+      "enum": [
+        "wait",
+        "content",
+        "deliver",
+        "await_user",
+        "done"
+      ]
+    },
+    "status": {
+      "enum": [
+        "pending",
+        "queued",
+        "processing",
+        "running",
+        "in_progress",
+        "completed",
+        "succeeded",
+        "success",
+        "failed",
+        "cancelled",
+        "canceled",
+        "expired",
+        "error",
+        "unknown"
+      ]
+    },
+    "reconciliation_required": {
+      "type": "boolean"
+    },
+    "api_error_code": {
+      "enum": [
+        "invalid_request",
+        "invalid_request_error",
+        "invalid_parameter",
+        "unsupported_parameter",
+        "unsupported_operation",
+        "model_not_found",
+        "model_not_allowed",
+        "content_policy_violation",
+        "content_moderation",
+        "moderation_blocked",
+        "auth_required",
+        "invalid_api_key",
+        "authentication_error",
+        "permission_denied",
+        "query_denied",
+        "insufficient_quota",
+        "insufficient_balance",
+        "rate_limit",
+        "rate_limited",
+        "rate_limit_exceeded",
+        "upstream_unavailable",
+        "service_unavailable",
+        "internal_error",
+        "task_not_found",
+        "task_expired"
+      ]
+    },
+    "local_error_code": {
+      "enum": [
+        "active_connection_endpoint_missing",
+        "active_connection_endpoint_unsupported",
+        "active_connection_not_puretokens",
+        "active_connection_unavailable",
+        "active_connection_credential_missing",
+        "active_connection_format_unsupported",
+        "active_connection_selection_unconfirmed",
+        "host_credential_adapter_unavailable",
+        "active_connection_record_missing",
+        "active_connection_ambiguous",
+        "workbuddy_record_format_unsupported",
+        "workbuddy_connection_not_found",
+        "workbuddy_record_missing",
+        "workbuddy_record_unreadable",
+        "workbuddy_connection_ambiguous",
+        "workbuddy_credential_missing",
+        "balance_usage_unavailable",
+        "balance_usage_auth_rejected",
+        "balance_unit_metadata_unavailable",
+        "download_integrity_unverified",
+        "task_record_write_failed",
+        "task_record_unavailable",
+        "retry_wait_required",
+        "output_directory_unavailable",
+        "original_count_unknown",
+        "media_download_incomplete",
+        "media_size_limit_exceeded",
+        "invalid_media_content",
+        "output_permission_denied",
+        "media_download_timeout",
+        "output_file_conflict",
+        "api_response_unreadable",
+        "api_network_unavailable",
+        "api_identity_rejected",
+        "api_identity_unreadable",
+        "credential_unverified",
+        "api_identity_unconfirmed",
+        "task_response_unreadable",
+        "task_id_missing",
+        "task_id_invalid",
+        "evaluation_request_invalid",
+        "evaluation_response_invalid",
+        "evaluation_request_failed",
+        "audio_request_invalid",
+        "audio_request_failed",
+        "audio_response_invalid",
+        "audio_output_unavailable",
+        "audio_artifact_invalid",
+        "model_groups_request_invalid",
+        "model_groups_unavailable",
+        "model_groups_response_unreadable"
+      ]
+    }
   },
   "additionalProperties": false,
   "allOf": [
     {
-      "if": {"properties": {"api_request_attempted": {"const": false}}, "required": ["api_request_attempted"]},
-      "then": {"not": {"anyOf": [{"required": ["request_phase"]}, {"required": ["request_id"]}, {"required": ["http_status"]}]}}
+      "if": {
+        "properties": {
+          "api_request_attempted": {
+            "const": false
+          }
+        },
+        "required": [
+          "api_request_attempted"
+        ]
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "request_phase"
+              ]
+            },
+            {
+              "required": [
+                "request_id"
+              ]
+            },
+            {
+              "required": [
+                "http_status"
+              ]
+            }
+          ]
+        }
+      }
     },
     {
-      "if": {"required": ["request_id"]},
-      "then": {"required": ["http_status", "request_phase"], "properties": {"api_request_attempted": {"const": true}}}
+      "if": {
+        "required": [
+          "request_id"
+        ]
+      },
+      "then": {
+        "required": [
+          "http_status",
+          "request_phase"
+        ],
+        "properties": {
+          "api_request_attempted": {
+            "const": true
+          }
+        }
+      }
     }
   ]
 }

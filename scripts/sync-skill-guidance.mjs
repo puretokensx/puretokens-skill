@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 import { repositoryRoot } from "./skill-registry.mjs";
 import { loadOperationGuidance, renderOperationGuidance, replaceGuidanceBlock } from "./operation-guidance.mjs";
 
+import { loadHostDelivery, renderHostDeliveryGuide } from "./host-delivery-guidance.mjs";
+
 const bindingPattern = /^宿主绑定与本地失败停止：[^\n]+$/gm;
 
 export async function syncSkillGuidance(root, { write = false } = {}) {
@@ -17,6 +19,7 @@ export async function syncSkillGuidance(root, { write = false } = {}) {
   if (source.split("<!-- host-binding -->").length !== 2) throw new Error("Desktop guidance needs one host-binding marker");
   const desktop = source.replace("<!-- host-binding -->", binding);
   const hostList = support.supported.map(host => host.id).join("、");
+  const deliveryGuide = renderHostDeliveryGuide(await loadHostDelivery(root));
   const changed = [];
   const operations = await loadOperationGuidance(root);
   const directContract = JSON.parse(await read("references/direct-api-execution-contract.json"));
@@ -34,6 +37,7 @@ export async function syncSkillGuidance(root, { write = false } = {}) {
       await writeFile(path.join(root, file), next);
     }
   }
+  await output("references/skill-fragments/host-delivery.md", deliveryGuide);
   const audio = JSON.parse(await read("runtime/executor/audio-profiles.json"));
   const audioRoot = "skills/puretokens-audio/references";
   const ids = Object.keys(audio.models);
@@ -85,8 +89,8 @@ export async function syncSkillGuidance(root, { write = false } = {}) {
       await output(`skills/${skill.name}/references/model-groups.md`, await read("references/skill-fragments/model-groups.md"));
     }
     if (["puretokens-image", "puretokens-video", "puretokens-audio", "puretokens-evaluate"].includes(skill.name)) {
-      if (!/当前宿主 ID 为 [^。\n]+。/.test(next)) throw new Error(`${skill.name}: missing host list`);
-      next = next.replace(/当前宿主 ID 为 [^。\n]+。/, `当前宿主 ID 为 ${hostList}。`);
+      await output(`skills/${skill.name}/references/host-delivery.md`, deliveryGuide);
+      if (!next.includes("references/host-delivery.md")) throw new Error(`${skill.name}: missing host delivery guide`);
     }
     if (skill.name === "puretokens-update") {
       if (!/^宿主 ID 为 [^；\n]+；/m.test(next)) throw new Error("Update: missing host list");

@@ -19,11 +19,11 @@
   ],
   "scripts": {
     "list": "node scripts/list-skills.mjs",
-    "validate": "node scripts/validate-skills.mjs && node scripts/sync-skill-guidance.mjs --check && node scripts/sync-skill-model-profiles.mjs --check && node scripts/sync-readme-media-catalog.mjs --check && npm run acceptance:validate && node scripts/executor-build-proof.mjs",
+    "validate": "node scripts/validate-skills.mjs && node scripts/sync-skill-guidance.mjs --check && node scripts/sync-install-activation.mjs --check && node scripts/sync-skill-model-profiles.mjs --check && node scripts/sync-readme-media-catalog.mjs --check && npm run acceptance:validate && node scripts/executor-build-proof.mjs",
     "acceptance:validate": "node scripts/validate-host-acceptance.mjs",
     "release:validate": "npm run validate && node scripts/validate-release-version.mjs && node scripts/check-media-catalog-freshness.mjs --max-age-days 7 && npm run executor:verify",
     "docs:sync-media-models": "node scripts/sync-skill-model-profiles.mjs --write && node scripts/sync-readme-media-catalog.mjs --write",
-    "docs:sync-guidance": "node scripts/sync-skill-guidance.mjs --write",
+    "docs:sync-guidance": "node scripts/sync-skill-guidance.mjs --write && node scripts/sync-install-activation.mjs --write",
     "docs:sync-media-models-from-base-catalog": "node scripts/sync-media-model-catalog-from-service.mjs --write && npm run docs:sync-media-models",
     "docs:sync-media-models-from-service": "npm run docs:sync-media-models-from-base-catalog",
     "test": "node --test",
@@ -32,7 +32,8 @@
     "executor:test": "cd runtime/executor && go test ./... -count=1 && go vet ./...",
     "release:package": "node scripts/package-platform-releases.mjs && npm run release:verify",
     "release:verify": "node scripts/validate-platform-releases.mjs",
-    "executor:verify": "node scripts/executor-build-proof.mjs --rebuild"
+    "executor:verify": "node scripts/executor-build-proof.mjs --rebuild",
+    "eval:agent": "node scripts/agent-eval.mjs"
   },
   "engines": {
     "node": ">=20"

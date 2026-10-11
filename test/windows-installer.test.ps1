@@ -161,8 +161,8 @@ param($Installer, $Target, $Receipt)
 & $Installer init -Target $Target | Set-Content -LiteralPath $Receipt -Encoding UTF8
 '@ | Set-Content -LiteralPath $capture -Encoding ASCII
     & $command.Source -NoProfile -ExecutionPolicy Bypass -File $capture -Installer $installer -Target $engineTarget -Receipt $receipt
-    $expectedHeading = '# Pure Tokens Skill ' + [char]0x4f7f + [char]0x7528 + [char]0x987b + [char]0x77e5
-    if (-not (Get-Content -LiteralPath $receipt -Raw -Encoding UTF8).Contains($expectedHeading)) { throw "$engine did not preserve the UTF-8 usage guide" }
+    $summary = Get-Content -LiteralPath $receipt -Raw -Encoding UTF8
+    if (-not $summary.Contains('Example (not executed):') -or $summary.Length -gt 2200 -or $summary.Contains('## ')) { throw "$engine did not return a compact installation summary" }
     # The documented entry must preserve modifications under either engine.
     $personalFile = Join-Path $engineTarget "puretokens-image/personal.txt"
     "keep my work" | Set-Content -LiteralPath $personalFile -Encoding UTF8
@@ -192,6 +192,25 @@ param($Installer, $Target, $Receipt)
   & $installer sync -Target $target
   if (Test-Path $stage) { throw 'Interrupted transaction not recovered' }
   if (-not (Test-Path (Join-Path $image 'SKILL.md'))) { throw 'Skill missing after recovery' }
+  Remove-Item -LiteralPath (Join-Path $image 'SKILL.md')
+  $inspection = & $binary install-inspect --directory $target | ConvertFrom-Json
+  if (-not @($inspection.findings | Where-Object { $_.category -eq 'missing' -and $_.path -eq 'puretokens-image/SKILL.md' }).Count) { throw 'Missing managed file was not identified' }
+  & $installer repair -Target $target
+  if (-not (Test-Path -LiteralPath (Join-Path $image 'SKILL.md'))) { throw 'Explicit repair did not restore the missing managed file' }
+  # A kill after planning but before moving the original must remain repairable.
+  $stage = Join-Path $target '.puretokens-skill-stage-repair-fixture'
+  New-Item -ItemType Directory (Join-Path $stage 'backup') -Force | Out-Null
+  Copy-Item -LiteralPath $image -Destination (Join-Path $stage 'puretokens-image') -Recurse
+  New-Item -ItemType File (Join-Path $stage 'transaction-v1') | Out-Null
+  New-Item -ItemType File (Join-Path $stage 'repair-v1') | Out-Null
+  '[{"name":"puretokens-image","action":"replace"}]' | Set-Content (Join-Path $stage 'plan.json') -Encoding UTF8
+  Remove-Item -LiteralPath (Join-Path $image 'SKILL.md')
+  & $installer repair -Target $target
+  if ((Test-Path -LiteralPath $stage) -or -not (Test-Path -LiteralPath (Join-Path $image 'SKILL.md'))) { throw 'Interrupted missing-file repair did not complete' }
+  'preserve my edit' | Set-Content -LiteralPath (Join-Path $image 'SKILL.md')
+  $rejected = $false
+  try { & $installer repair -Target $target } catch { $rejected = $true }
+  if (-not $rejected -or -not (Get-Content -LiteralPath (Join-Path $image 'SKILL.md') -Raw).Contains('preserve my edit')) { throw 'Repair overwrote local customization' }
   $unmanaged = Join-Path $root "unmanaged/puretokens-image"
   New-Item -ItemType Directory -Path $unmanaged -Force | Out-Null
   "# Independent Skill" | Set-Content -LiteralPath (Join-Path $unmanaged "SKILL.md")

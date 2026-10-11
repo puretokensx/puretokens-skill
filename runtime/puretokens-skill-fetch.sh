@@ -5,7 +5,7 @@ umask 077
 
 fail() { printf '%s\n' "Pure Tokens Skill download: $*" >&2; exit 1; }
 command_name=${1:-}
-case "$command_name" in check-update|install|update) ;; *) fail "use check-update, install or update with --host or --target" ;; esac
+case "$command_name" in check-update|install|update|repair) ;; *) fail "use check-update, install, update or explicitly requested repair with --host or --target" ;; esac
 shift
 host=
 target=
@@ -101,7 +101,7 @@ executor_checksum=$(json_string "$download_root/platform.json" executorSha256)
 [ "$filename" = "puretokens-skill-$available_version-$platform.zip" ] || fail "published platform metadata is invalid"
 printf '%s\n' "$checksum" | grep -Eq '^[0-9a-f]{64}$' || fail "published platform checksum is invalid"
 printf '%s\n' "$executor_checksum" | grep -Eq '^[0-9a-f]{64}$' || fail "published executor checksum is invalid"
-if [ "$installed_version" = "$available_version" ]; then
+if [ "$installed_version" = "$available_version" ] && [ "$command_name" != repair ]; then
   installed_executor="$target/.puretokens-executor/puretokens-api"
   [ -f "$installed_executor" ] && [ ! -L "$installed_executor" ] || fail "installed executor is missing or unsupported; existing files were preserved"
   [ "$(sha256_file "$installed_executor")" = "$executor_checksum" ] || fail "installed executor checksum mismatch; existing files were preserved"
@@ -131,6 +131,9 @@ source_root="$download_root/unpacked/$archive_root"
 [ "$(json_string "$source_root/package.json" version)" = "$available_version" ] || fail "the archive version does not match the stable release"
 [ "$(sha256_file "$source_root/runtime/puretokens-skill-install.sh")" = "$selector_checksum" ] || fail "archive selector does not match the stable release"
 [ "$(sha256_file "$source_root/runtime/executor/bin/puretokens-api-$platform")" = "$executor_checksum" ] || fail "archive executor does not match the stable release"
-set -- sync --source "$source_root" --target "$target"
+sync_command=sync
+[ "$command_name" != repair ] || sync_command=repair
+set -- "$sync_command" --source "$source_root" --target "$target"
+[ "$command_name" = repair ] || set -- "$@" --no-recovery
 [ -z "$host" ] || set -- "$@" --host "$host"
 sh "$source_root/runtime/puretokens-skill-install.sh" "$@"

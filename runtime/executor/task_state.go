@@ -125,7 +125,7 @@ func safeParameterString(key, text string) bool {
 	patterns := map[string]string{
 		"size":            `^(auto|[1-9][0-9]{0,4}x[1-9][0-9]{0,4})$`,
 		"image_size":      `^[1-9][0-9]?[Kk]$`,
-		"aspect_ratio":    `^(auto|[1-9][0-9]{0,2}:[1-9][0-9]{0,2})$`,
+		"aspect_ratio":    `^(auto|adaptive|[1-9][0-9]{0,2}:[1-9][0-9]{0,2})$`,
 		"resolution":      `^[1-9][0-9]{0,3}[pPkK]$`,
 		"strength":        `^(LOW|MID|HIGH)$`,
 		"quality":         `^(auto|low|medium|high|xhigh|max)$`,
@@ -164,6 +164,7 @@ func applyTaskStatus(result receipt, body []byte, httpStatus int) (receipt, erro
 		return result, errors.New("reconciliation required")
 	}
 	if terminalFailure(state) {
+		result.taskFailureConfirmed = true
 		code, message := publicAPIError(body)
 		if message == "" {
 			message = "The API reported that this task failed."

@@ -1,11 +1,11 @@
 ---
 name: puretokens-update
-description: 用户要求安装、升级、检查版本、初始化并验证认证、诊断安装或了解 Pure Tokens Skills 用法时使用。
+description: 用户要求安装、升级、检查版本、检查当前连接能否使用、初始化并验证认证、诊断安装或了解 Pure Tokens Skills 用法时使用。
 ---
 
 # Pure Tokens Update
 
-宿主绑定与本地失败停止：首次调用前根据当前应用或用户明确指定确定一个 host；本次任务所有 Skill 和执行器命令沿用该 host，不从安装目录推断宿主。任何命令返回 `active_connection_*`、`workbuddy_*` 或 `host_credential_adapter_unavailable` 本地失败时，立即停止本次 API 流程并返回脱敏说明；不得自动调用 puretokens-connection、init、doctor、models 或其他 Skill 重复探测，不得枚举、更换 `--host` 或借用其他客户端凭据。保留用户原任务和已有 task ID；本次调用未发请求不代表此前没有提交任务，不自动重提。只有用户明确要求重查或出现可验证的新诊断依据时，才在原 host 做一次相应检查；“继续生成”本身不是切换宿主或重复探测的授权。改变执行宿主必须有用户明确指定，不能把失败恢复当作指定。
+宿主绑定与本地失败停止：首次调用前按当前应用或用户明确指定绑定一个 host，全部命令沿用，不从安装目录推断。`active_connection_*`、`workbuddy_*` 或 `host_credential_adapter_unavailable` 本地失败后停止 API 流程，保留用户原任务和已有 task ID；不得自动调用 puretokens-connection、init、doctor、models 或其他 Skill 探测，不得枚举、更换 `--host` 或借用凭据。仅用户明确重查或有可验证的新依据时，在原 host 检查一次；换宿主须用户明确指定。“继续生成”本身不是重查、换宿主或重提授权；本次未发送不代表此前未提交。
 
 只响应用户主动的安装、升级、检查或帮助请求。普通媒体生成不自动更新、初始化或诊断。仅问用法时直接读 `references/usage-guide.md` 回答，不运行 init／doctor，不查凭据或访问网络。异常时才读 `references/behavior-scenarios.json`。
 
@@ -34,15 +34,17 @@ Windows 的 install／update 使用相同参数形式替换子命令。Execution
 
 check-update 只比较版本，不证明文件完整，也不修改安装或执行 init。同版 install／update 只有在发布执行器校验和与九份受管清单全部通过、无未完成事务时，才返回 `already current and verified`：不下载 ZIP、不写入、不 init。缺失、修改或未完成事务必须停止并保留现场，不自动修复。
 
+用户明确要求检查缺失、文件冲突或中断安装时，按需读 `references/installation-recovery.md`。`install-inspect --directory <安装根绝对路径>` 只读九个受管组件，返回 missing／modified／additional／transaction／unreadable 分类及安全相对路径，不读凭据或发请求。用户明确要求修复后才使用官方 fetch 的 `repair`，仍完整校验当前稳定包；仅恢复可证明的受管缺失和完整受管事务，不覆盖本地定制或删除未知文件。普通 update 不自动转 repair。
+
 只由 sync 写入八个 Skill 和一个当前平台原生执行器及下载／同步脚本。它保护非受管目录；更新锁阻止并发，中断的受管事务在下次显式 sync 时恢复。Gemini 如已有较高优先级的共享 `.agents/skills`，更新其有效目录并报告重复的低优先级副本，不擅自删除。只处理八个当前 Skill 和原生执行器；其他目录和用户配置保持不动。
 
 受管识别核对 `.puretokens-managed.json` 的完整文件清单和校验值；没有记录的目录只有与当前官方源文件完全匹配才可接管，不能仅凭同名或目录中的自报版本判定归属。存在新增文件、本地修改、缺失文件或符号链接时停止覆盖；向用户说明需保留并处理该冲突，不自动删除、重建清单或声称更新完成。中断恢复遇到改动同样保留原目录和备份。
 
-只在收到 `Pure Tokens Skills <版本> synchronized with the native API executor at <目录>` 后报告本次同步完成；`already current and verified` 只表示原安装完整、未修改文件，不补跑 init。超时／中断不能声称完成或自动重试。实际同步成功后提醒新开宿主对话，不重复列出八份相同版本信息。
+只在收到 `Pure Tokens Skills <版本> synchronized with the native API executor at <目录>` 后报告本次同步完成；`already current and verified` 只表示原安装完整、未修改文件，不补跑 init。超时／中断不能声称完成或自动重试。实际同步成功后复用脚本的当前宿主加载步骤与简短示例，不重复列出八份相同版本信息。
 
 ## 初始化与诊断
 
-用户意图只选择一个入口：一般“检查当前 Pure Tokens 连接”由 puretokens-connection 执行公开身份检查；明确“初始化”或“验证认证”才执行 init；排查安装执行 doctor；只问用法读本地指南。不要为同一请求依次执行这些命令。
+用户意图只选择一个入口：仅“服务是谁／公开身份”由 puretokens-connection 检查；“检查当前连接／还能用吗／初始化／验证认证”执行一次 init；排查安装文件／中断事务用只读 install-inspect；排查宿主加载位置和连接用 doctor；只问用法读本地指南。不要为同一请求依次执行这些命令。
 
 从当前 SKILL.md 的绝对目录解析同级 `../.puretokens-executor/puretokens-api`；Windows 使用 `puretokens-api.exe`，不依赖 PATH。`init --host <host-id>` 先请求固定 `/v1` 公开身份，再请求一次 `/v1/media/models` 验证认证；最多两次只读请求共用 20 秒总预算，不自动重试，无付费任务。超时仅说明连接未验证，不证明凭据无效。`doctor --host <host-id>` 额外检查本次加载位置和当前宿主已知 Skill 目录中的安装版本／重复项，再执行同样的只读检查；不扫描 Home、不读取其他宿主配置，也不自动修复。
 
@@ -64,6 +66,6 @@ Windows 安装只运行一次官方 fetch／sync 流程并汇总同步、清理�
 
 安装汇报保留实际宿主、同步版本、init 已验证／失败／未执行的结果，下一步只指向该宿主。仅复制文件不代表原生安装完成。只有原生同步已确认成功且 init 明确未执行时，补一次同宿主 init；同版快速返回不属于此情形。输出不确定先说明未确认，不重装或猜成功。
 
-安装和更新不检查、移除或迁移 Codex 插件，不运行 codex plugin 命令，也不汇报旧插件状态。汇总脚本已有的同宿主 init 结果后提示新开会话，不另跑一次 init。`cleanup_status: pending` 单独报告，不把已完成同步改报失败，不绕过删除限制或因此重装。
+安装和更新不检查、移除或迁移 Codex 插件，不运行 codex plugin 命令，也不汇报旧插件状态。汇总脚本已有的同宿主 init 结果及加载指引，不另跑一次 init。默认仅输出短回执、当前宿主适用示例与帮助入口，不整段输出使用手册；ZCode 需刷新并启用，Trae 无 API 适配器时不展示生成示例。`cleanup_status: pending` 单独报告，不把已完成同步改报失败，不绕过删除限制或因此重装。
 
 本地连接失败按执行器脱敏状态解释：未识别、不可读、不支持或未验证均不等于“尚未配置”。保留现有连接，不据此要求重装、切换模型、重配或更换凭据；`api_request_executed: false` 时说明未请求 API、未认证凭据。具体宿主限制见 `references/desktop-hosts.md`。

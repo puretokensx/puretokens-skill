@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://puretokensx.com/schemas/timings.schema.json",
+  "title": "Invocation-local measured milliseconds; no server generation or host handoff estimate",
+  "type": "object",
+  "required": [
+    "total",
+    "preparation"
+  ],
+  "properties": {
+    "total": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Elapsed monotonic time until this receipt snapshot. Excludes stdout handoff and any subsequent external activity."
+    },
+    "preparation": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Measured local work outside the separately instrumented phases, including request and credential preparation."
+    },
+    "catalog": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Catalogue request and bounded response handling, observed locally."
+    },
+    "request": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Other API request and complete bounded response handling, including synchronous processing/transfer wait. Not server-only generation time."
+    },
+    "wait": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Foreground same-task waiting inside this command."
+    },
+    "download": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Native media transfer and streaming disk writes; excludes separately measured local verification."
+    },
+    "verification": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Local media validation, integrity checks and output verification. No host attachment observation."
+    }
+  },
+  "additionalProperties": false
+}

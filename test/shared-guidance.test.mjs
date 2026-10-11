@@ -15,7 +15,7 @@ test("shared guidance is generated, detects drift and synchronizes self-containe
   await mkdir(path.join(root, "runtime/executor"), { recursive: true });
   await cp(path.join(repositoryRoot, "runtime/executor/audio-profiles.json"), path.join(root, "runtime/executor/audio-profiles.json"));
   await mkdir(path.join(root, "references/skill-fragments"), { recursive: true });
-  for (const file of ["host-support.json", "desktop-hosts.md", "direct-api-execution-contract.json", "operation-guidance.json", "skill-fragments/host-binding.md", "skill-fragments/receipt-guide.md", "skill-fragments/media-workflows.md", "skill-fragments/model-alternatives.md", "skill-fragments/model-groups.md"]) {
+  for (const file of ["host-delivery.json", "host-support.json", "desktop-hosts.md", "direct-api-execution-contract.json", "operation-guidance.json", "skill-fragments/host-binding.md", "skill-fragments/receipt-guide.md", "skill-fragments/media-workflows.md", "skill-fragments/model-alternatives.md", "skill-fragments/model-groups.md"]) {
     await cp(path.join(repositoryRoot, "references", file), path.join(root, "references", file));
   }
   const fragment = path.join(root, "references/skill-fragments/host-binding.md");
@@ -39,7 +39,8 @@ test("shared guidance is generated, detects drift and synchronizes self-containe
 test("connection and initialization have one consistent intent mapping", async () => {
   const contract = JSON.parse(await readFile(path.join(repositoryRoot, "skills/puretokens-update/references/execution-contract.json"), "utf8"));
   assert.deepEqual(contract.operations.intentRouting, {
-    generalConnectionCheck: "connection_public_identity_only",
+    publicServiceIdentity: "connection_public_identity_only",
+    generalConnectionCheck: "init",
     explicitAuthenticationCheck: "init",
     installationDiagnostics: "doctor",
     usageQuestion: "local_guide_only",

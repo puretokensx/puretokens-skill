@@ -35,6 +35,8 @@ type taskRecord struct {
 	Downloaded             map[int]string        `json:"downloaded,omitempty"`
 	DownloadProofs         map[int]downloadProof `json:"download_proofs,omitempty"`
 	Delivered              []int                 `json:"delivered,omitempty"`
+	LastFailure            *taskFailure          `json:"last_failure,omitempty"`
+	PendingRedeliveryIndex *int                  `json:"pending_redelivery_index,omitempty"`
 }
 
 type recordReceiptWriter struct {
@@ -69,6 +71,16 @@ func (writer *recordReceiptWriter) writeReceipt(result receipt) {
 	if result.Status != "" {
 		record.Status = result.Status
 	}
+	if failure := taskFailureFromReceipt(result); failure != nil {
+		// A later read may omit the original terminal error. Keep the known
+		// cause for that same terminal state until more specific evidence arrives.
+		if failure.Category != "unknown" || record.LastFailure == nil ||
+			record.LastFailure.Category == "unknown" || record.LastFailure.TaskStatus != record.Status {
+			record.LastFailure = failure
+		}
+	} else if record.LastFailure != nil && record.LastFailure.TaskStatus != record.Status {
+		record.LastFailure = nil
+	}
 	if result.SubmissionOutcome != "" {
 		record.SubmissionOutcome = result.SubmissionOutcome
 	}
@@ -87,7 +99,7 @@ func (writer *recordReceiptWriter) writeReceipt(result receipt) {
 	for index, path := range result.DownloadedPaths {
 		if index < len(result.DownloadedIndexes) {
 			i := result.DownloadedIndexes[index]
-			if proof, ok := writer.downloadProofs[path]; ok && matchesDownloadProof(path, proof) {
+			if proof, ok := writer.downloadProofs[path]; ok && timedDownloadProof(timingsForWriter(writer.output), path, proof) {
 				record.Downloaded[i] = path
 				record.DownloadProofs[i] = proof
 			} else {
@@ -106,10 +118,14 @@ func (writer *recordReceiptWriter) writeReceipt(result receipt) {
 	}
 	result.RecordPath = writer.path
 	result.DeliveredIndexes = record.Delivered
+	result.RedeliveryIndex = record.PendingRedeliveryIndex
 	if result.TaskID != "" && len(result.DownloadedIndexes) == 0 {
 		// Resume receipts expose only pending handoffs. The host can attach an
 		// already downloaded file before issuing another content request.
 		for index := range record.Downloaded {
+			if record.PendingRedeliveryIndex != nil && *record.PendingRedeliveryIndex != index {
+				continue
+			}
 			delivered := false
 			for _, done := range record.Delivered {
 				if done == index {
@@ -120,7 +136,8 @@ func (writer *recordReceiptWriter) writeReceipt(result receipt) {
 			path := record.Downloaded[index]
 			format := recordedDownloadFormat(record.Kind, record.TaskID, index, path)
 			proof, known := record.DownloadProofs[index]
-			if !delivered && format != "" && known && proof.MediaType == format && matchesDownloadProof(path, proof) {
+			pendingRedelivery := record.PendingRedeliveryIndex != nil && *record.PendingRedeliveryIndex == index
+			if (!delivered || pendingRedelivery) && format != "" && known && proof.MediaType == format && timedDownloadProof(timingsForWriter(writer.output), path, proof) {
 				result.DownloadedIndexes = append(result.DownloadedIndexes, index)
 			}
 		}
@@ -162,7 +179,7 @@ func (record taskRecord) deliveryComplete() bool {
 	if record.Kind == "video" || record.Kind == "music" {
 		count = 1
 	}
-	return count > 0 && len(record.Delivered) == count
+	return count > 0 && len(record.Delivered) == count && record.PendingRedeliveryIndex == nil
 }
 
 func (record taskRecord) request() taskRequest {
@@ -212,6 +229,12 @@ func loadTaskRecord(path string) (taskRecord, error) {
 	}
 	if record.Format != taskRecordFormat || (record.Kind != "image" && record.Kind != "video" && record.Kind != "music") || (record.TaskID != "" && !validTaskID(record.TaskID)) || record.RequestedCount < 0 || record.RequestedCount > 6 || record.WaitWindowsCompleted < 0 || record.WaitWindowsCompleted > 2 {
 		return record, errors.New("record has unsupported metadata")
+	}
+	if !validTaskFailure(record.LastFailure, record.Status) {
+		return record, errors.New("record has invalid failure evidence")
+	}
+	if index := record.PendingRedeliveryIndex; index != nil && (*index < 0 || *index >= max(1, record.RequestedCount) || ((record.Kind == "video" || record.Kind == "music") && *index != 0)) {
+		return record, errors.New("record has invalid redelivery metadata")
 	}
 	if record.TaskID != "" {
 		if err := validateTaskRequest(record.request()); err != nil {
@@ -390,7 +413,7 @@ func executeRecordedTask(command, path string, request taskRequest, index int, o
 			return errors.New("task record has no id")
 		}
 	}
-	if svc.localRecoveryOnly && ((command != "resume" && command != "wait") || !terminalSuccess(record.Status) || record.ReconciliationRequired) {
+	if svc.localRecoveryOnly && ((command != "resume" && command != "wait") || (!terminalSuccess(record.Status) && !terminalFailure(record.Status)) || record.ReconciliationRequired) {
 		writeReceipt(output, mergeFailure(taskReceipt(request, request.TaskID, record.Status), validationFailure("The task record changed before local recovery. Keep the record and review its current state before continuing.")))
 		return errors.New("local recovery state changed")
 	}
@@ -399,13 +422,30 @@ func executeRecordedTask(command, path string, request taskRequest, index int, o
 		svc.downloadProofs[record.Downloaded[i]] = proof
 	}
 	writer := &recordReceiptWriter{output: output, path: path, record: record, downloadProofs: svc.downloadProofs}
+	if (command == "content" || command == "delivered" || command == "redeliver") && record.PendingRedeliveryIndex != nil && *record.PendingRedeliveryIndex != index {
+		result := mergeFailure(taskReceipt(request, request.TaskID, record.Status), validationFailure("Finish the pending redelivery index before requesting another index. Keep the existing task and delivery history."))
+		result.RedeliveryIndex = record.PendingRedeliveryIndex
+		writeReceipt(output, result)
+		return errors.New("another redelivery is pending")
+	}
+	if command == "redeliver" {
+		return executeRedelivery(writer, svc, request, index)
+	}
+	if command == "content" && record.PendingRedeliveryIndex == nil {
+		for _, delivered := range record.Delivered {
+			if delivered == index {
+				writeReceipt(output, mergeFailure(taskReceipt(request, request.TaskID, record.Status), validationFailure("This index was already delivered. Use redeliver only when the user explicitly requests another handoff of this same result.")))
+				return errors.New("explicit redelivery required")
+			}
+		}
+	}
 	if command == "delivered" {
 		if _, ok := record.Downloaded[index]; !ok || index < 0 {
 			writeReceipt(output, mergeFailure(taskReceipt(request, request.TaskID, record.Status), validationFailure("Only a downloaded index can be marked delivered, after the host confirms attachment handoff.")))
 			return errors.New("index not downloaded")
 		}
 		proof, known := record.DownloadProofs[index]
-		if !known || !matchesDownloadProof(record.Downloaded[index], proof) {
+		if !known || !timedDownloadProof(timingsForWriter(output), record.Downloaded[index], proof) {
 			writeReceipt(output, mergeFailure(taskReceipt(request, request.TaskID, record.Status), validationFailure("The downloaded file has no matching integrity proof. Preserve it and retrieve this same task into another output directory before delivery.")))
 			return errors.New("delivery integrity unverified")
 		}
@@ -419,6 +459,9 @@ func executeRecordedTask(command, path string, request taskRequest, index int, o
 			writer.record.Delivered = append(writer.record.Delivered, index)
 			sort.Ints(writer.record.Delivered)
 		}
+		if writer.record.PendingRedeliveryIndex != nil && *writer.record.PendingRedeliveryIndex == index {
+			writer.record.PendingRedeliveryIndex = nil
+		}
 		result := taskReceipt(request, request.TaskID, record.Status)
 		result.DeliveryStatus = "partially_delivered"
 		if writer.record.deliveryComplete() {
@@ -427,6 +470,13 @@ func executeRecordedTask(command, path string, request taskRequest, index int, o
 		result.NextAction = "Delivery acknowledgement saved. Continue only the remaining indexes, if any."
 		writer.writeReceipt(result)
 		return writer.err
+	}
+	if (command == "resume" || command == "wait") && terminalFailure(record.Status) && !record.ReconciliationRequired {
+		result := taskReceipt(request, request.TaskID, record.Status)
+		result.FailureSource = "task_record"
+		result.recordedFailure = record.LastFailure
+		err := finishKnownTask(writer, result)
+		return errors.Join(err, writer.err)
 	}
 	data, _ := json.Marshal(request)
 	if command == "submit" {
@@ -442,5 +492,49 @@ func executeRecordedTask(command, path string, request taskRequest, index int, o
 		}
 		err = executeExistingTask(command, bytes.NewReader(data), writer, svc)
 	}
+	return errors.Join(err, writer.err)
+}
+
+// Explicit repeat handoff, always bound to one existing task and content index.
+// Local proof recovery precedes credential resolution and any possible GET.
+func executeRedelivery(writer *recordReceiptWriter, svc service, request taskRequest, index int) error {
+	result := taskReceipt(request, request.TaskID, writer.record.Status)
+	if !terminalSuccess(result.Status) || result.ReconciliationRequired || index < 0 || index >= max(1, request.RequestedCount) ||
+		(request.Kind == "image" && request.RequestedCount == 0) || ((request.Kind == "video" || request.Kind == "music") && index != 0) {
+		writeReceipt(writer.output, mergeFailure(result, validationFailure("Redelivery requires a completed existing task without reconciliation and a confirmed content index. Continue that same task first; never submit a replacement.")))
+		return errors.New("task cannot be redelivered")
+	}
+	if path, exists := writer.record.Downloaded[index]; exists {
+		proof, known := writer.record.DownloadProofs[index]
+		if known && validDownloadProof(proof, request.Kind) && timedDownloadProof(timingsForWriter(writer.output), path, proof) {
+			writer.record.PendingRedeliveryIndex = &index
+			result.DownloadedPaths = []string{path}
+			result.DownloadedIndexes = []int{index}
+			result.DeliveryStatus = "downloaded_awaiting_host_delivery"
+			result.NextAction = "Attach this verified file again as explicitly requested. Acknowledge this index with delivered only after the new host handoff; no API request or new task was made."
+			writer.writeReceipt(result)
+			return writer.err
+		}
+	}
+	// Never overwrite a changed or missing-proof artifact. download retains its
+	// exclusive filename/proof checks; callers may choose another output directory.
+	if info, err := os.Stat(request.OutputDir); !filepath.IsAbs(request.OutputDir) || err != nil || !info.IsDir() {
+		writeReceipt(writer.output, mergeFailure(result, validationFailure("No verified local file is available. Choose an existing absolute output directory to retrieve this same task index; preserve any old files.")))
+		return errors.New("redelivery directory required")
+	}
+	if svc.token == "" {
+		token, err := credentialForHost(svc.host)
+		if err != nil {
+			code, message, next := credentialFailureDetails(err)
+			writeReceipt(writer.output, mergeFailure(result, receipt{FailurePhase: "validation", LocalErrorCode: code, ErrorMessage: message, NextAction: next}))
+			return err
+		}
+		defer clearString(&token)
+		svc.token = token
+	}
+	writer.record.PendingRedeliveryIndex = &index
+	request.Index = index
+	data, _ := json.Marshal(request)
+	err := executeExistingTask("content", bytes.NewReader(data), writer, svc)
 	return errors.Join(err, writer.err)
 }

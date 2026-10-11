@@ -74,6 +74,9 @@ func guideFailure(result receipt) receipt {
 	if result.OK {
 		return result
 	}
+	if result.taskFailureConfirmed && result.FailureCategory == "" {
+		result.FailureCategory = taskFailureCategory(result.APIErrorCode)
+	}
 	// Preserve command-specific local diagnoses, especially the balance exception.
 	if result.LocalErrorCode == "" {
 		if action := apiErrorAction(result.APIErrorCode, result.HTTPStatus); action != "" {

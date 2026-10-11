@@ -39,6 +39,9 @@ func TestContractExamples(t *testing.T) {
 		if json.Unmarshal(data, &envelope) == nil && envelope["support"] != nil {
 			examples = append(examples, schemaExample{"support-" + name, "support-summary.schema.json", envelope["support"]})
 		}
+		if envelope["timings_ms"] != nil {
+			examples = append(examples, schemaExample{"timings-" + name, "timings.schema.json", envelope["timings_ms"]})
+		}
 	}
 	captureValue := func(name, schema string, value any) {
 		t.Helper()
@@ -75,6 +78,27 @@ func TestContractExamples(t *testing.T) {
 				}
 				capture("model-groups-"+scenario, "model-groups-receipt.schema.json", []byte(raw))
 			})
+		}
+	})
+
+	t.Run("safe audio construction diagnostics", func(t *testing.T) {
+		for _, name := range []string{"unknown-voice", "unicode-limit"} {
+			request := map[string]any{"operation": "speech", "model": "stepaudio-2.5-tts", "input": "PRIVATE-INPUT", "voice": "cixingnansheng", "response_format": "mp3", "output_dir": t.TempDir()}
+			if name == "unknown-voice" {
+				request["voice"] = "PRIVATE-UNKNOWN-VOICE"
+			} else {
+				request["input"] = strings.Repeat("🎧", 1001)
+			}
+			data, _ := json.Marshal(request)
+			file := writeFixture(t, "request.json", string(data))
+			var output bytes.Buffer
+			if err := run([]string{"audio", "--host", "fixture-unsupported", "--request", file}, strings.NewReader(""), &output); err == nil {
+				t.Fatal("invalid audio input accepted")
+			}
+			if strings.Contains(output.String(), "PRIVATE-") || strings.Contains(output.String(), "🎧") {
+				t.Fatal("audio diagnostic retained user-supplied content")
+			}
+			capture("audio-diagnostic-"+name, "audio-receipt.schema.json", output.Bytes())
 		}
 	})
 
@@ -741,6 +765,54 @@ func TestContractExamples(t *testing.T) {
 			t.Fatal("missing record write succeeded")
 		}
 		capture("accepted-record-write-failure", "executor-receipt.schema.json", output.Bytes())
+	})
+
+	t.Run("recorded failure and explicit redelivery", func(t *testing.T) {
+		media := fixturePNG(t)
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if strings.HasSuffix(r.URL.Path, "/content") {
+				w.Header().Set("Content-Type", "image/png")
+				w.Write(media)
+				return
+			}
+			io.WriteString(w, `{"id":"schema-recovery","status":"failed","error":{"code":"model_not_allowed","message":"private diagnostic"}}`)
+		}))
+		defer server.Close()
+		svc := fixtureService(server)
+		dir := t.TempDir()
+		path := filepath.Join(dir, "failed.json")
+		saveTaskRecord(path, taskRecord{Format: taskRecordFormat, Kind: "image", TaskID: "schema-recovery", Status: "pending", RequestedCount: 1}, true)
+		var output bytes.Buffer
+		if err := executeRecordedTask("status", path, taskRequest{}, 0, "", &output, svc); err == nil {
+			t.Fatal("fixture must fail")
+		}
+		capture("recorded-failure-live", "executor-receipt.schema.json", output.Bytes())
+		saved, _ := os.ReadFile(path)
+		capture("recorded-failure-artifact", "task-record.schema.json", saved)
+		output.Reset()
+		if err := run([]string{"resume", "--host", "fixture-unsupported", "--record", path}, strings.NewReader(""), &output); err == nil {
+			t.Fatal("restored failure must remain failed")
+		}
+		capture("recorded-failure-resume", "executor-receipt.schema.json", output.Bytes())
+
+		path = filepath.Join(dir, "completed.json")
+		saveTaskRecord(path, taskRecord{Format: taskRecordFormat, Kind: "image", TaskID: "schema-recovery", Status: "completed", RequestedCount: 1}, true)
+		for _, command := range []string{"content", "delivered", "redeliver", "resume", "delivered"} {
+			output.Reset()
+			if err := executeRecordedTask(command, path, taskRequest{}, 0, dir, &output, svc); err != nil {
+				t.Fatal(err)
+			}
+			if command == "redeliver" {
+				capture("explicit-redelivery-receipt", "executor-receipt.schema.json", output.Bytes())
+				saved, _ = os.ReadFile(path)
+				capture("explicit-redelivery-artifact", "task-record.schema.json", saved)
+			}
+			if command == "resume" {
+				capture("explicit-redelivery-resume", "executor-receipt.schema.json", output.Bytes())
+			}
+		}
+		capture("explicit-redelivery-ack", "executor-receipt.schema.json", output.Bytes())
+		captureValue("adaptive-receipt", "executor-receipt.schema.json", guideReceipt(taskReceipt(taskRequest{Kind: "video", Operation: "generate", Model: "minimax_h3", Parameters: map[string]any{"aspect_ratio": "adaptive"}}, "schema-adaptive", "pending")))
 	})
 
 	if outputPath := os.Getenv("PURETOKENS_SCHEMA_EXAMPLES_OUT"); outputPath != "" {

@@ -18,6 +18,8 @@ func (svc service) clock() time.Time {
 }
 
 func (svc service) waitFor(ctx context.Context, delay time.Duration) bool {
+	finishTiming := svc.timePhase("wait")
+	defer finishTiming()
 	if svc.wait != nil {
 		return svc.wait(ctx, delay)
 	}
@@ -96,6 +98,10 @@ func clearTaskFailure(result receipt) receipt {
 	result.HTTPStatus = 0
 	result.LocalErrorCode = ""
 	result.APIErrorCode = ""
+	result.FailureCategory = ""
+	result.FailureSource = ""
+	result.recordedFailure = nil
+	result.taskFailureConfirmed = false
 	result.ErrorMessage = ""
 	result.NextAction = ""
 	return result
@@ -110,8 +116,17 @@ func finishKnownTask(output io.Writer, result receipt) error {
 	} else if terminalFailure(result.Status) {
 		result.OK = false
 		result.FailurePhase = "status"
+		result.FailureCategory = "unknown"
 		result.ErrorMessage = "The recorded task has ended unsuccessfully; this record does not identify a more specific cause."
-		result.NextAction = "This task has ended unsuccessfully. Review its error; do not automatically submit a replacement."
+		result.NextAction = "This task has ended unsuccessfully. Its cause is unknown; recover the original failure receipt or contact support before proposing a model or group change. Do not automatically submit a replacement."
+		if failure := result.recordedFailure; failure != nil && validTaskFailure(failure, result.Status) {
+			result.FailureCategory = failure.Category
+			result.FailurePhase = failure.Phase
+			result.APIErrorCode = failure.APIErrorCode
+			if failure.Category != "unknown" {
+				result.ErrorMessage = "The saved task result identifies the failure category. This is historical task evidence, not a new API check."
+			}
+		}
 	} else {
 		result.NextAction = "This task is complete. Retrieve only missing content indexes and attach downloaded files."
 	}

@@ -6,7 +6,7 @@ set -eu
 current_skills="puretokens-balance puretokens-connection puretokens-models puretokens-image puretokens-video puretokens-audio puretokens-evaluate puretokens-update"
 
 usage() {
-  printf '%s\n' "Usage: puretokens-skill-install.sh <check|verify-installed|init|sync|locate> (--host <claude-code|codex|workbuddy|gemini-cli|grok-build|opencode|trae|claude-desktop|dsh-desktop|deepseek-harness|minimax-code|zcode|kimi-code|qoder|pi|hermes|evox|vscode|octop> | --target <absolute-skill-directory>) [--source <absolute-official-source-directory>]"
+  printf '%s\n' "Usage: puretokens-skill-install.sh <check|verify-installed|init|sync|repair|locate> (--host <claude-code|codex|workbuddy|gemini-cli|grok-build|opencode|trae|claude-desktop|dsh-desktop|deepseek-harness|minimax-code|zcode|kimi-code|qoder|pi|hermes|evox|vscode|octop> | --target <absolute-skill-directory>) [--source <absolute-official-source-directory>]"
 }
 
 fail() {
@@ -253,15 +253,21 @@ verify_installed() {
   printf '%s\n' "Pure Tokens installed inventories verified; no files changed and init was not run."
 }
 
-usage_guide() {
-  target_root=$1
-  guide="$target_root/puretokens-update/references/usage-guide.md"
-  if [ -f "$guide" ]; then
-    cat "$guide"
-    return 0
-  fi
-  printf '%s\n' "Pure Tokens Skill usage guide is unavailable; update the Skills from the official repository."
+# generated:install-activation
+installation_summary() {
+  case "$1" in
+    zcode)
+      printf '%s\n' 'Next: Refresh and enable the installed Skills in ZCode, then start a new conversation. Loading has not been verified in this session.' 'Available instructions: images, video, audio/music, Jev evaluation, models and balance. Connection and task results remain separate checks.' 'Example (not executed): Generate an image of a lake at sunset.' 'Example (not executed): Generate a 5-second video of a paper boat on a river.' 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
+      ;;
+    trae)
+      printf '%s\n' 'Next: This is a historical installation directory; Skill discovery in current TraeWork is not confirmed.' 'API tasks: unsupported in this host; no credential adapter is available. Installing instructions does not enable generation.' 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
+      ;;
+    *)
+      printf '%s\n' 'Next: Follow this client'"'"'s Skill loading controls, then start a new conversation. Loading has not been verified in this session.' 'Available instructions: images, video, audio/music, Jev evaluation, models and balance. Connection and task results remain separate checks.' 'Example (not executed): Generate an image of a lake at sunset.' 'Example (not executed): Generate a 5-second video of a paper boat on a river.' 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
+      ;;
+  esac
 }
+# /generated:install-activation
 
 init_json_string() {
   field=$1
@@ -308,14 +314,13 @@ init_target() {
     printf '%s\n' "Pure Tokens Skill init: host ID was not supplied, so the connection check was deferred."
   fi
   printf '%s\n' ""
-  usage_guide "$target_root"
-  [ -z "$host_id" ] || printf '%s\n' "Next: Start a new $host_id conversation after reviewing the init result."
+  installation_summary "$host_id"
 }
 
 restore_transaction() (
   recovery_root=$1
   recovery_stage=$2
-  [ -f "$recovery_stage/plan" ] || return 0
+  "$ownership_guard" install-transaction-verify --directory "$recovery_stage" --target-directory "$recovery_root" --source-directory "$source_root" || return 1
   while read -r action entry; do
     case "$entry" in puretokens-balance|puretokens-connection|puretokens-models|puretokens-image|puretokens-video|puretokens-audio|puretokens-evaluate|puretokens-update|.puretokens-executor) ;; *) return 1 ;; esac
     case "$entry" in */*|*..*) return 1 ;; esac
@@ -335,6 +340,10 @@ restore_transaction() (
 )
 
 remove_completed_stage() {
+  "$ownership_guard" install-transaction-verify --directory "$1" --target-directory "$target_root" --source-directory "$source_root" || {
+    printf '%s\n' "Transaction cleanup failed verification; all remaining files were preserved." >&2
+    return 1
+  }
   if ! rm -rf -- "$1" 2>/dev/null; then
     printf '%s\n' "cleanup_status: pending; completed transaction files were retained. Host cleanup permission is required; do not delete unknown directories or reinstall solely for this warning."
   fi
@@ -345,7 +354,7 @@ finish_transaction() {
   trap - EXIT HUP INT TERM
   if [ -n "${stage_root:-}" ] && [ -d "$stage_root" ]; then
     if [ -f "$stage_root/committed" ] || restore_transaction "$target_root" "$stage_root"; then
-      remove_completed_stage "$stage_root"
+      remove_completed_stage "$stage_root" || code=1
     else
       printf '%s\n' "Update recovery is incomplete; retained the managed recovery stage. Run sync again after resolving file access." >&2
       code=1
@@ -394,6 +403,7 @@ claim_update_lock() (
 
 acquire_update_lock() {
   lock_root="$target_root/.puretokens-install-lock"
+  if [ "$no_recovery" = true ]; then verify_no_transaction; fi
   mkdir "$lock_root" 2>/dev/null || [ -d "$lock_root" ] || fail "cannot create the update lock"
   for lock_entry in "$lock_root"/* "$lock_root"/.[!.]* "$lock_root"/..?*; do
     [ -e "$lock_entry" ] || [ -L "$lock_entry" ] || continue
@@ -433,9 +443,20 @@ acquire_update_lock() {
   trap 'exit 130' INT
   trap 'exit 129' HUP
   trap 'exit 143' TERM
+  if [ "$command_name" = repair ]; then
+    for entry in $current_skills .puretokens-executor; do
+      if [ -e "$target_root/$entry" ] || [ -L "$target_root/$entry" ]; then
+        "$ownership_guard" install-repair-verify --directory "$target_root/$entry" --name "$entry" || fail "repair stopped: local additions, changes or unknown ownership require review; existing files were preserved"
+      fi
+    done
+  fi
   for previous_stage in "$target_root"/.puretokens-skill-stage.*; do
     [ -d "$previous_stage" ] || continue
     [ -f "$previous_stage/transaction-v1" ] || fail "an unrecognized staging directory needs inspection; left untouched"
+    "$ownership_guard" install-transaction-verify --directory "$previous_stage" --target-directory "$target_root" --source-directory "$source_root" || fail "previous update recovery failed verification; all transaction files were preserved"
+  done
+  for previous_stage in "$target_root"/.puretokens-skill-stage.*; do
+    [ -d "$previous_stage" ] || continue
     if [ -f "$previous_stage/committed" ] || restore_transaction "$target_root" "$previous_stage"; then
       rm -rf -- "$previous_stage" 2>/dev/null || fail "previous transaction cleanup is pending; resolve host file access before continuing"
     else
@@ -454,7 +475,9 @@ sync_target() {
   ownership_guard=$(executor_artifact "$source_root")
   acquire_update_lock
   verify_owned() {
-    set -- install-verify --directory "$1" --name "$2" --source-directory "${3:-$source_root/skills/$2}"
+    verification_command=install-verify
+    [ "$command_name" != repair ] || verification_command=install-repair-verify
+    set -- "$verification_command" --directory "$1" --name "$2" --source-directory "${3:-$source_root/skills/$2}"
     "$ownership_guard" "$@" ||
       fail "installation ownership or file changes require review: $5; existing files were preserved"
   }
@@ -478,6 +501,7 @@ sync_target() {
 
   stage_root=$(mktemp -d "$target_root/.puretokens-skill-stage.XXXXXX") || fail "could not create a private update staging directory"
   touch "$stage_root/transaction-v1"
+  [ "$command_name" != repair ] || touch "$stage_root/repair-v1"
   mkdir -p "$stage_root/backup"
   for name in $current_skills; do cp -R "$source_root/skills/$name" "$stage_root/$name"; done
   executor_source=$(executor_artifact "$source_root")
@@ -506,6 +530,9 @@ sync_target() {
     fi
     mv "$stage_root/$entry" "$target_root/$entry"
   done < "$stage_root/plan"
+  for entry in $current_skills .puretokens-executor; do
+    "$ownership_guard" install-verify --directory "$target_root/$entry" --name "$entry" || fail "installed managed files could not be verified"
+  done
   touch "$stage_root/committed"
   printf '%s\n' "Pure Tokens Skills $release_version synchronized with the native API executor at $target_root"
   remove_completed_stage "$stage_root"
@@ -527,12 +554,14 @@ target=
 host=
 source=
 release_manifest=
+no_recovery=false
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --target) [ "$#" -ge 2 ] || fail "--target requires an absolute directory"; target=$2; shift 2 ;;
     --host) [ "$#" -ge 2 ] || fail "--host requires a supported host ID"; host=$2; shift 2 ;;
     --source) [ "$#" -ge 2 ] || fail "--source requires an absolute official source directory"; source=$2; shift 2 ;;
     --release-manifest) [ "$#" -ge 2 ] || fail "--release-manifest requires a file"; release_manifest=$2; shift 2 ;;
+    --no-recovery) no_recovery=true; shift ;;
     *) usage; exit 2 ;;
   esac
 done
@@ -547,7 +576,7 @@ fi
 [ -n "$target" ] || target=$(target_for_host "$host")
 [ "${target#/}" != "$target" ] || fail "--target must be an absolute Skill directory"
 [ -z "$source" ] || [ "${source#/}" != "$source" ] || fail "--source must be an absolute official source directory"
-case "$command_name" in check|verify-installed|init|sync|locate) ;; *) usage; exit 2 ;; esac
+case "$command_name" in check|verify-installed|init|sync|repair|locate) ;; *) usage; exit 2 ;; esac
 [ -z "$release_manifest" ] || { [ "$command_name" = verify-installed ] && [ -f "$release_manifest" ]; } || fail "release manifest is only supported for installed verification"
 
 if [ "$command_name" = locate ]; then

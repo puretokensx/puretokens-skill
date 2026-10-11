@@ -89,6 +89,11 @@ type receipt struct {
 	WaitWindowsCompleted int            `json:"wait_windows_completed,omitempty"`
 	WaitOutcome          string         `json:"wait_outcome,omitempty"`
 	NextStep             string         `json:"next_step,omitempty"`
+	FailureCategory      string         `json:"failure_category,omitempty"`
+	FailureSource        string         `json:"failure_source,omitempty"`
+	RedeliveryIndex      *int           `json:"redelivery_index,omitempty"`
+	taskFailureConfirmed bool
+	recordedFailure      *taskFailure
 
 	OK                     bool   `json:"ok"`
 	Kind                   string `json:"kind,omitempty"`
@@ -162,14 +167,14 @@ func run(args []string, input io.Reader, output io.Writer) error {
 	if len(args) > 0 && args[0] == "model-groups" {
 		return runModelGroupsCommand(args[1:], output)
 	}
-	if len(args) > 0 && (args[0] == "install-inventory" || args[0] == "install-verify") {
+	if len(args) > 0 && (args[0] == "install-inventory" || args[0] == "install-verify" || args[0] == "install-inspect" || args[0] == "install-repair-verify" || args[0] == "install-transaction-verify") {
 		return runInstallationGuard(args, output)
 	}
-	support := &supportReceiptWriter{output: output}
+	support := &supportReceiptWriter{output: output, timings: newCommandTimings()}
 	defer func() { dispatchOperationsReceipt(support.operationsEvent) }()
 	output = support
 	if len(args) < 1 {
-		writeReceipt(output, validationFailure("Choose init, doctor, connection, balance, models, model-groups, evaluate, audio, audio-verify, preflight, submit, status, wait, content, resume or delivered."))
+		writeReceipt(output, validationFailure("Choose init, doctor, connection, balance, models, model-groups, evaluate, audio, audio-verify, preflight, submit, status, wait, content, resume, redeliver or delivered."))
 		return errors.New("missing command")
 	}
 
@@ -197,9 +202,9 @@ func run(args []string, input io.Reader, output io.Writer) error {
 		}
 		return errors.New("invalid command")
 	}
-	isTask := command == "submit" || command == "status" || command == "wait" || command == "content" || command == "resume" || command == "delivered" || command == "preflight"
+	isTask := command == "submit" || command == "status" || command == "wait" || command == "content" || command == "resume" || command == "redeliver" || command == "delivered" || command == "preflight"
 	if !isTask && command != "init" && command != "doctor" && command != "connection" && command != "balance" && command != "models" && command != "evaluate" && command != "audio" && command != "audio-verify" {
-		writeReceipt(output, validationFailure("Choose init, doctor, connection, balance, models, model-groups, evaluate, audio, audio-verify, preflight, submit, status, wait, content, resume or delivered."))
+		writeReceipt(output, validationFailure("Choose init, doctor, connection, balance, models, model-groups, evaluate, audio, audio-verify, preflight, submit, status, wait, content, resume, redeliver or delivered."))
 		return errors.New("unknown command")
 	}
 	if command == "evaluate" || command == "audio" || command == "audio-verify" {
@@ -222,7 +227,7 @@ func run(args []string, input io.Reader, output io.Writer) error {
 			return errors.New("incompatible synchronous command options")
 		}
 	}
-	if (*recordFile != "" && (!isTask || command == "preflight")) || ((*index != 0 || *outputDir != "") && (*recordFile == "" || (command != "content" && command != "delivered"))) || ((command == "resume" || command == "delivered") && *recordFile == "") || (*recordFile != "" && *requestFile != "" && command != "submit") || (!isTask && command != "models" && command != "evaluate" && command != "audio" && command != "audio-verify" && *requestFile != "") {
+	if (*recordFile != "" && (!isTask || command == "preflight")) || ((*index != 0 || *outputDir != "") && (*recordFile == "" || (command != "content" && command != "delivered" && command != "redeliver"))) || ((command == "resume" || command == "redeliver" || command == "delivered") && *recordFile == "") || (*recordFile != "" && *requestFile != "" && command != "submit") || (!isTask && command != "models" && command != "evaluate" && command != "audio" && command != "audio-verify" && *requestFile != "") {
 		writeReceipt(output, validationFailure("Use --request for media JSON, --record for same-task recovery, and --index/--output-dir only for recorded content. Never submit into an existing record."))
 		return errors.New("incompatible command options")
 	}
@@ -261,7 +266,7 @@ func run(args []string, input io.Reader, output io.Writer) error {
 				return err
 			}
 		}
-		if command == "status" || command == "wait" || command == "content" || command == "resume" || command == "delivered" {
+		if command == "status" || command == "wait" || command == "content" || command == "resume" || command == "redeliver" || command == "delivered" {
 			request.Operation = "continue"
 		}
 	}
@@ -283,12 +288,12 @@ func run(args []string, input io.Reader, output io.Writer) error {
 		svc.localRecoveryOnly = true
 		return executeRecordedTask(command, *recordFile, request, *index, *outputDir, output, svc)
 	}
-	if command == "delivered" {
+	if command == "delivered" || command == "redeliver" {
 		return executeRecordedTask(command, *recordFile, request, *index, *outputDir, output, svc)
 	}
-	// A recorded completed task needs only local proof verification to expose
-	// an undelivered file. Do not make attachment recovery depend on credentials.
-	if (command == "resume" || command == "wait") && *recordFile != "" && terminalSuccess(request.TaskStatus) && !request.ReconciliationRequired {
+	// Recorded terminal tasks need only local artifact/failure evidence recovery.
+	// Do not make these local paths depend on a still-valid host credential.
+	if (command == "resume" || command == "wait") && *recordFile != "" && (terminalSuccess(request.TaskStatus) || terminalFailure(request.TaskStatus)) && !request.ReconciliationRequired {
 		svc.localRecoveryOnly = true
 		return executeRecordedTask(command, *recordFile, request, *index, *outputDir, output, svc)
 	}
@@ -618,6 +623,7 @@ func executePreparedTask(output io.Writer, svc service, request taskRequest) err
 		return errors.New("task reconciliation required")
 	}
 	if terminalFailure(state) {
+		result.taskFailureConfirmed = true
 		result.OK = false
 		result.FailurePhase = "submission"
 		result.APIErrorCode, result.ErrorMessage = publicAPIError(response)
@@ -1089,6 +1095,12 @@ func (svc service) requestWithAuthentication(ctx context.Context, method, path s
 // Keep the configured credential available for response redaction even when a
 // specific endpoint needs a normalized bearer or sends no authentication.
 func (svc service) requestWithBearer(ctx context.Context, method, path string, body io.Reader, contentType, bearer string) ([]byte, int, int, string, string, error) {
+	phase := "request"
+	if path == "/v1/media/models" || path == "/v1/models" {
+		phase = "catalog"
+	}
+	finishTiming := svc.timePhase(phase)
+	defer finishTiming()
 	req, err := http.NewRequestWithContext(ctx, method, svc.baseURL+path, body)
 	if err != nil {
 		return nil, 0, 0, "", "", err
@@ -1139,13 +1151,15 @@ func (svc service) download(ctx context.Context, path, kind, outputDir string) (
 			proof, known := svc.downloadProofs[candidate]
 			if info.Mode().IsRegular() && known && proof.MediaType == format &&
 				(kind != "music" || svc.musicFormat == "" || format == audioMIME(svc.musicFormat)) &&
-				validDownloadProof(proof, kind) && matchesDownloadProof(candidate, proof) {
+				validDownloadProof(proof, kind) && svc.checkDownloadProof(candidate, proof) {
 				return candidate, 200, 0, "", "", nil
 			}
 			return "", 0, 0, "", "", errors.New("existing output has no matching download proof; preserve it and choose another output directory")
 		}
 	}
 
+	finishTiming := svc.timePhase("download")
+	defer finishTiming()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, svc.baseURL+path, nil)
 	if err != nil {
 		return "", 0, 0, "", "", err
@@ -1207,7 +1221,7 @@ func (svc service) download(ctx context.Context, path, kind, outputDir string) (
 	if written > limit {
 		return "", response.StatusCode, retryAfter(response), "", "", errMediaTooLarge
 	}
-	if written == 0 || !validMediaFile(name, contentType) {
+	if written == 0 || !timedMediaFile(svc, name, contentType) {
 		return "", response.StatusCode, retryAfter(response), "", "", errInvalidMedia
 	}
 	// Hash the bytes as they are downloaded, avoiding an extra complete scan
@@ -1219,7 +1233,7 @@ func (svc service) download(ctx context.Context, path, kind, outputDir string) (
 			return "", response.StatusCode, 0, "", "", errors.New("cannot finalize media file without overwriting existing output")
 		}
 	}
-	if !matchesDownloadProof(destination, proof) {
+	if !svc.checkDownloadProof(destination, proof) {
 		return "", response.StatusCode, 0, "", "", errors.New("download changed during finalization")
 	}
 	if svc.downloadProofs != nil {

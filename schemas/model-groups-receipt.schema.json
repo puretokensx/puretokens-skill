@@ -5,6 +5,7 @@
   "type": "object",
   "required": ["ok", "command", "mapping_status", "groups", "matching_scope", "permission_verified", "next_action", "note"],
   "properties": {
+    "timings_ms": {"$ref": "timings.schema.json"},
     "ok": { "type": "boolean" },
     "command": { "const": "model-groups" },
     "model": { "$ref": "model-groups-request.schema.json#/properties/model" },

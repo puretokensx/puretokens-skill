@@ -92,6 +92,21 @@ test("ZCode honors the data base and installs all managed components", async t =
  const result = await execFile("sh", [installer, "locate", "--host", "zcode"], { env: { ...env, ZCODE_DATA_BASE_DIR: "" } });
  assert.equal(result.stdout.trim(), path.join(env.HOME, ".zcode", "skills"));
 });
+
+test("installation summaries stay compact and reflect host activation and API support", async t => {
+ const f = await fixture(t);
+ for(const host of ["codex","zcode","trae"]){
+  const target=path.join(f.root,host);
+  const {stdout}=await execFile("sh",[installer,"sync","--target",target,"--host",host],{cwd:repositoryRoot,env:f.env});
+  assert.ok(Buffer.byteLength(stdout)<2200, `${host} dumped a long guide`);
+  assert.doesNotMatch(stdout,/## 操作与恢复|# Pure Tokens Skill 使用须知/);
+  if(host==="zcode")assert.match(stdout,/Refresh and enable the installed Skills in ZCode/);
+  if(host==="trae"){
+   assert.match(stdout,/API tasks: unsupported in this host/);
+   assert.doesNotMatch(stdout,/Example \(not executed\):|Available instructions:/);
+  }else assert.equal(stdout.split("Example (not executed):").length-1,2);
+ }
+});
 test("a failed update restores every existing Skill and releases its lock", async t => {
  const f = await fixture(t); await install(f);
  const originals = new Map();
@@ -106,6 +121,66 @@ test("a failed update restores every existing Skill and releases its lock", asyn
  for (const name of names) assert.equal(await readFile(path.join(f.target, name, "SKILL.md"), "utf8"), originals.get(name));
  assert.equal((await readdir(f.target)).some(x => x.includes("stage") || x.includes("lock")), false);
  await install(f);
+});
+test("failed-update rollback preserves unknown stage content before restoring any target", async t => {
+ const f = await fixture(t); await install(f);
+ const tools = path.join(f.root, "tools"); await mkdir(tools);
+ await writeFile(path.join(tools, "mv"), [
+  "#!/bin/sh",
+  'case "$2" in */backup/puretokens-connection)',
+  ' stage=${2%/backup/puretokens-connection}',
+  ' printf "keep my work" > "$stage/personal.txt"',
+  ' exit 73 ;;',
+  'esac',
+  'exec /bin/mv "$@"'
+ ].join("\n"));
+ await chmod(path.join(tools, "mv"), 0o700);
+ await assert.rejects(install(f, { ...f.env, PATH: `${tools}${path.delimiter}${f.env.PATH}` }));
+ const stages = (await readdir(f.target)).filter(name => name.startsWith(".puretokens-skill-stage."));
+ assert.equal(stages.length, 1, "unrecognized stage content must survive EXIT recovery");
+ const stage = path.join(f.target, stages[0]);
+ assert.equal(await readFile(path.join(stage, "personal.txt"), "utf8"), "keep my work");
+ assert.ok(await readFile(path.join(stage, "backup/puretokens-balance/SKILL.md")), "global preflight must precede rollback mutations");
+ assert.equal((await readdir(f.target)).includes(".puretokens-install-lock"), false);
+});
+
+test("explicit repair resumes an interrupted missing-file replacement", async t => {
+ const f = await fixture(t); await install(f);
+ const name = "puretokens-image";
+ const dir = path.join(f.target, name);
+ const stage = path.join(f.target, ".puretokens-skill-stage.repair");
+ await mkdir(path.join(stage, "backup"), { recursive: true });
+ await cp(dir, path.join(stage, name), { recursive: true });
+ await writeFile(path.join(stage, "transaction-v1"), "");
+ await writeFile(path.join(stage, "repair-v1"), "");
+ await writeFile(path.join(stage, "plan"), `replace ${name}\n`);
+ await rm(path.join(dir, "SKILL.md"));
+ await execFile("sh", [installer, "repair", "--target", f.target], { cwd: repositoryRoot, env: f.env });
+ assert.ok(await readFile(path.join(dir, "SKILL.md")));
+ assert.equal((await readdir(f.target)).some(name => name.includes("stage") || name.includes("lock")), false);
+});
+test("failure before a transaction plan preserves unverified stage contents and existing installation", async t => {
+ const f = await fixture(t); await install(f);
+ const original = await readFile(path.join(f.target, "puretokens-balance/SKILL.md"));
+ const tools = path.join(f.root, "tools"); await mkdir(tools);
+ await writeFile(path.join(tools, "cp"), [
+  "#!/bin/sh",
+  'case "$3" in */.puretokens-skill-stage.*/puretokens-balance)',
+  ' stage=${3%/puretokens-balance}',
+  ' printf "preserve unknown work" > "$stage/personal.txt"',
+  ' exit 73 ;;',
+  'esac',
+  'exec /bin/cp "$@"'
+ ].join("\n"));
+ await chmod(path.join(tools, "cp"), 0o700);
+ await assert.rejects(install(f, { ...f.env, PATH: `${tools}${path.delimiter}${f.env.PATH}` }));
+ const stages = (await readdir(f.target)).filter(name => name.startsWith(".puretokens-skill-stage."));
+ assert.equal(stages.length, 1);
+ const stage = path.join(f.target, stages[0]);
+ assert.equal(await readFile(path.join(stage, "personal.txt"), "utf8"), "preserve unknown work");
+ await assert.rejects(readFile(path.join(stage, "plan")), { code: "ENOENT" });
+ assert.deepEqual(await readFile(path.join(f.target, "puretokens-balance/SKILL.md")), original);
+ assert.equal((await readdir(f.target)).includes(".puretokens-install-lock"), false);
 });
 test("denied committed-stage cleanup reports pending, releases the lock and runs init once", async t => {
  const f = await fixture(t);
@@ -142,6 +217,8 @@ test("next sync restores a recoverable interrupted transaction", async t => {
  await writeFile(path.join(stage, "plan"), "replace puretokens-image\n");
  await rename(path.join(f.target, "puretokens-image"), path.join(stage, "backup/puretokens-image"));
  await cp(path.join(repositoryRoot, "skills/puretokens-image"), path.join(f.target, "puretokens-image"), { recursive: true });
+  const {stdout: inventory}=await execFile(path.join(f.target,".puretokens-executor/puretokens-api"),["install-inventory","--directory",path.join(f.target,"puretokens-image"),"--name","puretokens-image"]);
+  await writeFile(path.join(f.target,"puretokens-image/.puretokens-managed.json"),inventory);
  await install(f);
  assert.equal((await readdir(f.target)).includes(".puretokens-skill-stage.fixture"), false);
  assert.match(await readFile(path.join(f.target, "puretokens-image/SKILL.md"), "utf8"), /submit/);
@@ -365,7 +442,8 @@ test("installation never invokes Codex plugins and still runs host init", async 
  assert.match(stdout,/Pure Tokens Skill init:/);
  assert.doesNotMatch(stdout,/connection check was deferred/);
  assert.match(stdout,/Installation host: qoder/);
- assert.match(stdout,/Start a new qoder conversation/);
+ assert.match(stdout,/Installation host: qoder/);
+ assert.match(stdout,/Follow this client's Skill loading controls, then start a new conversation/);
  await execFile("sh",[installer,"sync","--host","codex","--target",shared],{env});
  await assert.rejects(readFile(marker),{code:"ENOENT"});
  await execFile(path.join(mockBin,"codex"),[],{env});

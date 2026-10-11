@@ -6,6 +6,11 @@
 
 ## Unreleased
 
+- Preserve reviewed terminal failure causes across sessions and add explicit same-task re-delivery, with verified local reuse before retrieval; retain H3 adaptive aspect ratios.
+- Add local installation inspection and an explicit stable-release repair path that preserves modified and unknown files. Replace full usage dumps with host-specific activation and concise examples.
+- Clarify host/mode result handoff, connection intent, audio validation and independent speech/music outputs. Remove redundant read-only confirmations while preserving consent for new paid tasks.
+- Add invocation-local phase timings and an offline agent-trajectory harness; fixtures and agent simulations remain distinct from real-client acceptance.
+
 - Add an anonymous exact-model group lookup using live Switch display names; preserve existing groups when guiding users to reapply configuration, and separate public membership from current-Key permission. Missing or conflicting mappings never fall back to guessed group names.
 
 - Image/video failures may offer compatible models backed by the current connection's catalog. Explain any required changes and possible charges, obtain explicit consent for one new task, and preserve the original task.

@@ -119,6 +119,7 @@ func TestSupportInvalidHTTPStatusOmitsCorrelation(t *testing.T) {
 func TestSupportProjectionExcludesFreeTextAndPrivateFields(t *testing.T) {
 	var output bytes.Buffer
 	writer := &supportReceiptWriter{output: &output, host: "codex", command: "submit"}
+	writer.beginRequest(http.MethodPost, "/v1/images/generations")
 	writeJSON(writer, map[string]any{
 		"ok": false, "task_id": "task_fixture", "kind": "image", "status": "pending",
 		"failure_phase": "submission", "api_error_code": "service_unavailable",

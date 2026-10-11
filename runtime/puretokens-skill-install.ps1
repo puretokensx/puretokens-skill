@@ -2,7 +2,7 @@
 [CmdletBinding()]
 param(
   [Parameter(Position = 0, Mandatory = $true)]
-  [ValidateSet("check", "verify-installed", "init", "sync", "locate")]
+  [ValidateSet("check", "verify-installed", "init", "sync", "repair", "locate")]
   [string]$Command,
   [Parameter(Mandatory = $false)]
   [string]$Target,
@@ -13,7 +13,8 @@ param(
   [Parameter(Mandatory = $false)]
   [string]$Source,
   [Parameter(Mandatory = $false)]
-  [string]$ReleaseManifest
+  [string]$ReleaseManifest,
+  [switch]$NoRecovery
 )
 
 $ErrorActionPreference = "Stop"
@@ -63,6 +64,8 @@ function Invoke-NativeExecutor([string]$Executable, [string[]]$ArgumentList) {
 # Cleanup is best effort only after a transaction is committed or restored.
 # Never bypass a host deletion guard or retry a denied deletion in finally.
 function Remove-CompletedStage([string]$Path) {
+  $verified = Invoke-NativeExecutor $script:ownershipGuard @("install-transaction-verify", "--directory", $Path, "--target-directory", $targetRoot, "--source-directory", $sourceRoot)
+  if ($verified.ExitCode -ne 0) { Fail "transaction cleanup failed verification; all remaining files were preserved" }
   try { Remove-Item -LiteralPath $Path -Recurse -Force -ErrorAction Stop }
   catch { Write-Output "cleanup_status: pending; completed transaction files were retained. Host cleanup permission is required; do not delete unknown directories or reinstall solely for this warning." }
 }
@@ -84,7 +87,8 @@ function Test-ManagedExecutor([string]$Directory) {
 }
 
 function Assert-OwnedInstallation([string]$Directory, [string]$Name, [string]$SourceDirectory = "") {
-  $options = @("install-verify", "--directory", $Directory, "--name", $Name)
+  $verificationCommand = if ($Command -eq "repair") { "install-repair-verify" } else { "install-verify" }
+  $options = @($verificationCommand, "--directory", $Directory, "--name", $Name)
   if ($SourceDirectory) { $options += @("--source-directory", $SourceDirectory) }
   $result = Invoke-NativeExecutor $script:ownershipGuard $options
   if ($result.ExitCode -ne 0) { Fail "installation ownership or file changes require review: $Name; existing files were preserved" }
@@ -177,14 +181,31 @@ function Confirm-InstalledInventories([string]$TargetRoot) {
   } finally { if ($null -ne $readLock) { $readLock.Dispose() } }
   Write-Output "Pure Tokens installed inventories verified; no files changed and init was not run."
 }
-function Show-UsageGuide([string]$TargetRoot) {
-  $guide = Join-Path (Join-Path $TargetRoot "puretokens-update") "references\usage-guide.md"
-  if (Test-Path -LiteralPath $guide -PathType Leaf) {
-    Get-Content -LiteralPath $guide -Raw -Encoding UTF8 | Write-Output
-  } else {
-    Write-Output "Pure Tokens Skill usage guide is unavailable; update the Skills from the official repository."
+# generated:install-activation
+function Show-InstallationSummary([string]$RequestedHost) {
+  switch ($RequestedHost) {
+    'zcode' {
+      Write-Output 'Next: Refresh and enable the installed Skills in ZCode, then start a new conversation. Loading has not been verified in this session.'
+      Write-Output 'Available instructions: images, video, audio/music, Jev evaluation, models and balance. Connection and task results remain separate checks.'
+      Write-Output 'Example (not executed): Generate an image of a lake at sunset.'
+      Write-Output 'Example (not executed): Generate a 5-second video of a paper boat on a river.'
+      Write-Output 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
+    }
+    'trae' {
+      Write-Output 'Next: This is a historical installation directory; Skill discovery in current TraeWork is not confirmed.'
+      Write-Output 'API tasks: unsupported in this host; no credential adapter is available. Installing instructions does not enable generation.'
+      Write-Output 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
+    }
+    default {
+      Write-Output 'Next: Follow this client''s Skill loading controls, then start a new conversation. Loading has not been verified in this session.'
+      Write-Output 'Available instructions: images, video, audio/music, Jev evaluation, models and balance. Connection and task results remain separate checks.'
+      Write-Output 'Example (not executed): Generate an image of a lake at sunset.'
+      Write-Output 'Example (not executed): Generate a 5-second video of a paper boat on a river.'
+      Write-Output 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
+    }
   }
 }
+# /generated:install-activation
 
 function Invoke-Init([string]$TargetRoot, [string]$RequestedHost) {
   Test-InstalledTarget $TargetRoot
@@ -216,8 +237,7 @@ function Invoke-Init([string]$TargetRoot, [string]$RequestedHost) {
     }
   }
   Write-Output ""
-  Show-UsageGuide $TargetRoot
-  if (-not [string]::IsNullOrWhiteSpace($RequestedHost)) { Write-Output "Next: Start a new $RequestedHost conversation after reviewing the init result." }
+  Show-InstallationSummary $RequestedHost
 }
 
 function Get-TargetForHost([string]$RequestedHost) {
@@ -339,8 +359,9 @@ function Test-GeminiDuplicates([string]$TargetRoot) {
 }
 
 function Restore-Transaction([string]$TargetRoot, [string]$StageRoot) {
+  $verified = Invoke-NativeExecutor $script:ownershipGuard @("install-transaction-verify", "--directory", $StageRoot, "--target-directory", $TargetRoot, "--source-directory", $sourceRoot)
+  if ($verified.ExitCode -ne 0) { Fail "transaction recovery failed verification; all remaining files were preserved" }
   $planFile = Join-Path $StageRoot "plan.json"
-  if (-not (Test-Path -LiteralPath $planFile)) { return }
   foreach ($entry in @(Get-Content -LiteralPath $planFile -Raw -Encoding UTF8 | ConvertFrom-Json)) {
     if ($entry.name -notin ($currentSkills + @(".puretokens-executor"))) { Fail "unknown recovery entry; retained backup" }
     $destination = Join-Path $TargetRoot $entry.name
@@ -403,9 +424,20 @@ try {
   $targetRoot = (Resolve-Path -LiteralPath $Target).Path
   Test-GeminiDuplicates $targetRoot
   $script:ownershipGuard = Get-ExecutorArtifact $sourceRoot
+  if ($NoRecovery -and @(Get-ChildItem -LiteralPath $targetRoot -Force -Filter ".puretokens-skill-stage-*").Count -gt 0) { Fail "installation transaction requires review; existing files were preserved" }
   try { $updateLock = [System.IO.File]::Open((Join-Path $targetRoot ".puretokens-install.lock"), [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None) } catch { Fail "another update is in progress or the update lock is not writable" }
+  if ($Command -eq "repair") {
+    foreach ($name in ($currentSkills + @(".puretokens-executor"))) {
+      $destination = Join-Path $targetRoot $name
+      if (Test-InstallationEntry $destination) { Assert-OwnedInstallation $destination $name }
+    }
+  }
   foreach ($previous in @(Get-ChildItem -LiteralPath $targetRoot -Directory -Force | Where-Object { $_.Name -like ".puretokens-skill-stage-*" })) {
     if (-not (Test-Path -LiteralPath (Join-Path $previous.FullName "transaction-v1"))) { Fail "unknown staging directory; left untouched" }
+    $verified = Invoke-NativeExecutor $script:ownershipGuard @("install-transaction-verify", "--directory", $previous.FullName, "--target-directory", $targetRoot, "--source-directory", $sourceRoot)
+    if ($verified.ExitCode -ne 0) { Fail "previous update recovery failed verification; all transaction files were preserved" }
+  }
+  foreach ($previous in @(Get-ChildItem -LiteralPath $targetRoot -Directory -Force | Where-Object { $_.Name -like ".puretokens-skill-stage-*" })) {
     if (-not (Test-Path -LiteralPath (Join-Path $previous.FullName "committed"))) { Restore-Transaction $targetRoot $previous.FullName }
     Remove-CompletedStage $previous.FullName
   }
@@ -426,6 +458,7 @@ try {
   $stageRoot = Join-Path $targetRoot (".puretokens-skill-stage-" + [Guid]::NewGuid().ToString("N"))
   New-Item -ItemType Directory -Path (Join-Path $stageRoot "backup") -Force | Out-Null
   New-Item -ItemType File -Path (Join-Path $stageRoot "transaction-v1") | Out-Null
+  if ($Command -eq "repair") { New-Item -ItemType File -Path (Join-Path $stageRoot "repair-v1") | Out-Null }
   foreach ($name in $currentSkills) { Copy-Item -LiteralPath (Join-Path (Join-Path $sourceRoot "skills") $name) -Destination $stageRoot -Recurse }
   $executorSource = Get-ExecutorArtifact $sourceRoot
   $stageExecutor = Join-Path $stageRoot ".puretokens-executor"

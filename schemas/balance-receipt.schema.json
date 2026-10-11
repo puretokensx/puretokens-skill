@@ -9,6 +9,7 @@
     "result"
   ],
   "properties": {
+    "timings_ms": {"$ref": "timings.schema.json"},
     "support": {"$ref": "support-summary.schema.json"},
     "ok": {
       "const": true

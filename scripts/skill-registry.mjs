@@ -108,11 +108,10 @@ export async function validateRepository() {
       errors.push(`${directory}: supportedClients must match references/host-support.json`);
     }
     if (name === "puretokens-image" || name === "puretokens-video" || name === "puretokens-audio" || name === "puretokens-evaluate") {
-      const hostLine = skillText.split("\n").find(line => line.includes("当前宿主 ID 为")) ?? "";
-      const entryHosts = (hostLine.split("当前宿主 ID 为")[1]?.split("，")[0] ?? "").match(/[a-z]+(?:-[a-z]+)*/g) ?? [];
-      if (!sameArray([...entryHosts].sort(), supportedHostIds)) {
-        errors.push(`${directory}: the ordinary media entry host list must match references/host-support.json`);
+      if (!skillText.includes("references/host-delivery.md")) {
+        errors.push(`${directory}: media entry must link its installed host delivery guide`);
       }
+      await verifyFile(errors, `skills/${directory}/references/host-delivery.md`);
     }
     validateHostDistributions(errors, directory, manifest, hostSupport);
     if (forbiddenPattern.test(skillText) || forbiddenPattern.test(JSON.stringify(manifest))) {
@@ -332,7 +331,7 @@ function validateDirectApiExecutionContract(errors, contract, hostSupport) {
     mediaDeliveryResourceBounds.readContentOnlyAfterTerminalSuccess !== true ||
     mediaDeliveryResourceBounds.oneInFlightContentReadPerTask !== true ||
     mediaDeliveryResourceBounds.sequentialImageContentIndexes !== true ||
-    mediaDeliveryResourceBounds.neverPrefetchOrRefetchDeliveredContent !== true ||
+    mediaDeliveryResourceBounds.neverAutomaticallyPrefetchOrRefetchDeliveredContent !== true ||
     mediaDeliveryResourceBounds.handoffNativeBytesBeforeNextRead !== true ||
     mediaDeliveryResourceBounds.doesNotPersistMediaBytesInSkillStateOrLogs !== true ||
     mediaDeliveryResourceBounds.confirmedDeliveryEndsCurrentResponse !== true ||
@@ -579,7 +578,7 @@ function validateExecutionContract(errors, directory, contract) {
     }
     validateTaskIdentityStateAndSubmissionFailure(errors, label, contract, false);
     const retrieval = contract.contentRetrieval;
-    if (!retrieval || retrieval.fetchOnlyAfterTerminalSuccess !== true || retrieval.oneInFlightContentReadPerTask !== true || retrieval.neverPrefetchOrRefetchDeliveredContent !== true || retrieval.handoffBeforeNextContentRead !== true) {
+    if (!retrieval || retrieval.fetchOnlyAfterTerminalSuccess !== true || retrieval.oneInFlightContentReadPerTask !== true || retrieval.neverAutomaticallyPrefetchOrRefetchDeliveredContent !== true || retrieval.handoffBeforeNextContentRead !== true) {
       errors.push(`${label} must retrieve video content only after terminal success, one response at a time, without prefetching or duplicate delivery`);
     }
     validatePolling(errors, `${label} polling`, contract.polling, { deadlineSeconds: 300, fallbackDelaysSeconds: [5, 10, 20, 40, 60], steadyDelaySeconds: 60, maxAutomaticStatusReads: 7 });
@@ -594,8 +593,11 @@ function validateContinuationIntegrity(errors, label, contract) {
   const record = contract.continuationRecord;
   if (!record || record.validatesBeforeCreation !== true || record.reuseRequiresMatchingProof !== true ||
       record.unknownSubmissionNeverResubmits !== true ||
+      !record.preserves?.includes("last_failure") || !record.preserves?.includes("pending_redelivery_index") ||
+      record.failureClassification !== "reviewed_terminal_failure_only_no_raw_errors_legacy_reason_unknown" ||
+      record.redelivery !== "explicit_same_task_index_local_proof_first_never_submit_ack_after_new_handoff" ||
       !sameArray(record.downloadProofFields, ["sha256", "bytes", "media_type"]) ||
-      !sameArray(record.commands, ["status", "wait", "resume", "content", "delivered"]) ||
+      !sameArray(record.commands, ["status", "wait", "resume", "content", "redeliver", "delivered"]) ||
       !record.preserves?.includes("original_operation") || !record.preserves?.includes("download_proofs") ||
       record.legacyRecordWithoutProof !== "continue_same_task_but_download_into_another_directory_before_handoff" ||
       contract.contentRetrieval?.existingOutputReuse !== "explicit_record_matching_sha256_bytes_media_type_only_otherwise_preserve_and_choose_another_directory" ||
@@ -659,7 +661,7 @@ function validateImageRetrieval(errors, label, contract) {
   if (!retrieval || retrieval.indexBase !== 0 || retrieval.requestedCount !== "explicit_n_or_default_1" || retrieval.allowedIndexes !== "0..requestedCount-1" ||
     retrieval.completeDeliveryRequiresEveryRequestedIndex !== true || retrieval.partialOrMissingContent !== "report_delivered_and_missing_indexes_without_resubmission" ||
     retrieval.fetchOnlyAfterTerminalSuccess !== true || retrieval.sequentialByIndex !== true || retrieval.oneInFlightContentReadPerTask !== true ||
-    retrieval.neverPrefetchOrRefetchDeliveredContent !== true || retrieval.handoffBeforeNextContentRead !== true) {
+    retrieval.neverAutomaticallyPrefetchOrRefetchDeliveredContent !== true || retrieval.handoffBeforeNextContentRead !== true) {
     errors.push(`${label} must retrieve every zero-based requested image content index sequentially after terminal success without prefetching or duplicate delivery`);
   }
 }
@@ -836,6 +838,8 @@ async function validateSchemaDocuments(errors) {
     "schemas/model-index.schema.json",
     "schemas/model-profile.schema.json",
     "schemas/host-support.schema.json",
+    "schemas/host-delivery.schema.json",
+    "schemas/installation-inspection.schema.json",
     "schemas/direct-api-execution-contract.schema.json",
     "schemas/catalog-freshness.schema.json",
     "schemas/balance-snapshot.schema.json",
@@ -844,6 +848,7 @@ async function validateSchemaDocuments(errors) {
     "schemas/executor-request.schema.json",
     "schemas/executor-receipt.schema.json",
     "schemas/support-summary.schema.json",
+    "schemas/timings.schema.json",
     "schemas/model-query.schema.json",
     "schemas/model-query-receipt.schema.json",
     "schemas/task-record.schema.json",

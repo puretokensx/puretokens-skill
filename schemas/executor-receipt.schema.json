@@ -6,6 +6,7 @@
     "ok"
   ],
   "properties": {
+    "timings_ms": {"$ref": "timings.schema.json"},
     "support": {
       "$ref": "support-summary.schema.json"
     },
@@ -131,6 +132,7 @@
         "wait",
         "resume",
         "content",
+        "redeliver",
         "delivered"
       ]
     },
@@ -155,6 +157,33 @@
         "done"
       ],
       "description": "Local orchestration hint, never authorization to submit or bypass host policy."
+    },
+    "failure_category": {
+      "enum": [
+        "unknown",
+        "quota",
+        "balance",
+        "authentication",
+        "model_permission",
+        "permission",
+        "model_unavailable",
+        "invalid_request",
+        "content_policy",
+        "rate_limit",
+        "service_unavailable",
+        "task_unavailable"
+      ],
+      "description": "Curated classification of a confirmed task failure; unknown means no reliable cause was recorded."
+    },
+    "failure_source": {
+      "const": "task_record",
+      "description": "Historical task-result evidence recovered locally. Not an API request or newly checked permission."
+    },
+    "redelivery_index": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5,
+      "description": "Explicit repeat handoff for this same task/index; historical delivered_indexes are unchanged."
     }
   },
   "additionalProperties": false,
@@ -326,6 +355,9 @@
               }
             },
             "additionalProperties": false
+          },
+          "redelivery_index": {
+            "const": 0
           }
         }
       }

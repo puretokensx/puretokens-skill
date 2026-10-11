@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "criteria": {
+    "image-short-path": {
+      "skills": ["puretokens-image"],
+      "postCount": 1,
+      "maxAsks": 0,
+      "maxReads": 4,
+      "allowedCommands": ["submit", "wait", "resume", "content", "delivered"],
+      "requiredCommands": ["submit", "content"],
+      "requiredReferences": ["skills/puretokens-image/SKILL.md", "skills/puretokens-image/references/profiles/gpt-image-2.5-flare.json"],
+      "attachmentRequired": true,
+      "receiptBeforeContinuation": true,
+      "deliveredAfterAttachment": true,
+      "attachmentModel": "gpt-image-2.5-flare"
+    },
+    "unknown-submission": {
+      "skills": ["puretokens-image"],
+      "postCount": 1,
+      "maxAsks": 0,
+      "allowedCommands": ["submit"],
+      "requiredCommands": ["submit"],
+      "stopAfterFirstCommand": true,
+      "attachmentRequired": false,
+      "sayAny": ["未确认", "不确定", "无法确认", "未知", "中断"],
+      "forbiddenSay": ["没扣费", "未扣费", "没有提交", "未创建任务", "肯定失败"]
+    },
+    "redeliver-completed-image": {
+      "skills": ["puretokens-image"],
+      "postCount": 0,
+      "maxAsks": 0,
+      "allowedCommands": ["resume", "redeliver", "delivered"],
+      "requiredCommands": ["redeliver", "delivered"],
+      "attachmentRequired": true,
+      "deliveredAfterAttachment": true,
+      "sameTaskOnly": true
+    },
+    "local-connection-stop": {
+      "skills": ["puretokens-image"],
+      "postCount": 0,
+      "maxAsks": 0,
+      "allowedCommands": ["submit"],
+      "requiredCommands": ["submit"],
+      "stopAfterFirstCommand": true,
+      "attachmentRequired": false,
+      "forbiddenSay": ["没有配置", "尚未配置", "请重新安装", "切换到 Claude", "删除连接"]
+    },
+    "audio-mixed-result": {
+      "skills": ["puretokens-audio"],
+      "postCount": 0,
+      "minAsks": 1,
+      "maxAsks": 1,
+      "allowedCommands": [],
+      "requiredCommands": [],
+      "attachmentRequired": false,
+      "askAll": [["混音", "混合", "合成", "混成"], ["独立", "分别", "两个文件", "素材"]]
+    },
+    "model-group-unavailable": {
+      "skills": ["puretokens-models", "puretokens-image"],
+      "postCount": 0,
+      "maxAsks": 0,
+      "allowedCommands": ["model-groups"],
+      "requiredCommands": ["model-groups"],
+      "maxCommands": 1,
+      "attachmentRequired": false,
+      "exactModel": "nano-banana-2",
+      "sayAny": ["无法确认", "不能确认", "未能确认", "没有返回"],
+      "forbiddenSay": ["Gemini", "gemini", "删除原分组", "换 Key", "已确认权限"]
+    },
+    "service-failure-alternative": {
+      "skills": ["puretokens-image"],
+      "postCount": 0,
+      "minAsks": 1,
+      "maxAsks": 1,
+      "allowedCommands": ["resume", "models"],
+      "requiredCommands": ["models"],
+      "maxCommands": 2,
+      "attachmentRequired": false,
+      "catalogBeforeAsk": true,
+      "askAll": [["nano-banana-2"], ["新任务", "重新生成"], ["计费", "费用", "收费"]]
+    },
+    "historical-content-rejection": {
+      "skills": ["puretokens-image"],
+      "postCount": 0,
+      "maxAsks": 1,
+      "allowedCommands": ["resume"],
+      "requiredCommands": [],
+      "maxCommands": 1,
+      "attachmentRequired": false,
+      "sayAny": ["内容", "审核", "政策", "拒绝"],
+      "forbiddenSay": ["Nano", "nano", "试试其他模型", "换个模型", "服务异常"]
+    }
+  }
+}

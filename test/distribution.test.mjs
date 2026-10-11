@@ -368,3 +368,45 @@ test("stable selector checksum is verified before execution", async t => {
   await assert.rejects(execFile("sh",[path.join(f.source,"runtime/puretokens-skill-fetch.sh"),"install","--target",f.target],{env}),/selector checksum mismatch/);
   await assert.rejects(stat(f.target));
 });
+
+test("explicit stable repair recovers verified committed stages and missing managed files only", async t => {
+  const f = await fixture(t);
+  const env = await mockDownloads(f);
+  const wrapper = path.join(f.source, "runtime/puretokens-skill-fetch.sh");
+  await execFile("sh", [wrapper, "install", "--target", f.target], {env});
+  const stage = path.join(f.target, ".puretokens-skill-stage.committed");
+  await mkdir(path.join(stage, "backup"), {recursive:true});
+  await cp(path.join(f.target,"puretokens-image"),path.join(stage,"backup/puretokens-image"),{recursive:true});
+  await writeFile(path.join(stage,"transaction-v1"),"");
+  await writeFile(path.join(stage,"committed"),"");
+  await writeFile(path.join(stage,"plan"),"replace puretokens-image\n");
+  await assert.rejects(execFile("sh",[wrapper,"update","--target",f.target],{env}), /transaction requires review/);
+  await execFile("sh",[wrapper,"repair","--target",f.target],{env});
+  await assert.rejects(stat(stage), {code:"ENOENT"});
+  const file = path.join(f.target,"puretokens-image/SKILL.md");
+  const original = await readFile(file,"utf8");
+  await rm(file);
+  await execFile("sh",[wrapper,"repair","--target",f.target],{env});
+  assert.equal(await readFile(file,"utf8"),original);
+  await writeFile(file,"preserve my edits");
+  await assert.rejects(execFile("sh",[wrapper,"repair","--target",f.target],{env}), /local additions, changes or unknown ownership/);
+  assert.equal(await readFile(file,"utf8"),"preserve my edits");
+});
+
+test("explicit repair preserves unknown or modified recovery stage data", async t => {
+  const f = await fixture(t);
+  const env = await mockDownloads(f);
+  const wrapper = path.join(f.source,"runtime/puretokens-skill-fetch.sh");
+  await execFile("sh",[wrapper,"install","--target",f.target],{env});
+  const stage = path.join(f.target,".puretokens-skill-stage.personal");
+  await mkdir(path.join(stage,"backup"),{recursive:true});
+  await writeFile(path.join(stage,"transaction-v1"),"");
+  await writeFile(path.join(stage,"committed"),"");
+  await writeFile(path.join(stage,"plan"),"replace puretokens-image\n");
+  const personal=path.join(stage,"personal.txt");
+  await writeFile(personal,"keep transaction addition");
+  const before=await readFile(path.join(f.target,"puretokens-image/SKILL.md"));
+  await assert.rejects(execFile("sh",[wrapper,"repair","--target",f.target],{env}),/failed verification/);
+  assert.equal(await readFile(personal,"utf8"),"keep transaction addition");
+  assert.deepEqual(await readFile(path.join(f.target,"puretokens-image/SKILL.md")),before);
+});

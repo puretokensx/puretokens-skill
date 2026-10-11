@@ -55,7 +55,7 @@ func newModelGroupsReceipt(model string) modelGroupsReceipt {
 }
 
 func runModelGroupsCommand(args []string, output io.Writer) error {
-	writer := &supportReceiptWriter{output: output, command: "model-groups"}
+	writer := &supportReceiptWriter{output: output, command: "model-groups", timings: newCommandTimings()}
 	flags := flag.NewFlagSet("model-groups", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	requestFile := flags.String("request", "", "")
@@ -88,6 +88,8 @@ func decodeModelGroupsRequest(body []byte) (string, error) {
 // A separate anonymous client prevents accidentally inheriting a credential,
 // cookie jar, configurable API origin or request transport from an API command.
 func executeModelGroups(parent context.Context, output io.Writer, model string, client *http.Client) error {
+	finishTiming := timingsForWriter(output).enter("catalog")
+	defer finishTiming()
 	ctx, cancel := context.WithTimeout(parent, modelGroupsTimeout)
 	defer cancel()
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, modelGroupsURL, nil)
