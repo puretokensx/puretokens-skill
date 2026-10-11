@@ -19,6 +19,11 @@ export async function syncSkillGuidance(root, { write = false } = {}) {
   const hostList = support.supported.map(host => host.id).join("、");
   const changed = [];
   const operations = await loadOperationGuidance(root);
+  const directContract = JSON.parse(await read("references/direct-api-execution-contract.json"));
+  const modelAlternatives = directContract.asyncTaskHandling.modelAlternatives;
+  if (!modelAlternatives || modelAlternatives.requiresExplicitNewTaskConsent !== true || modelAlternatives.automaticModelSwitch !== false) {
+    throw new Error("Model alternatives must require explicit new-task consent without automatic switching");
+  }
   async function output(file, next) {
     let current = "";
     try { current = await read(file); } catch (error) { if (error.code !== "ENOENT") throw error; }
@@ -62,6 +67,22 @@ export async function syncSkillGuidance(root, { write = false } = {}) {
     }
     if (["puretokens-image", "puretokens-video", "puretokens-audio"].includes(skill.name)) {
       await output(`skills/${skill.name}/references/workflows.md`, await read("references/skill-fragments/media-workflows.md"));
+    }
+    if (["puretokens-image", "puretokens-video"].includes(skill.name)) {
+      await output(`skills/${skill.name}/references/model-alternatives.md`, await read("references/skill-fragments/model-alternatives.md"));
+      const contractPath = `skills/${skill.name}/references/execution-contract.json`;
+      const contract = JSON.parse(await read(contractPath));
+      contract.submissionFailure.modelAlternatives = modelAlternatives;
+      await output(contractPath, JSON.stringify(contract, null, 2) + "\n");
+    }
+    if (skill.name === "puretokens-models") {
+      const contractPath = `skills/${skill.name}/references/execution-contract.json`;
+      const contract = JSON.parse(await read(contractPath));
+      contract.result.groupGuidance = directContract.modelGroupGuidance;
+      await output(contractPath, JSON.stringify(contract, null, 2) + "\n");
+    }
+    if (["puretokens-image", "puretokens-video", "puretokens-models"].includes(skill.name)) {
+      await output(`skills/${skill.name}/references/model-groups.md`, await read("references/skill-fragments/model-groups.md"));
     }
     if (["puretokens-image", "puretokens-video", "puretokens-audio", "puretokens-evaluate"].includes(skill.name)) {
       if (!/当前宿主 ID 为 [^。\n]+。/.test(next)) throw new Error(`${skill.name}: missing host list`);

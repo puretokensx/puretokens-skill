@@ -4,6 +4,14 @@
 
 # Changelog
 
+## Unreleased
+
+- Add an anonymous exact-model group lookup using live Switch display names; preserve existing groups when guiding users to reapply configuration, and separate public membership from current-Key permission. Missing or conflicting mappings never fall back to guessed group names.
+
+- Image/video failures may offer compatible models backed by the current connection's catalog. Explain any required changes and possible charges, obtain explicit consent for one new task, and preserve the original task.
+- Unknown submissions, pending tasks, reconciliation and delivery failures retain same-task recovery. Explain permission, balance, rate-limit and content restrictions without automatic model switching or retry loops.
+- Generate the shared failure guidance into independently installable image/video Skills, distinguishing compatible candidates from official successors. Default models and API transport are unchanged.
+
 ## 0.18.8 - 2026-10-04
 
 - Explain command, HTTPS and directory permissions before the initial download in the complete installation prompts. Preserve the one-line installation entry and do not require Full Access by default.

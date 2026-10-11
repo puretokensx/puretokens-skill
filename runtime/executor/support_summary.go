@@ -39,7 +39,7 @@ func (writer *supportReceiptWriter) beginRequest(method, path string) {
 	switch {
 	case path == "/v1":
 		writer.requestPhase = "identity"
-	case path == "/v1/media/models" || path == "/v1/models":
+	case path == "/v1/media/models" || path == "/v1/models" || path == modelGroupsPath:
 		writer.requestPhase = "catalog"
 	case path == balanceUsagePath:
 		writer.requestPhase = "balance_usage"
@@ -110,7 +110,7 @@ func (writer *supportReceiptWriter) summary(document map[string]json.RawMessage)
 		summary["host"] = writer.host
 	}
 	switch writer.command {
-	case "init", "doctor", "connection", "balance", "models", "preflight", "submit",
+	case "init", "doctor", "connection", "balance", "models", "model-groups", "preflight", "submit",
 		"status", "wait", "content", "resume", "delivered", "evaluate", "audio", "audio-verify":
 		summary["command"] = writer.command
 	}

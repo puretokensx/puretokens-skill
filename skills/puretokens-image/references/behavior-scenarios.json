@@ -377,6 +377,86 @@
       "id": "image-submission-identity-diagnosis",
       "when": "A successful HTTP submission response is unreadable, lacks a non-empty top-level identity or contains an unsupported identity type/format.",
       "then": "Report the corresponding task_response_unreadable, task_id_missing or task_id_invalid local classification, never raw values or invented API error codes. The submission remains unknown; no polling, automatic update, alternate transport or resubmission. Use the existing support.executor_version from the affected client; never substitute the maintainer computer version."
+    },
+    {
+      "id": "image-alternative-after-confirmed-failure",
+      "when": "The original task is confirmed failed without reconciliation or a blocking public error, and a current same-connection authenticated catalog contains an executor-supported candidate satisfying every requirement.",
+      "then": "Explain only this task failure; offer the exact candidate with its compatibility basis, preserve prompt and references, disclose a new task and possible charge, and ask for explicit consent. Do not call submit, invent a global outage, claim health or billing, or change the default model."
+    },
+    {
+      "id": "image-alternative-without-current-catalog",
+      "when": "A task is confirmed failed, but only installed profiles, a public catalog or a different/previous connection catalog is available.",
+      "then": "Ask whether to look up compatible models on the current host. Do not name a candidate as accessible or query automatically. If the user agrees to discovery, make one models read only; discovery approval is not generation consent. Explicit model/capability rejection may use its existing one-query diagnostic allowance."
+    },
+    {
+      "id": "image-alternative-capability-mismatch",
+      "when": "A returned alternative cannot preserve an image edit, attachment count, video first/last frames, reference roles, output size, duration or required audio.",
+      "then": "Do not present it as a drop-in replacement or silently omit inputs. Explain the specific mismatch and require explicit changed requirements or choose a fully compatible returned candidate. Check both current catalog and selected supported profile; a name is not capability evidence."
+    },
+    {
+      "id": "image-alternative-explicit-consent",
+      "when": "After one exact candidate, all material differences and the possible new charge were explained, the user explicitly says to use it once.",
+      "then": "Create exactly one new submission using the same host and native executor, verbatim explicit prompt and original accessible attachment bytes. Use a new task ID from the response and a separate record; never overwrite or mutate the original record, model, result or default. Do not ask for the same approval again. Report the receipt before follow-up reads."
+    },
+    {
+      "id": "image-alternative-ambiguous-consent",
+      "when": "The user says continue after several candidates or an unresolved capability change; or agrees only to inspect models.",
+      "then": "Clarify the selected exact model or requirement change without POST. Only a clear response to one fully specified new-task proposal is consent. Never treat catalog lookup permission as creation permission."
+    },
+    {
+      "id": "image-alternative-unknown-or-pending",
+      "when": "A submission is unknown, times out, has an unreadable/missing ID, or the task is pending, retry-deferred, under reconciliation or has a status-read failure.",
+      "then": "Do not proactively suggest a replacement or read the catalog. Explain uncertainty and retain same-task recovery when possible. A later independent new request after unknown submission requires explicit acknowledgement of possible original completion and duplicate charges; reconciliation remains same-task only. Never reset wait budgets."
+    },
+    {
+      "id": "image-alternative-blocking-cause",
+      "when": "The receipt indicates local host/attachment/network restrictions, authentication, permission, quota, balance, rate limiting, content rejection or user cancellation, even if another field says failed.",
+      "then": "Honor the specific next_action or cancellation. Do not diagnose model outage, look up replacements automatically, suggest changing models as a workaround or bypass content controls."
+    },
+    {
+      "id": "image-alternative-after-delivery-failure",
+      "when": "Generation completed but content retrieval or native attachment handoff failed.",
+      "then": "Offer only original-task retrieval or reattachment of verified files, not another model. Do not create a new paid task or claim the original model failed."
+    },
+    {
+      "id": "image-alternative-also-fails",
+      "when": "The explicitly selected alternative fails or its submission outcome is unknown.",
+      "then": "Return the actual sanitized failure and stop automatic work. Prior consent authorized one new task only, not another model, resubmission or a rotation loop; retain any new and original task IDs."
+    },
+    {
+      "id": "image-alternative-empty-or-denied-catalog",
+      "when": "The one permitted catalog lookup returns no compatible candidate, denies authorization, or fails.",
+      "then": "Explain that no compatible candidate could be confirmed in this lookup. Do not retry, fall back to a static list, infer global model retirement, change host/connection or POST."
+    },
+    {
+      "id": "image-group-live-renamed-group",
+      "when": "A model group was renamed in production and a fixture uses a different name.",
+      "then": "Use only the current model-groups receipt group name; never fixture, brand or stale names. Public membership does not prove current-Key permission."
+    },
+    {
+      "id": "image-group-multiple-groups",
+      "when": "An exact model has multiple public group mappings.",
+      "then": "Show the returned groups without choosing one or requiring all; preserve existing selections and let the user choose an allowed Switch group."
+    },
+    {
+      "id": "image-group-missing-mapping",
+      "when": "The old service has no group_guidance, or mapping is missing, conflicting or unsafe.",
+      "then": "Give generic exact-model group guidance, without guessing from enable_groups or claiming the model is unavailable; do not retry."
+    },
+    {
+      "id": "image-group-permission-vs-service",
+      "when": "A model permission rejection, a 401 authentication error and an upstream 5xx occur in separate requests.",
+      "then": "Only the explicit model-permission rejection may trigger group guidance. Handle authentication independently. An uncertain 5xx submission keeps same-task recovery and makes no group lookup or new POST."
+    },
+    {
+      "id": "image-group-reapply-groups",
+      "when": "The user reports selecting another group or refreshing an already-selected group in Switch.",
+      "then": "Invalidate old connection catalog evidence, preserve existing groups, follow host reload instructions and verify current authenticated visibility only when requested. Applying configuration does not authorize another paid task."
+    },
+    {
+      "id": "image-group-host-disallows-group",
+      "when": "Switch disables the suggested group for this account or host, including Claude Desktop restrictions.",
+      "then": "Do not bypass host restrictions, change host, expose credentials or promise call support. Explain that public mapping is not account eligibility and stop for user support."
     }
   ]
 }

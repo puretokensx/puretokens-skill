@@ -1,6 +1,6 @@
 ---
 name: puretokens-models
-description: 查询当前 Pure Tokens 连接的图片／视频模型、参数、媒体操作，或明确查询音频／Jev 评估模型是否在认证目录可见时使用。
+description: 查询当前 Pure Tokens 连接的图片／视频模型、参数、媒体操作，或明确查询音频／Jev 评估模型是否在认证目录可见、精确型号对应哪个线上分组时使用。
 ---
 
 # Pure Tokens Models
@@ -52,7 +52,7 @@ description: 查询当前 Pure Tokens 连接的图片／视频模型、参数、
 
 ## 图片／视频查询规则
 
-- 每个用户查询只调用一次 `GET https://api.puretokensx.com/v1/media/models`；不得调用 Images/Videos 提交、任务状态、内容、余额或其他路径，也不得重试。
+- 每次图片／视频认证目录查询只调用一次 `GET https://api.puretokensx.com/v1/media/models`；不得调用 Images/Videos 提交、任务状态、内容、余额或其他路径，也不得重试。
 - 当前认证目录是唯一事实来源。只报告实际返回的精确模型 ID、明确返回的 `capabilities`、`input_schema.properties` 参数资料、`input_schema.constraints` 条件限制和 `input_schema.operations`；不得以 README、安装包静态清单、模型名称或过往任务补全、猜测或回退。
 - 用户可查询：当前可用图片/视频模型；某个精确模型；支持某个能力或操作的模型；以及某项时长、画幅、分辨率、尺寸、数量或参考媒体要求有哪些兼容模型。
 - 需求匹配只基于当前条目明确声明的 capability、`input_schema.properties` 字段和值、适用的 `input_schema.constraints`、以及 `input_schema.operations`。例如图生视频只匹配发布 `image_to_video` 的模型；参考图、参考视频、参考音频和视频编辑分别只匹配 `reference_image_video`、`reference_video`、`reference_audio`、`video_edit`。没有明确声明就不列为兼容。
@@ -63,13 +63,13 @@ description: 查询当前 Pure Tokens 连接的图片／视频模型、参数、
 - 按用户的筛选条件展示；未筛选时先按图片和视频 capability 分组。
 - 每个模型仅展示实际返回的：精确 ID、capability、可选参数名称、`required` 标记、类型、默认值、`enum` 值、数值范围、非请求字段的条件限制（例如 `resolution_by_mode`），以及 operation 名称、请求方法、相对路径、content type、必需字段、附件数量和 transport。`constraints` 不是额外请求字段，绝不把它的名称或推断模式写入 API body。缺失字段写“目录未声明”，不得猜测。
 - 若用户询问“哪个能做 X”，先给出满足 X 的兼容模型和匹配依据；不要直接提交生成请求。用户选定模型并提出生成需求后，再交由 `puretokens-image` 或 `puretokens-video` 按各自契约执行。
-- 目录为空或精确模型缺失，只说明当前目录没有返回对应资料，不能断言 Key 分组错误。可展示实际返回的模型；用户预期有权限时，建议在自身设置中核对该模型权限或联系 Pure Tokens 支持。只有确认需要调整权限时才由用户选择分组、验证并应用；没有认证 API 明确返回模型到分组的映射，不得猜分组名称。网络／服务失败建议稍后再查询；认证、权限、限流按回执 `next_action` 分别解释。不切换 endpoint、不以静态目录冒充实时结果、不自动重试或提交媒体。
+- 目录为空或精确模型缺失，只说明当前目录没有返回对应资料，不能断言 Key 分组错误。可展示实际返回的模型；用户预期有权限时，建议在自身设置中核对该模型权限或联系 Pure Tokens 支持。需要查询分组时按下节读取线上公开映射，不能把映射当作当前 Key 的权限证明，也不得猜分组名称。网络／服务失败建议稍后再查询；认证、权限、限流按回执 `next_action` 分别解释。不切换 endpoint、不以静态目录冒充实时结果、不自动重试或提交媒体。
 
 用户明确筛选时，可用 `models --host <host-id> --request <UTF-8筛选文件>`，文件可含 `kind`、精确 `model`、`operation` 和 `parameters`，例如 `{"kind":"video","operation":"image_to_video","parameters":{"resolution":"720p"}}`。执行器只读取一次认证目录并按其声明筛选；缺少字段不视为兼容，不提交媒体。无筛选则省略 --request。查询目录不是普通生成的必需前置步骤。
 
 ## 线上声明与安装版本
 
-当前目录契约未声明模型退役状态、下线时间或替代模型，不能从查询缺失、名称、快照日期推断下线，也不推荐未经声明的替代模型。未来需 Web／网关先发布认证目录字段及其日期／范围契约，再适配本地 profile 和展示；现有 input_schema.lifecycle 是任务创建／轮询协议，不是模型退役信息。不为此增加普通生成前的联网检查。
+当前目录契约未声明模型退役状态、下线时间或官方替代型号，不能从查询缺失、名称、快照日期推断下线或宣称某个型号是官方替代。可以基于当前认证目录明确声明的能力，列出满足用户要求的其他兼容候选；这不是健康检查、实际调用权限保证或生成授权。失败后的提议、确认及新任务处理由图片／视频 Skill 的 model-alternatives 指南约束，不能把普通目录查询变成自动换模型。官方退役／替代信息需 Web／网关先发布相应字段及日期／范围契约，再适配本地 profile 和展示；现有 input_schema.lifecycle 是任务创建／轮询协议，不是模型退役信息。不为此增加普通生成前的联网检查。
 
 筛选复用提交的字段与组合校验，包含所选 operation 必需输入产生的互斥限制；查询不验证附件字节或保证实际提交权限。查询结果也不会改写已安装 profile。
 
@@ -80,3 +80,10 @@ description: 查询当前 Pure Tokens 连接的图片／视频模型、参数、
 宿主目录、会话选择限制或特定客户端故障才按需读 `references/desktop-hosts.md`；普通请求不增加诊断前置步骤。
 
 本地连接失败按执行器脱敏状态解释：未识别、不可读、不支持或未验证均不等于“尚未配置”。保留现有连接，不据此要求重装、切换模型、重配或更换凭据；`api_request_executed: false` 时说明未请求 API、未认证凭据。具体宿主限制见 `references/desktop-hosts.md`。
+
+## 线上分组查询
+
+用户询问精确型号对应哪个分组，或已确认模型权限拒绝后需要分组指引时，读
+[线上分组指引](references/model-groups.md)，使用独立的匿名 `model-groups` 命令。
+公开归属不表示当前 Key 权限；旧服务缺字段就给通用指引，不写死分组名。
+只问分组不调用认证目录或生成；仅问本 Skill 用法不联网。

@@ -147,6 +147,26 @@
         },
         "musicContent": {
           "$ref": "#/$defs/request"
+        },
+        "groupGuidance": {
+          "type": "object",
+          "required": [
+            "method",
+            "url",
+            "requiresConfiguredApiKey"
+          ],
+          "properties": {
+            "method": {
+              "const": "GET"
+            },
+            "url": {
+              "const": "https://console.puretokensx.com/api/product/docs/model-catalog"
+            },
+            "requiresConfiguredApiKey": {
+              "const": false
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

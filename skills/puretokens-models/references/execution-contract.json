@@ -28,10 +28,14 @@
     "audioCatalog": {
       "method": "GET",
       "url": "https://api.puretokensx.com/v1/models"
+    },
+    "groupGuidance": {
+      "method": "GET",
+      "url": "https://console.puretokensx.com/api/product/docs/model-catalog",
+      "requiresConfiguredApiKey": false
     }
   },
   "result": {
-    "reportOnlyAuthenticatedCatalog": true,
     "doesNotSubmitMediaTasks": true,
     "neverRetry": true,
     "noStaticCatalogFallback": true,
@@ -45,6 +49,28 @@
     "mediaFilterMatchesDeclaredSchemaOnly": true,
     "filterNeverImpliesPriceAuthorizationOrQuality": true,
     "evaluationDiscovery": "explicit_reviewed_model_visibility_only",
-    "audioDiscovery": "explicit_reviewed_model_visibility_only"
+    "audioDiscovery": "explicit_reviewed_model_visibility_only",
+    "modelCatalogRequiresAuthentication": true,
+    "groupGuidance": {
+      "command": "model-groups",
+      "url": "https://console.puretokensx.com/api/product/docs/model-catalog",
+      "method": "GET",
+      "requiresConfiguredApiKey": false,
+      "readsHostConfiguration": false,
+      "requiresBrowserSession": false,
+      "maxRequests": 1,
+      "deadlineSeconds": 20,
+      "followsRedirects": false,
+      "neverRetry": true,
+      "requestSchema": "schemas/model-groups-request.schema.json",
+      "responseSchema": "schemas/model-groups-receipt.schema.json",
+      "source": "exact_model_name_group_guidance_public_catalog_with_switch_display_names",
+      "permissionVerified": false,
+      "accountEligibilityVerified": false,
+      "missingOrConflictingMapping": "generic_exact_model_guidance_without_invented_group_names",
+      "configurationChange": "user_preserves_existing_groups_selects_allowed_group_and_verifies_applies_in_switch",
+      "ordinaryGenerationPreflight": false,
+      "automaticTaskSubmission": false
+    }
   }
 }

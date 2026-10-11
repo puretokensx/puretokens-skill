@@ -48,7 +48,12 @@ test("common operation and recovery guidance drift is detected and repaired with
     "skills/puretokens-audio/SKILL.md",
     "skills/puretokens-update/references/usage-guide.md",
     "skills/puretokens-image/references/receipt-guide.md",
-    "skills/puretokens-video/references/workflows.md"
+    "skills/puretokens-video/references/workflows.md",
+    "skills/puretokens-image/references/model-alternatives.md",
+    "skills/puretokens-video/references/model-alternatives.md",
+    "skills/puretokens-image/references/model-groups.md",
+    "skills/puretokens-video/references/model-groups.md",
+    "skills/puretokens-models/references/model-groups.md"
   ];
   for (const file of targets) {
     let text = await readFile(path.join(root, file), "utf8");
@@ -71,6 +76,31 @@ test("common operation and recovery guidance drift is detected and repaired with
   for (const skill of ["image", "video", "audio", "evaluate"]) {
     assert.equal(await readFile(path.join(root, `skills/puretokens-${skill}/references/receipt-guide.md`), "utf8"), source);
   }
+  const alternatives = await readFile(path.join(root, "references/skill-fragments/model-alternatives.md"), "utf8");
+  for (const skill of ["image", "video"]) {
+    assert.equal(await readFile(path.join(root, `skills/puretokens-${skill}/references/model-alternatives.md`), "utf8"), alternatives);
+  }
+});
+
+test("media alternative contracts detect drift and preserve unrelated task semantics", async t => {
+  const root = await fixture(t);
+  const source = JSON.parse(await readFile(path.join(root, "references/direct-api-execution-contract.json"), "utf8"));
+  for (const skill of ["image", "video"]) {
+    const file = `skills/puretokens-${skill}/references/execution-contract.json`;
+    const original = JSON.parse(await readFile(path.join(root, file), "utf8"));
+    const changed = structuredClone(original);
+    changed.submissionFailure.modelAlternatives.requiresExplicitNewTaskConsent = false;
+    changed.submissionFailure.modelAlternatives.automaticModelSwitch = true;
+    await writeFile(path.join(root, file), JSON.stringify(changed));
+    assert.ok((await syncSkillGuidance(root)).includes(file));
+    await syncSkillGuidance(root, { write: true });
+    const repaired = JSON.parse(await readFile(path.join(root, file), "utf8"));
+    assert.deepEqual(repaired.submissionFailure.modelAlternatives, source.asyncTaskHandling.modelAlternatives);
+    assert.deepEqual(repaired, original);
+  }
+  source.asyncTaskHandling.modelAlternatives.requiresExplicitNewTaskConsent = false;
+  await writeFile(path.join(root, "references/direct-api-execution-contract.json"), JSON.stringify(source));
+  await assert.rejects(syncSkillGuidance(root), /explicit new-task consent/);
 });
 
 test("missing generated markers fail closed instead of silently skipping a Skill", async t => {

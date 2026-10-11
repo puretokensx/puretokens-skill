@@ -491,13 +491,19 @@ function validateExecutionContract(errors, directory, contract) {
     validateRequest(errors, `${label} catalog`, operations.catalog, "GET", `${directApiOrigin}/v1/media/models`);
     validateRequest(errors, `${label} evaluation catalog`, operations.evaluationCatalog, "GET", `${directApiOrigin}/v1/models`);
     validateRequest(errors, `${label} audio catalog`, operations.audioCatalog, "GET", `${directApiOrigin}/v1/models`);
-    if (contract.result?.reportOnlyAuthenticatedCatalog !== true || contract.result?.doesNotSubmitMediaTasks !== true ||
+    validateRequest(errors, `${label} public group guidance`, operations.groupGuidance, "GET", "https://console.puretokensx.com/api/product/docs/model-catalog");
+    if (operations.groupGuidance?.requiresConfiguredApiKey !== false ||
+      contract.result?.groupGuidance?.requiresConfiguredApiKey !== false ||
+      contract.result?.groupGuidance?.readsHostConfiguration !== false ||
+      contract.result?.groupGuidance?.permissionVerified !== false ||
+      contract.result?.groupGuidance?.maxRequests !== 1 ||
+      contract.result?.modelCatalogRequiresAuthentication !== true || contract.result?.doesNotSubmitMediaTasks !== true ||
       contract.result?.neverRetry !== true || contract.result?.noStaticCatalogFallback !== true ||
       contract.result?.mediaCompatibilityShortlistsRequireDeclaredCapabilityAndInputSchema !== true ||
       contract.result?.mediaFilterMatchesDeclaredSchemaOnly !== true ||
       contract.result?.evaluationDiscovery !== "explicit_reviewed_model_visibility_only" ||
       contract.result?.audioDiscovery !== "explicit_reviewed_model_visibility_only") {
-      errors.push(`${label} must report only the live catalog, never submit media work or retry, and derive compatibility only from declared profile data`);
+      errors.push(`${label} must separate anonymous group guidance from authenticated model visibility, never submit media work or retry, and derive compatibility only from declared profile data`);
     }
     return;
   }

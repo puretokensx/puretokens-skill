@@ -4,7 +4,7 @@
   "version": "0.18.8",
   "entry": "SKILL.md",
   "displayName": "Pure Tokens Models",
-  "description": "Inspect fixed-Pure-Tokens media capabilities and parameters, or explicitly look up reviewed audio or Jev evaluation models in the authenticated directory.",
+  "description": "Inspect fixed-Pure-Tokens media capabilities and parameters, or explicitly look up reviewed audio or Jev evaluation models in the authenticated directory. Query live public group membership separately from current-Key permission.",
   "executionContract": "references/execution-contract.json",
   "behaviorScenarios": "references/behavior-scenarios.json",
   "distribution": {
@@ -127,5 +127,5 @@
     "doesNotUseMcpOrFallbackTransport": true,
     "supportsExplicitCatalogFilter": true
   },
-  "sourceSha256": "055729d603baf9407b2b078bc90d74bce4555f885b0a9a22eed02bab7f9951ca"
+  "sourceSha256": "a8bff17e670f9bbb7da248dba1a83ec9637a0ceea7a0615b41b221d5b8ce1feb"
 }

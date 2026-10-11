@@ -377,9 +377,21 @@
         "url": "https://console.puretokensx.com/api/product/analytics/client-receipts",
         "method": "POST",
         "schemaVersion": 1,
-        "fields": ["schemaVersion", "id", "source", "event", "platform", "occurredAt"],
+        "fields": [
+          "schemaVersion",
+          "id",
+          "source",
+          "event",
+          "platform",
+          "occurredAt"
+        ],
         "source": "skill",
-        "events": ["installed", "connection_verified", "execution_succeeded", "execution_failed"],
+        "events": [
+          "installed",
+          "connection_verified",
+          "execution_succeeded",
+          "execution_failed"
+        ],
         "authentication": "none",
         "readsHostConfiguration": false,
         "persistentIdentifier": false,
@@ -413,6 +425,90 @@
         "reconciliationStopsAutomaticContinuation": true,
         "downloadIsNotDelivery": true
       }
+    },
+    "modelGroupGuidance": {
+      "type": "object",
+      "required": [
+        "command",
+        "url",
+        "method",
+        "requiresConfiguredApiKey",
+        "readsHostConfiguration",
+        "requiresBrowserSession",
+        "maxRequests",
+        "deadlineSeconds",
+        "followsRedirects",
+        "neverRetry",
+        "requestSchema",
+        "responseSchema",
+        "source",
+        "permissionVerified",
+        "accountEligibilityVerified",
+        "missingOrConflictingMapping",
+        "configurationChange",
+        "ordinaryGenerationPreflight",
+        "automaticTaskSubmission"
+      ],
+      "properties": {
+        "command": {
+          "const": "model-groups"
+        },
+        "url": {
+          "const": "https://console.puretokensx.com/api/product/docs/model-catalog"
+        },
+        "method": {
+          "const": "GET"
+        },
+        "requiresConfiguredApiKey": {
+          "const": false
+        },
+        "readsHostConfiguration": {
+          "const": false
+        },
+        "requiresBrowserSession": {
+          "const": false
+        },
+        "maxRequests": {
+          "const": 1
+        },
+        "deadlineSeconds": {
+          "const": 20
+        },
+        "followsRedirects": {
+          "const": false
+        },
+        "neverRetry": {
+          "const": true
+        },
+        "requestSchema": {
+          "const": "schemas/model-groups-request.schema.json"
+        },
+        "responseSchema": {
+          "const": "schemas/model-groups-receipt.schema.json"
+        },
+        "source": {
+          "const": "exact_model_name_group_guidance_public_catalog_with_switch_display_names"
+        },
+        "permissionVerified": {
+          "const": false
+        },
+        "accountEligibilityVerified": {
+          "const": false
+        },
+        "missingOrConflictingMapping": {
+          "const": "generic_exact_model_guidance_without_invented_group_names"
+        },
+        "configurationChange": {
+          "const": "user_preserves_existing_groups_selects_allowed_group_and_verifies_applies_in_switch"
+        },
+        "ordinaryGenerationPreflight": {
+          "const": false
+        },
+        "automaticTaskSubmission": {
+          "const": false
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false

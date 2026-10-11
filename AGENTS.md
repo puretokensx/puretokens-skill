@@ -4,7 +4,7 @@ This repository owns the eight installable Skill instructions, model selections,
 
 ## Direct API product contract
 
-- API-facing Skills use full fixed URLs under `https://api.puretokensx.com`, with one balance-only exception: the existing API-key usage and public status endpoints under `https://console.puretokensx.com`. Fixed requests never reuse a configured Base URL as their target.
+- API-facing Skills use full fixed URLs under `https://api.puretokensx.com`. Console-origin exceptions are the existing balance endpoints, the anonymous public model-group guidance endpoint and the opt-in completion receipt below. Fixed requests never reuse a configured Base URL as their target.
 - The managed `puretokens-api` native executor performs every fixed request directly. It runs only for one command, exits after its receipt, and never opens a port, proxy, sidecar, background queue, or desktop UI.
 - A credential adapter may read only the exact effective connection files documented for the active host. It first verifies that the configured endpoint is Pure Tokens, then uses one matching bearer credential only in memory for the fixed request. It must never scan a home directory, probe third-party configuration, use provider labels, or fall back to arbitrary environment variables.
 - VS Code exception: within one verified native customendpoint group only, the executor may check inline Key equality in memory across model entries to establish a single connection. Never persist or report comparison data; different Keys, multiple matching groups or unsupported overrides stop. This does not identify the selected chat model.
@@ -27,6 +27,8 @@ This repository owns the eight installable Skill instructions, model selections,
 - Treat physical dimensions as a request for guidance, not an API size value. Only declared model fields and values may be sent.
 - Native bytes, not URLs, HTML, SVG, task IDs or status text, are required for successful delivery.
 - Keep every user-facing failure sanitized. Never expose raw responses, request data, internal URLs, stacks, upstream identities, credentials or user media.
+- Image/video failures may offer compatible models only under `references/skill-fragments/model-alternatives.md`: use current-connection catalog evidence, preserve user requirements, and obtain explicit consent for one new potentially billable task. Unknown submissions, pending tasks, reconciliation and delivery failures retain same-task recovery; never switch models automatically or replace an existing task record. This does not authorize another transport or media Skill.
+- Explicit model-group questions or confirmed model-permission rejection may use `model-groups`: one anonymous GET to fixed `https://console.puretokensx.com/api/product/docs/model-catalog`, a 20-second total budget, no credential/configuration reads, redirects or retries. Consume only exact-model `group_guidance` with live Switch display names; missing or conflicting data gives generic guidance, never guessed group names. Public membership is not account eligibility, current Key permission or model health. See `references/skill-fragments/model-groups.md`; users retain existing groups and apply changes themselves in Switch. This is not a generation preflight or an alternate authentication/inference path.
 
 ## Installation and updates
 

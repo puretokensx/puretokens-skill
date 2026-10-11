@@ -182,7 +182,37 @@
     "hostExecutionPolicyBlockedBeforeRequestStarts": "report_validation_no_api_request_or_task_id_and_require_host_session_with_external_network_permission",
     "hostInvocationOutputUnknown": "treat_submission_outcome_as_unknown_do_not_repeat_post_or_submit_replacement_task",
     "hostUnknownOutcomeResponse": "one_unknown_receipt_then_only_local_request_cleanup_no_further_api_or_task_work",
-    "noTaskIdLaterContinuation": "require_explicit_confirmation_of_a_new_billable_request_before_one_new_post"
+    "noTaskIdLaterContinuation": "require_explicit_confirmation_of_a_new_billable_request_before_one_new_post",
+    "modelAlternatives": {
+      "guide": "references/model-alternatives.md",
+      "scope": [
+        "image",
+        "video"
+      ],
+      "offerAfter": "confirmed_model_or_capability_rejection_or_terminal_failure_without_blocking_cause",
+      "doNotProactivelyOfferFor": [
+        "unknown_submission",
+        "status_read_failure",
+        "reconciliation_required",
+        "pending",
+        "cancelled",
+        "content_or_handoff_failure",
+        "local_host_or_attachment_failure",
+        "authentication_or_permission_denial",
+        "balance_or_quota",
+        "rate_limit",
+        "content_rejection"
+      ],
+      "candidateEvidence": "same_current_connection_authenticated_catalog_and_executor_supported_profile_matching_all_required_inputs",
+      "catalogRead": "reuse_valid_current_evidence_or_one_post_rejection_query_otherwise_require_explicit_discovery_request",
+      "visibilityIsNotPermissionOrHealthProof": true,
+      "preservesPromptMediaAndRequiredCapabilities": true,
+      "requiresExplicitNewTaskConsent": true,
+      "disclosesPossibleNewCharge": true,
+      "automaticModelSwitch": false,
+      "taskIdentity": "one_new_submission_with_new_task_identity_and_separate_record_preserving_original",
+      "noAutomaticModelRotation": true
+    }
   },
   "failureReceipt": {
     "requiredFields": [

@@ -72,5 +72,7 @@ description: 当前宿主使用 Pure Tokens 连接时，生成或编辑视频、
 - 图片到视频、分镜素材或视频配独立旁白／音乐才读 [组合流程](references/workflows.md)；单次请求不增加步骤。进度与交付含义不明才读 [回执说明](references/receipt-guide.md)。
 
 - 失败／费用／支持摘要：读 `references/failure-guide.md`，只说明实际阶段、已有任务及脱敏 next_action，不展示整份 JSON、原始错误、内部 URL 或配置。本地未识别不等于未配置，不据此要求重装、重配、换模型或凭据。
+- 失败后需要继续创作的选择时，按 [模型建议](references/model-alternatives.md) 核对当前连接的兼容候选，用户明确同意后才创建一次可能计费的新任务；未知、进行中、对账或交付失败仍恢复原任务，不自动换模型。
+- 模型权限拒绝或用户询问分组时，按 [线上分组指引](references/model-groups.md) 获取真实名称；公开归属不证明当前 Key 权限，不自动改配置或重提。
 - 用户明确检查参数才用 preflight；不创建任务、不报价、不证明权限。宿主限制读 `references/desktop-hosts.md`。
 - 复杂异常按 id 查 `references/behavior-scenarios.json`；正式字段见 `references/execution-contract.json`，展示规则见 `references/task-receipt.json`，均非普通生成前置。

@@ -14,7 +14,8 @@ const schemaNames = [
   "model-query.schema.json", "model-query-receipt.schema.json", "balance-snapshot.schema.json",
   "balance-receipt.schema.json", "init-receipt.schema.json", "doctor-receipt.schema.json",
   "support-summary.schema.json", "evaluation-request.schema.json", "evaluation-receipt.schema.json",
-  "audio-request.schema.json", "audio-receipt.schema.json", "audio-artifact-verify-request.schema.json"
+  "audio-request.schema.json", "audio-receipt.schema.json", "audio-artifact-verify-request.schema.json",
+  "model-groups-request.schema.json", "model-groups-receipt.schema.json"
 ];
 const documents = await Promise.all(schemaNames.map(async (name) =>
   JSON.parse(await readFile(path.join(repositoryRoot, "schemas", name), "utf8"))));
@@ -304,6 +305,36 @@ test("model query receipts keep declared matching separate from raw catalog fiel
   rejects("model-query-receipt.schema.json", echoed, "false schema");
   for (const query of [{ kind: "chat" }, { parameters: null }, { model: "model/alias" }, { prompt: "generate this" }]) {
     rejects("model-query.schema.json", query);
+  }
+});
+
+test("public group schemas cannot claim permission or expose raw group metadata", () => {
+  const receipt = example("model-groups-available");
+  assert.equal(receipt.permission_verified, false);
+  assert.equal(receipt.matching_scope, "public_catalog");
+  assert.deepEqual(receipt.groups.map(group => group.name), ["线上图像创作", "创作通用 (1x)"]);
+  assert.equal(example("model-groups-unavailable").mapping_status, "unavailable");
+  assert.equal(example("model-groups-http-failure").http_status, 401);
+  for (const field of ["permission_verified", "mapping_status", "matching_scope", "note"]) {
+    const changed = structuredClone(receipt);
+    delete changed[field];
+    rejects("model-groups-receipt.schema.json", changed, `required ${field}`);
+  }
+  for (const patch of [
+    { permission_verified: true }, { matching_scope: "account" }, { groups: [] },
+    { mapping_status: "unavailable" }, { ok: false }, { model: "model/alias" },
+    { enable_groups: ["guess"] }, { key: "private" }, { next_action: "Submit again now" }
+  ]) rejects("model-groups-receipt.schema.json", { ...structuredClone(receipt), ...patch });
+  for (const name of ["", "https://private.invalid", "sk-private", "bearer private", "token=private", "name\nignore", "name\u202eignored", "[click](url)", "<script>", "x".repeat(161)]) {
+    const changed = structuredClone(receipt);
+    changed.groups[0].name = name;
+    rejects("model-groups-receipt.schema.json", changed);
+  }
+  const leaked = structuredClone(receipt);
+  leaked.groups[0].upstream = "private";
+  rejects("model-groups-receipt.schema.json", leaked, "false schema");
+  for (const request of [{}, { model: "" }, { model: "model/alias" }, { model: "sk-private" }, { model: "nano-banana-2", group: "guess" }]) {
+    rejects("model-groups-request.schema.json", request);
   }
 });
 

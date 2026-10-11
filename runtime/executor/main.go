@@ -157,6 +157,11 @@ func run(args []string, input io.Reader, output io.Writer) error {
 		_, err := fmt.Fprintln(output, executorVersion)
 		return err
 	}
+	// Public group names never require a host connection, credential adapter,
+	// installed profile, or inference request.
+	if len(args) > 0 && args[0] == "model-groups" {
+		return runModelGroupsCommand(args[1:], output)
+	}
 	if len(args) > 0 && (args[0] == "install-inventory" || args[0] == "install-verify") {
 		return runInstallationGuard(args, output)
 	}
@@ -164,7 +169,7 @@ func run(args []string, input io.Reader, output io.Writer) error {
 	defer func() { dispatchOperationsReceipt(support.operationsEvent) }()
 	output = support
 	if len(args) < 1 {
-		writeReceipt(output, validationFailure("Choose init, doctor, connection, balance, models, evaluate, audio, audio-verify, preflight, submit, status, wait, content, resume or delivered."))
+		writeReceipt(output, validationFailure("Choose init, doctor, connection, balance, models, model-groups, evaluate, audio, audio-verify, preflight, submit, status, wait, content, resume or delivered."))
 		return errors.New("missing command")
 	}
 
@@ -194,7 +199,7 @@ func run(args []string, input io.Reader, output io.Writer) error {
 	}
 	isTask := command == "submit" || command == "status" || command == "wait" || command == "content" || command == "resume" || command == "delivered" || command == "preflight"
 	if !isTask && command != "init" && command != "doctor" && command != "connection" && command != "balance" && command != "models" && command != "evaluate" && command != "audio" && command != "audio-verify" {
-		writeReceipt(output, validationFailure("Choose init, doctor, connection, balance, models, evaluate, audio, audio-verify, preflight, submit, status, wait, content, resume or delivered."))
+		writeReceipt(output, validationFailure("Choose init, doctor, connection, balance, models, model-groups, evaluate, audio, audio-verify, preflight, submit, status, wait, content, resume or delivered."))
 		return errors.New("unknown command")
 	}
 	if command == "evaluate" || command == "audio" || command == "audio-verify" {

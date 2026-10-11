@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://puretokensx.com/schemas/model-groups-request.schema.json",
+  "title": "Exact model for one anonymous production group lookup",
+  "type": "object",
+  "required": ["model"],
+  "properties": {
+    "model": {
+      "type": "string",
+      "maxLength": 160,
+      "pattern": "^(?!\\.{1,2}$)(?!.*[sS][kK]-)(?!.*\\.[cC][oO][mM]\\b)(?!.*\\.[nN][eE][tT]\\b)(?!.*\\.[oO][rR][gG]\\b)[A-Za-z0-9_.-]+(\\([A-Za-z0-9_.-]+\\))?$(?![\\s\\S])"
+    }
+  },
+  "additionalProperties": false
+}

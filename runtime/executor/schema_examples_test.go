@@ -49,6 +49,35 @@ func TestContractExamples(t *testing.T) {
 		capture(name, schema, data)
 	}
 
+	t.Run("public model groups", func(t *testing.T) {
+		request := `{"model":"nano-banana-2"}`
+		capture("model-groups-request", "model-groups-request.schema.json", []byte(request))
+		for _, scenario := range []string{"available", "unavailable", "http-failure", "invalid"} {
+			t.Run(scenario, func(t *testing.T) {
+				input := request
+				if scenario == "invalid" {
+					input = `{}`
+				}
+				_, err, raw := modelGroupsCLI(t, input, func(r *http.Request) (*http.Response, error) {
+					checkAnonymousModelGroupsRequest(t, r)
+					switch scenario {
+					case "unavailable":
+						return evaluationHTTP(200, `{"data":[{"model_name":"nano-banana-2","enable_groups":["not-a-display-name"]}]}`), nil
+					case "http-failure":
+						return evaluationHTTP(401, `{"message":"private"}`), nil
+					case "invalid":
+						t.Fatal("invalid group request made a network call")
+					}
+					return evaluationHTTP(200, modelGroupsFixture), nil
+				})
+				if (err == nil) != (scenario == "available" || scenario == "unavailable") {
+					t.Fatal("unexpected public group fixture result")
+				}
+				capture("model-groups-"+scenario, "model-groups-receipt.schema.json", []byte(raw))
+			})
+		}
+	})
+
 	t.Run("asynchronous music", func(t *testing.T) {
 		text, err := os.ReadFile("../../skills/puretokens-audio/references/music-usage.md")
 		if err != nil {

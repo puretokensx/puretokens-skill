@@ -62,6 +62,36 @@
       "id": "models-catalog-response",
       "when": "the fixed Pure Tokens API returns authenticated model data",
       "then": "display only returned exact IDs, declared capabilities, properties, non-input constraints, and operations in a user-readable grouped format, then stop without submitting media work"
+    },
+    {
+      "id": "models-group-live-renamed-group",
+      "when": "A model group was renamed in production and a fixture uses a different name.",
+      "then": "Use only the current model-groups receipt group name; never fixture, brand or stale names. Public membership does not prove current-Key permission."
+    },
+    {
+      "id": "models-group-multiple-groups",
+      "when": "An exact model has multiple public group mappings.",
+      "then": "Show the returned groups without choosing one or requiring all; preserve existing selections and let the user choose an allowed Switch group."
+    },
+    {
+      "id": "models-group-missing-mapping",
+      "when": "The old service has no group_guidance, or mapping is missing, conflicting or unsafe.",
+      "then": "Give generic exact-model group guidance, without guessing from enable_groups or claiming the model is unavailable; do not retry."
+    },
+    {
+      "id": "models-group-permission-vs-service",
+      "when": "A model permission rejection, a 401 authentication error and an upstream 5xx occur in separate requests.",
+      "then": "Only the explicit model-permission rejection may trigger group guidance. Handle authentication independently. An uncertain 5xx submission keeps same-task recovery and makes no group lookup or new POST."
+    },
+    {
+      "id": "models-group-reapply-groups",
+      "when": "The user reports selecting another group or refreshing an already-selected group in Switch.",
+      "then": "Invalidate old connection catalog evidence, preserve existing groups, follow host reload instructions and verify current authenticated visibility only when requested. Applying configuration does not authorize another paid task."
+    },
+    {
+      "id": "models-group-host-disallows-group",
+      "when": "Switch disables the suggested group for this account or host, including Claude Desktop restrictions.",
+      "then": "Do not bypass host restrictions, change host, expose credentials or promise call support. Explain that public mapping is not account eligibility and stop for user support."
     }
   ]
 }

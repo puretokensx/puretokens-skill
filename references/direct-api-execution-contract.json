@@ -177,7 +177,37 @@
       "task_id_missing": "No non-empty top-level task_id or id was found; do not search nested structures.",
       "task_id_invalid": "An identity field was returned but its type or format is unsupported; never expose or rewrite the rejected value."
     },
-    "identityDiagnosticBoundary": "Local error codes never imply task absence or billing outcome; unknown submission stops without another request. Status failures retain the original task identity and stop automatic continuation. Use the actual failing executor version from the existing support summary, never another computer or the repository version."
+    "identityDiagnosticBoundary": "Local error codes never imply task absence or billing outcome; unknown submission stops without another request. Status failures retain the original task identity and stop automatic continuation. Use the actual failing executor version from the existing support summary, never another computer or the repository version.",
+    "modelAlternatives": {
+      "guide": "references/model-alternatives.md",
+      "scope": [
+        "image",
+        "video"
+      ],
+      "offerAfter": "confirmed_model_or_capability_rejection_or_terminal_failure_without_blocking_cause",
+      "doNotProactivelyOfferFor": [
+        "unknown_submission",
+        "status_read_failure",
+        "reconciliation_required",
+        "pending",
+        "cancelled",
+        "content_or_handoff_failure",
+        "local_host_or_attachment_failure",
+        "authentication_or_permission_denial",
+        "balance_or_quota",
+        "rate_limit",
+        "content_rejection"
+      ],
+      "candidateEvidence": "same_current_connection_authenticated_catalog_and_executor_supported_profile_matching_all_required_inputs",
+      "catalogRead": "reuse_valid_current_evidence_or_one_post_rejection_query_otherwise_require_explicit_discovery_request",
+      "visibilityIsNotPermissionOrHealthProof": true,
+      "preservesPromptMediaAndRequiredCapabilities": true,
+      "requiresExplicitNewTaskConsent": true,
+      "disclosesPossibleNewCharge": true,
+      "automaticModelSwitch": false,
+      "taskIdentity": "one_new_submission_with_new_task_identity_and_separate_record_preserving_original",
+      "noAutomaticModelRotation": true
+    }
   },
   "mediaDeliveryResourceBounds": {
     "oneInFlightStatusReadPerTask": true,
@@ -318,5 +348,26 @@
     "maxAutomaticWaitWindows": 2,
     "reconciliationStopsAutomaticContinuation": true,
     "downloadIsNotDelivery": true
+  },
+  "modelGroupGuidance": {
+    "command": "model-groups",
+    "url": "https://console.puretokensx.com/api/product/docs/model-catalog",
+    "method": "GET",
+    "requiresConfiguredApiKey": false,
+    "readsHostConfiguration": false,
+    "requiresBrowserSession": false,
+    "maxRequests": 1,
+    "deadlineSeconds": 20,
+    "followsRedirects": false,
+    "neverRetry": true,
+    "requestSchema": "schemas/model-groups-request.schema.json",
+    "responseSchema": "schemas/model-groups-receipt.schema.json",
+    "source": "exact_model_name_group_guidance_public_catalog_with_switch_display_names",
+    "permissionVerified": false,
+    "accountEligibilityVerified": false,
+    "missingOrConflictingMapping": "generic_exact_model_guidance_without_invented_group_names",
+    "configurationChange": "user_preserves_existing_groups_selects_allowed_group_and_verifies_applies_in_switch",
+    "ordinaryGenerationPreflight": false,
+    "automaticTaskSubmission": false
   }
 }
