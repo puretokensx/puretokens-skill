@@ -1,4 +1,4 @@
-module github.com/PureTokens/puretokens-skill/runtime/executor
+module github.com/puretokensx/puretokens-skill/runtime/executor
 
 go 1.25.0
 

@@ -21,19 +21,19 @@ If reading this README or downloading the entry script fails, the installer has 
 ### Copy this to a terminal-capable local agent
 
 ```text
-Install or update the official Pure Tokens Skills from https://github.com/PureTokens/puretokens-skill.
+Install or update the official Pure Tokens Skills from https://github.com/puretokensx/puretokens-skill.
 ```
 
 ### Chinese installation prompt
 
 ```text
-请为我当前使用的客户端安装或更新 Pure Tokens 官方 Skills，仓库：https://github.com/PureTokens/puretokens-skill。
+请为我当前使用的客户端安装或更新 Pure Tokens 官方 Skills，仓库：https://github.com/puretokensx/puretokens-skill。
 
 1. 下载官方说明前，先依据当前客户端已报告的信息确认能执行本地命令、HTTPS 下载并写入下载临时目录及目标 Skill 目录；未报告的权限记为未知，不等于拒绝；按正常流程执行，不增加探测命令或读取配置。需要授权时使用客户端实际提供的审批，过期或上轮授权不能代替当前审批；网络授权不代表全部执行权限，不默认要求完全访问或自动修改权限。阅读官方安装说明，只确定本次安装所需的当前客户端、官方宿主 ID 和执行环境。不要从模型名称或共享 Skill 目录猜客户端；无法确定时只问必要信息。不支持、审批被拒或没有执行能力时说明并停止。
 
 2. 首次安装，将以下官方稳定版入口下载为本地文件：
-   macOS/Linux：https://github.com/PureTokens/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh
-   Windows：https://github.com/PureTokens/puretokens-skill/releases/latest/download/puretokens-skill-fetch.ps1
+   macOS/Linux：https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh
+   Windows：https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.ps1
    已安装时，按官方说明定位该客户端官方 Skill 同级 .puretokens-executor 中的 fetch 脚本，执行 update。不要将远程内容直接管道进 shell。
 
 3. 替换下面的绝对路径、操作和宿主 ID 后执行一次；首次安装用 install，已有安装用 update：
@@ -51,13 +51,13 @@ Install or update the official Pure Tokens Skills from https://github.com/PureTo
 ### English installation prompt
 
 ```text
-Install or update the official Pure Tokens Skills for the client I am currently using. Repository: https://github.com/PureTokens/puretokens-skill.
+Install or update the official Pure Tokens Skills for the client I am currently using. Repository: https://github.com/puretokensx/puretokens-skill.
 
 1. Before downloading instructions, use information already reported by the current client to establish local command, HTTPS download, temporary-directory and target Skill-directory access. Unreported permissions remain unknown, not denied; proceed normally without extra probes or configuration reads. Use the client's actual approval controls when needed; expired or previous-turn grants do not replace current approval. Network approval does not establish all execution permissions; do not require Full Access by default or change permissions automatically. Read the official installation instructions and identify only the current client, its documented host ID and its execution environment. Do not infer the client from a model name or shared Skill directory; ask only for missing essential information. Explain and stop if the environment is unsupported, approval is denied or commands cannot execute.
 
 2. For a first installation, save the official stable-release entry point as a local file:
-   macOS/Linux: https://github.com/PureTokens/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh
-   Windows: https://github.com/PureTokens/puretokens-skill/releases/latest/download/puretokens-skill-fetch.ps1
+   macOS/Linux: https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh
+   Windows: https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.ps1
    For an existing installation, follow the official instructions to locate the fetch script in .puretokens-executor alongside that client's official Skills and use update. Never pipe remote content directly into a shell.
 
 3. Substitute the absolute path, operation and host ID below, then run once. Use install for a first installation or update for an existing installation:
@@ -72,7 +72,7 @@ Install or update the official Pure Tokens Skills for the client I am currently 
 6. Briefly report the actual client, installed version, installation status and connection verification status (verified / unverified / not run). List capabilities from that installed version's local usage guide and show two copyable examples without executing them. After actual synchronization, remind me to open a new conversation to load the Skills. Do not claim they are already loaded in this session or automatically start generation or a paid demo.
 ```
 
-The agent saves the latest official stable release's `puretokens-skill-fetch.sh` (Windows: `.ps1`) locally and runs install with the current host ID. The fixed bootstrap URL is `https://github.com/PureTokens/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh`; Windows uses the `.ps1` suffix. Installed copies in `.puretokens-executor` provide check-update and update. Never pipe remote content into a shell or fall back to main, source archives or mirrors when stable assets are absent.
+The agent saves the latest official stable release's `puretokens-skill-fetch.sh` (Windows: `.ps1`) locally and runs install with the current host ID. The fixed bootstrap URL is `https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh`; Windows uses the `.ps1` suffix. Installed copies in `.puretokens-executor` provide check-update and update. Never pipe remote content into a shell or fall back to main, source archives or mirrors when stable assets are absent.
 
 Installation boundary: after identifying the host, save the official fetch script locally and run it once. Let it pin the commit, download, verify, sync and initialize. Do not add full-script audits, PowerShell capability probes, duplicate inventory checks or doctor to ordinary installation. Respect required host approvals. On launch denial, unavailable output, timeout, download or verification failure, report the completed stage and sanitized failure, then stop. Do not create probes, shims or Python patches, modify official scripts, switch launch paths or retry automatically. Debugging requires a separate user request.
 

@@ -85,14 +85,14 @@ $downloadRoot = Join-Path ([IO.Path]::GetTempPath()) ("puretokens-download-" + [
 try {
   New-Item -ItemType Directory -Path $downloadRoot | Out-Null
   $releaseFile = Join-Path $downloadRoot "release.json"
-  $null = Get-OfficialFile "https://github.com/PureTokens/puretokens-skill/releases/latest/download/release-manifest.json" $releaseFile read_release_manifest
+  $null = Get-OfficialFile "https://github.com/puretokensx/puretokens-skill/releases/latest/download/release-manifest.json" $releaseFile read_release_manifest
   try { $release = Read-Json $releaseFile } catch { Fail "the stable release manifest is unreadable" }
   if ($release.schemaVersion -ne 2) { Fail "the stable release manifest format is unsupported; no source fallback" }
   $sourceCommit = $release.sourceCommit
   if ($sourceCommit -cnotmatch '^[0-9a-f]{40}$') { Fail "the stable release has no verified source commit" }
   $availableVersion = $release.version
   if ($availableVersion -cnotmatch '^\d+\.\d+\.\d+$') { Fail "the stable release version is invalid" }
-  $releaseOrigin = "https://github.com/PureTokens/puretokens-skill/releases/download/v$availableVersion"
+  $releaseOrigin = "https://github.com/puretokensx/puretokens-skill/releases/download/v$availableVersion"
   $selector = $release.installers.powershell
   if ($null -eq $selector -or $selector.filename -cne "puretokens-skill-install.ps1" -or $selector.sha256 -cnotmatch '^[0-9a-f]{64}$') { Fail "the stable directory selector is invalid" }
   $locationInstaller = Join-Path $downloadRoot "puretokens-skill-install.ps1"

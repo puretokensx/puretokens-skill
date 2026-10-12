@@ -1,4 +1,9 @@
 <p align="center">
+
+## 0.18.9 — 2026-10-12
+
+- Migrate official install and update URLs to puretokensx/puretokens-skill, retaining pinned-version downloads and checksum verification.
+
   <strong>English</strong> · <a href="./CHANGELOG.zh-CN.md">中文</a>
 </p>
 

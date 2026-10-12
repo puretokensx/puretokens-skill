@@ -3,7 +3,7 @@
   "skills": [
     {
       "name": "puretokens-balance",
-      "version": "0.18.8",
+      "version": "0.18.9",
       "entry": "skills/puretokens-balance/SKILL.md",
       "manifest": "skills/puretokens-balance/skill.json",
       "summary": "Read a balance from the fixed Pure Tokens API.",
@@ -11,7 +11,7 @@
     },
     {
       "name": "puretokens-connection",
-      "version": "0.18.8",
+      "version": "0.18.9",
       "entry": "skills/puretokens-connection/SKILL.md",
       "manifest": "skills/puretokens-connection/skill.json",
       "summary": "Check the fixed Pure Tokens API identity declaration.",
@@ -19,7 +19,7 @@
     },
     {
       "name": "puretokens-models",
-      "version": "0.18.8",
+      "version": "0.18.9",
       "entry": "skills/puretokens-models/SKILL.md",
       "manifest": "skills/puretokens-models/skill.json",
       "summary": "Inspect declared media capabilities or explicitly discover reviewed audio and Jev IDs in the authenticated directory.",
@@ -27,7 +27,7 @@
     },
     {
       "name": "puretokens-image",
-      "version": "0.18.8",
+      "version": "0.18.9",
       "entry": "skills/puretokens-image/SKILL.md",
       "manifest": "skills/puretokens-image/skill.json",
       "summary": "Primary image Skill for the current Pure Tokens connection; runs before generic imagegen or Imagen.",
@@ -35,7 +35,7 @@
     },
     {
       "name": "puretokens-video",
-      "version": "0.18.8",
+      "version": "0.18.9",
       "entry": "skills/puretokens-video/SKILL.md",
       "manifest": "skills/puretokens-video/skill.json",
       "summary": "Primary video Skill for the current Pure Tokens connection; runs before generic video Skills.",
@@ -43,7 +43,7 @@
     },
     {
       "name": "puretokens-audio",
-      "version": "0.18.8",
+      "version": "0.18.9",
       "entry": "skills/puretokens-audio/SKILL.md",
       "manifest": "skills/puretokens-audio/skill.json",
       "summary": "Synthesize speech, transcribe recordings and generate sound scenes using reviewed native audio protocols.",
@@ -51,7 +51,7 @@
     },
     {
       "name": "puretokens-evaluate",
-      "version": "0.18.8",
+      "version": "0.18.9",
       "entry": "skills/puretokens-evaluate/SKILL.md",
       "manifest": "skills/puretokens-evaluate/skill.json",
       "summary": "Evaluate text using Jev typed synchronous judgments through the fixed API.",
@@ -59,7 +59,7 @@
     },
     {
       "name": "puretokens-update",
-      "version": "0.18.8",
+      "version": "0.18.9",
       "entry": "skills/puretokens-update/SKILL.md",
       "manifest": "skills/puretokens-update/skill.json",
       "summary": "Install or safely upgrade local official Pure Tokens Skills.",

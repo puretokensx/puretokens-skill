@@ -1,4 +1,9 @@
 <p align="center">
+
+## 0.18.9 — 2026-10-12
+
+- 将官方安装和更新入口迁移到 puretokensx/puretokens-skill；保留校验和验证和固定版本下载。
+
   <a href="./CHANGELOG.md">English</a> · <strong>中文</strong>
 </p>
 

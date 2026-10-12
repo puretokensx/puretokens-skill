@@ -675,7 +675,7 @@
                     "const": "native_fetch install_or_update --host <current-supported-host>"
                   },
                   "sourceRepository": {
-                    "const": "https://github.com/PureTokens/puretokens-skill.git"
+                    "const": "https://github.com/puretokensx/puretokens-skill.git"
                   },
                   "sourceBranch": {
                     "const": "main"
@@ -1050,7 +1050,7 @@
           "const": "native_fetch install_or_update --host <current-supported-host>"
         },
         "sourceRepository": {
-          "const": "https://github.com/PureTokens/puretokens-skill.git"
+          "const": "https://github.com/puretokensx/puretokens-skill.git"
         },
         "sourceBranch": {
           "const": "main"

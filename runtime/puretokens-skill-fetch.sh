@@ -54,13 +54,13 @@ sha256_file() {
   else fail "SHA-256 verification is unavailable"; fi
 }
 
-download 'https://github.com/PureTokens/puretokens-skill/releases/latest/download/release-manifest.json' "$download_root/release.json" read_release_manifest
+download 'https://github.com/puretokensx/puretokens-skill/releases/latest/download/release-manifest.json' "$download_root/release.json" read_release_manifest
 [ "$(json_number "$download_root/release.json" schemaVersion)" = 2 ] || fail "the stable release manifest format is unsupported; no source fallback"
 source_commit=$(json_string "$download_root/release.json" sourceCommit)
 printf '%s\n' "$source_commit" | grep -Eq '^[0-9a-f]{40}$' || fail "the stable release has no verified source commit"
 available_version=$(json_string "$download_root/release.json" version)
 version_valid "$available_version" || fail "the stable release version is invalid"
-release_origin="https://github.com/PureTokens/puretokens-skill/releases/download/v$available_version"
+release_origin="https://github.com/puretokensx/puretokens-skill/releases/download/v$available_version"
 sed -n '/"shell"[[:space:]]*:/,/}/p' "$download_root/release.json" > "$download_root/selector.json"
 selector_name=$(json_string "$download_root/selector.json" filename)
 selector_checksum=$(json_string "$download_root/selector.json" sha256)

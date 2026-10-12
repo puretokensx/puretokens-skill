@@ -89,11 +89,11 @@ if [ -n "\${PT_FAIL_MATCH:-}" ]; then
   esac
 fi
 case "$request_url" in
-  https://github.com/PureTokens/puretokens-skill/releases/latest/download/release-manifest.json)
+  https://github.com/puretokensx/puretokens-skill/releases/latest/download/release-manifest.json)
     if [ "$PT_FETCH_MODE" = missing ]; then printf 404; exit 0; fi
     file=release.json ;;
-  https://github.com/PureTokens/puretokens-skill/releases/download/v${version}/puretokens-skill-install.sh) file=puretokens-skill/runtime/puretokens-skill-install.sh ;;
-  https://github.com/PureTokens/puretokens-skill/releases/download/v${version}/puretokens-skill-${version}-${f.platform}.zip)
+  https://github.com/puretokensx/puretokens-skill/releases/download/v${version}/puretokens-skill-install.sh) file=puretokens-skill/runtime/puretokens-skill-install.sh ;;
+  https://github.com/puretokensx/puretokens-skill/releases/download/v${version}/puretokens-skill-${version}-${f.platform}.zip)
     if [ -n "\${PT_INSTALL_DURING_DOWNLOAD:-}" ]; then
       sh "$PT_INSTALL_DURING_DOWNLOAD/runtime/puretokens-skill-install.sh" sync --target "$PT_FIXTURE_TARGET" --source "$PT_INSTALL_DURING_DOWNLOAD" > "$PT_FETCH_FIXTURE/concurrent-update"
     fi
