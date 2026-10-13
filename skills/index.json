@@ -14,7 +14,7 @@
       "version": "0.18.8",
       "entry": "skills/puretokens-connection/SKILL.md",
       "manifest": "skills/puretokens-connection/skill.json",
-      "summary": "Check the fixed Pure Tokens API identity declaration.",
+      "summary": "Check the fixed Pure Tokens API public identity only when explicitly requested.",
       "distribution": "cross-client-source"
     },
     {
@@ -62,7 +62,7 @@
       "version": "0.18.8",
       "entry": "skills/puretokens-update/SKILL.md",
       "manifest": "skills/puretokens-update/skill.json",
-      "summary": "Install or safely upgrade local official Pure Tokens Skills.",
+      "summary": "Explain Pure Tokens and getting started locally, or explicitly install, upgrade and verify Skills.",
       "distribution": "cross-client-source"
     }
   ]

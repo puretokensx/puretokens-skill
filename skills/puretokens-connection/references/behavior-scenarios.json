@@ -25,7 +25,7 @@
     },
     {
       "id": "connection-direct-request-start",
-      "when": "a connection check is requested",
+      "when": "the user explicitly asks to verify the fixed API public identity and the managed native executor can run",
       "then": "invoke the installed managed native executor with the current host ID for the fixed identity GET; do not look for a separate connection interface"
     },
     {
@@ -37,6 +37,11 @@
       "id": "connection-identity-assurance",
       "when": "the user needs proof stronger than the API endpoint public identity declaration",
       "then": "explain that the existing check validates the endpoint declaration only and does not claim cryptographic anti-spoof verification"
+    },
+    {
+      "id": "connection-product-question",
+      "when": "the user asks what Pure Tokens is, what it does or how to get started, without requesting public API identity verification",
+      "then": "Use puretokens-update local usage guidance without a connection request, executor call, host question, credential read or network access. A general current-connection/authentication check uses init once, not this identity-only operation."
     }
   ]
 }

@@ -20,7 +20,7 @@
     },
     {
       "id": "update-host-unknown",
-      "when": "the active host cannot be identified as one of the registered supported hosts",
+      "when": "the user explicitly requests an installation or connection operation that requires a host, and the active host cannot be identified as one of the registered supported hosts",
       "then": "Ask which supported host the user is using; do not guess the host or its configuration/Skill directory."
     },
     {
@@ -80,8 +80,8 @@
     },
     {
       "id": "update-help-only",
-      "when": "the user only asks how to use installed Skills",
-      "then": "Read the installed usage guide and answer directly. No init, doctor, credential access, network read or update."
+      "when": "the user asks what Pure Tokens is, what it is for, how to get started, how the website / Switch / Skills differ, or how to use Skills",
+      "then": "Read the installed usage guide and answer only the requested scope. No host clarification, configured connection prerequisite, executor, init, doctor, credential access, network read, installation, update or paid example. Current models, groups, prices and account permissions are not static promises."
     },
     {
       "id": "update-check-only",

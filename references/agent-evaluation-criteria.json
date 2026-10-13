@@ -1,6 +1,46 @@
 {
   "schemaVersion": 1,
   "criteria": {
+    "product-introduction": {
+      "skills": ["puretokens-update"],
+      "postCount": 0,
+      "maxAsks": 0,
+      "maxReads": 3,
+      "allowedCommands": [],
+      "requiredCommands": [],
+      "requiredReferences": ["skills/puretokens-update/SKILL.md", "skills/puretokens-update/references/usage-guide.md"],
+      "attachmentRequired": false
+    },
+    "product-getting-started": {
+      "skills": ["puretokens-update"],
+      "postCount": 0,
+      "maxAsks": 0,
+      "maxReads": 3,
+      "allowedCommands": [],
+      "requiredCommands": [],
+      "requiredReferences": ["skills/puretokens-update/SKILL.md", "skills/puretokens-update/references/usage-guide.md"],
+      "attachmentRequired": false
+    },
+    "explicit-connection-check": {
+      "skills": ["puretokens-update"],
+      "postCount": 0,
+      "maxAsks": 0,
+      "allowedCommands": ["init"],
+      "requiredCommands": ["init"],
+      "maxCommands": 1,
+      "stopAfterFirstCommand": true,
+      "attachmentRequired": false
+    },
+    "explicit-public-identity": {
+      "skills": ["puretokens-connection"],
+      "postCount": 0,
+      "maxAsks": 0,
+      "allowedCommands": ["connection"],
+      "requiredCommands": ["connection"],
+      "maxCommands": 1,
+      "stopAfterFirstCommand": true,
+      "attachmentRequired": false
+    },
     "image-short-path": {
       "skills": ["puretokens-image"],
       "postCount": 1,

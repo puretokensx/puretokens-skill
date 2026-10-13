@@ -1,0 +1,340 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-13",
+  "scope": "offline_agent_intent_routing_not_real_host_or_provider_acceptance",
+  "baselineCommit": "6e6733a",
+  "releaseStatus": "source_only_unreleased_changes",
+  "workspaceContext": "Checked current working tree including pre-existing repository URL and executor build changes; those changes belong to other work.",
+  "agentEnvironment": "Three independent Codex subagents without parent history; each ran two separate snapshots. Model inherited from parent, no override.",
+  "realAPIRequests": 0,
+  "realCredentialReads": 0,
+  "paidTasks": 0,
+  "scenarios": 4,
+  "runsPassed": 6,
+  "sourceHashes": {
+    "scripts/agent-eval.mjs": "05239b3fd301ed2e681bbe41dc3b2f6ebdf0e8899abb470333063a97495bdf6e",
+    "references/agent-evaluation-scenarios.json": "ce8dab66a9243c5ee1e661f91252f9c85152fbd7228c8e1c61337e0e0f8c19c2",
+    "references/agent-evaluation-criteria.json": "a5d1552851ebc175542b3a66dec41d7483556802ed0646468b695d5a5a747464",
+    "skills/puretokens-update/SKILL.md": "c3af81f1950b156ebf31aa217b7e3608a9d0fb144ea9c07ed8cdacf9c7051344",
+    "skills/puretokens-connection/SKILL.md": "7cb65afb76a168fc790dc7d169b112778d05fc98abba8974b70bc18584cd292d",
+    "skills/puretokens-update/references/usage-guide.md": "baaa71dabfdb14da3ed34de8cf9ff14a3550d8087c4505a351573879aba9ea6e"
+  },
+  "semanticReview": {
+    "reviewer": "root",
+    "result": "Product and onboarding replies explain website / Switch / Skills without running commands, checking credentials or creating tasks. Existing supported connections do not require Switch. Examples remain unexecuted and capabilities remain conditional. Explicit checks route once to init or connection and preserve an unconfirmed result.",
+    "criteriaNeverProvidedToAgents": true
+  },
+  "validation": {
+    "engineeringGate": "npm run check passed: Go tests/vet; 140 Node tests passed, 1 PowerShell test skipped (141 total).",
+    "targetedChecks": "12 shared guidance and harness tests passed.",
+    "notProven": [
+      "unknown-host runtime behavior: harness supplies Codex despite absent client details in user prompts",
+      "real-client loading, network/API success, attachment delivery or paid provider acceptance",
+      "Windows execution: PowerShell unavailable",
+      "release or installed-client upgrade"
+    ],
+    "isolatedCommitValidation": "Staged snapshot excluding other work passed npm run validate and 27 targeted shared guidance, specialist Skill and harness tests."
+  },
+  "runs": [
+    {
+      "scenario": "product-introduction",
+      "variant": 0,
+      "agent": "help_eval_a",
+      "request": "Pure Tokens 是什么？能帮我做什么？",
+      "evaluation": {
+        "passed": true,
+        "violations": [],
+        "metrics": {
+          "selectedSkills": [
+            "puretokens-update"
+          ],
+          "instructionReads": [
+            "skills/puretokens-update/SKILL.md",
+            "skills/puretokens-update/references/usage-guide.md"
+          ],
+          "questionCount": 0,
+          "commands": [],
+          "simulatedPaidPosts": 0,
+          "simulatedAPIReads": 0,
+          "attachmentHandoffs": 0
+        },
+        "evidenceScope": "offline_agent_decisions_with_simulated_tools_not_real_host_or_provider_acceptance",
+        "languageChecks": "bounded_phrase_checks_require_independent_semantic_review"
+      },
+      "actions": [
+        {
+          "type": "read",
+          "path": "task.json"
+        },
+        {
+          "type": "select",
+          "skill": "puretokens-update"
+        },
+        {
+          "type": "read",
+          "path": "skills/puretokens-update/SKILL.md"
+        },
+        {
+          "type": "read",
+          "path": "skills/puretokens-update/references/usage-guide.md"
+        },
+        {
+          "type": "finish",
+          "text": "Pure Tokens 是一个提供多种模型能力的 AI 服务平台，可以用来聊天、写作，以及制作图片、视频和音频素材。\n\n它有三个主要入口：\n\n- 网页：直接聊天和创作。\n- Pure Tokens Switch：选择模型分组，并为受支持的 AI 客户端配置连接。\n- 官方 Skills：在客户端对话中生成或编辑图片、视频，做文字配音、录音转写、音效和音乐创作，也能用 Jev 对文本分类或评分。\n\n例如，你可以说“把这段文字朗读为 MP3 配音”，或“用附件里的杯子制作一张商品主图”。这些只是用法示例，本次没有执行。具体能力取决于客户端适配、模型权限和结果交付支持。"
+        }
+      ]
+    },
+    {
+      "scenario": "product-introduction",
+      "variant": 1,
+      "agent": "help_eval_b",
+      "request": "别人推荐了 puretokens，这个服务是干嘛的？",
+      "evaluation": {
+        "passed": true,
+        "violations": [],
+        "metrics": {
+          "selectedSkills": [
+            "puretokens-update"
+          ],
+          "instructionReads": [
+            "skills/puretokens-update/SKILL.md",
+            "skills/puretokens-update/references/usage-guide.md"
+          ],
+          "questionCount": 0,
+          "commands": [],
+          "simulatedPaidPosts": 0,
+          "simulatedAPIReads": 0,
+          "attachmentHandoffs": 0
+        },
+        "evidenceScope": "offline_agent_decisions_with_simulated_tools_not_real_host_or_provider_acceptance",
+        "languageChecks": "bounded_phrase_checks_require_independent_semantic_review"
+      },
+      "actions": [
+        {
+          "type": "read",
+          "path": "task.json"
+        },
+        {
+          "type": "select",
+          "skill": "puretokens-update"
+        },
+        {
+          "type": "read",
+          "path": "skills/puretokens-update/SKILL.md"
+        },
+        {
+          "type": "read",
+          "path": "skills/puretokens-update/references/usage-guide.md"
+        },
+        {
+          "type": "finish",
+          "text": "Pure Tokens 是一个提供多种模型能力的 AI 服务平台，可以用来聊天，以及创作图片、视频、配音和音乐，也支持文本分类、评分等任务。\n\n它有几个入口：网页用于直接聊天和创作；Switch 用于给受支持的 AI 客户端配置连接；Skills 则让你在客户端对话中调用专用能力。具体能用哪些功能，取决于客户端适配和模型权限。"
+        }
+      ]
+    },
+    {
+      "scenario": "product-getting-started",
+      "variant": 0,
+      "agent": "help_eval_a",
+      "request": "我想了解怎么开始用 Pure Tokens。网页、Switch、Skills 各有什么用？",
+      "evaluation": {
+        "passed": true,
+        "violations": [],
+        "metrics": {
+          "selectedSkills": [
+            "puretokens-update"
+          ],
+          "instructionReads": [
+            "skills/puretokens-update/SKILL.md",
+            "skills/puretokens-update/references/usage-guide.md"
+          ],
+          "questionCount": 0,
+          "commands": [],
+          "simulatedPaidPosts": 0,
+          "simulatedAPIReads": 0,
+          "attachmentHandoffs": 0
+        },
+        "evidenceScope": "offline_agent_decisions_with_simulated_tools_not_real_host_or_provider_acceptance",
+        "languageChecks": "bounded_phrase_checks_require_independent_semantic_review"
+      },
+      "actions": [
+        {
+          "type": "read",
+          "path": "task.json"
+        },
+        {
+          "type": "select",
+          "skill": "puretokens-update"
+        },
+        {
+          "type": "read",
+          "path": "skills/puretokens-update/SKILL.md"
+        },
+        {
+          "type": "read",
+          "path": "skills/puretokens-update/references/usage-guide.md"
+        },
+        {
+          "type": "finish",
+          "text": "可以按你想在哪里使用来选择入口：\n\n| 入口 | 用来做什么 | 怎么开始 |\n| --- | --- | --- |\n| 网页 | 直接聊天和创作 | 从 Pure Tokens 官网进入相应网页工具，无需先安装客户端 Skills。 |\n| Pure Tokens Switch | 选择模型分组，为受支持的 AI 客户端应用连接配置 | 在 Switch 中选择并应用，你自己掌握连接设置。 |\n| 官方 Skills | 在客户端对话中调用图片、视频、音频创作和 Jev 文本评估等专用能力 | 客户端连接配置好后，单独安装 Skills，并按该客户端的步骤加载。 |\n\n如果只是想先体验，可以从网页开始。若客户端已经有可用、受适配器支持的 Pure Tokens 连接，无需为了 Skills 再装 Switch 或重新配置。\n\nSkills 的用法示例是“把这段文字朗读为 MP3 配音”或“用附件制作一张商品主图”。具体支持范围取决于客户端适配、模型权限和附件交付能力。本次仅介绍用法，没有执行安装、连接检查或生成。"
+        }
+      ]
+    },
+    {
+      "scenario": "product-getting-started",
+      "variant": 1,
+      "agent": "help_eval_b",
+      "request": "我已经在一个 AI 客户端里接了 Pure Tokens，想先了解 Skills 怎么用，还得再装 Switch 吗？",
+      "evaluation": {
+        "passed": true,
+        "violations": [],
+        "metrics": {
+          "selectedSkills": [
+            "puretokens-update"
+          ],
+          "instructionReads": [
+            "skills/puretokens-update/SKILL.md",
+            "skills/puretokens-update/references/usage-guide.md"
+          ],
+          "questionCount": 0,
+          "commands": [],
+          "simulatedPaidPosts": 0,
+          "simulatedAPIReads": 0,
+          "attachmentHandoffs": 0
+        },
+        "evidenceScope": "offline_agent_decisions_with_simulated_tools_not_real_host_or_provider_acceptance",
+        "languageChecks": "bounded_phrase_checks_require_independent_semantic_review"
+      },
+      "actions": [
+        {
+          "type": "read",
+          "path": "task.json"
+        },
+        {
+          "type": "select",
+          "skill": "puretokens-update"
+        },
+        {
+          "type": "read",
+          "path": "skills/puretokens-update/SKILL.md"
+        },
+        {
+          "type": "read",
+          "path": "skills/puretokens-update/references/usage-guide.md"
+        },
+        {
+          "type": "finish",
+          "text": "不必为了 Skills 再装 Switch：如果现有连接可用，而且该客户端的连接方式受 Skills 适配器支持，就可以沿用。Switch 负责选择模型分组和应用客户端连接配置；Skills 需要单独安装并按客户端要求加载，用来在对话中完成专用任务。网页则是直接聊天和创作的另一种入口。\n\nSkills 加载后，可以像平常聊天一样提出需求，例如：\n\n- “生成一张日落时分的山间湖泊图片。”\n- “把这段文字朗读为 MP3 配音。”\n- “用 Jev 将这条工单分到销售、技术、账务或其他。”\n\n这些只是用法示例。实际能否完成还取决于相应模型的 API 权限、客户端适配和附件交付能力；能聊天本身不能证明这些能力都可用。"
+        }
+      ]
+    },
+    {
+      "scenario": "explicit-connection-check",
+      "variant": 0,
+      "agent": "help_eval_c",
+      "request": "检查一下我当前的 Pure Tokens 连接还能用吗。",
+      "evaluation": {
+        "passed": true,
+        "violations": [],
+        "metrics": {
+          "selectedSkills": [
+            "puretokens-update"
+          ],
+          "instructionReads": [
+            "skills/puretokens-update/SKILL.md"
+          ],
+          "questionCount": 0,
+          "commands": [
+            "init"
+          ],
+          "simulatedPaidPosts": 0,
+          "simulatedAPIReads": 0,
+          "attachmentHandoffs": 0
+        },
+        "evidenceScope": "offline_agent_decisions_with_simulated_tools_not_real_host_or_provider_acceptance",
+        "languageChecks": "bounded_phrase_checks_require_independent_semantic_review"
+      },
+      "actions": [
+        {
+          "type": "read",
+          "path": "task.json"
+        },
+        {
+          "type": "select",
+          "skill": "puretokens-update"
+        },
+        {
+          "type": "read",
+          "path": "skills/puretokens-update/SKILL.md"
+        },
+        {
+          "type": "say",
+          "text": "我会使用 puretokens-update 对当前 Codex 连接做一次只读验证。"
+        },
+        {
+          "type": "command",
+          "command": "init",
+          "host": "codex"
+        },
+        {
+          "type": "finish",
+          "text": "当前连接尚未验证：执行器无法确认 Codex 当前实际使用的连接（active_connection_selection_unconfirmed）。本次未请求 API、未认证凭据，也未创建计费任务；这不代表连接失效或尚未配置。现有连接未改动。请确认当前会话的连接选择后，再明确让我重新检查。"
+        }
+      ]
+    },
+    {
+      "scenario": "explicit-public-identity",
+      "variant": 0,
+      "agent": "help_eval_c",
+      "request": "请核验固定 API 返回的公开身份标识是不是 Pure Tokens API。",
+      "evaluation": {
+        "passed": true,
+        "violations": [],
+        "metrics": {
+          "selectedSkills": [
+            "puretokens-connection"
+          ],
+          "instructionReads": [
+            "skills/puretokens-connection/SKILL.md"
+          ],
+          "questionCount": 0,
+          "commands": [
+            "connection"
+          ],
+          "simulatedPaidPosts": 0,
+          "simulatedAPIReads": 0,
+          "attachmentHandoffs": 0
+        },
+        "evidenceScope": "offline_agent_decisions_with_simulated_tools_not_real_host_or_provider_acceptance",
+        "languageChecks": "bounded_phrase_checks_require_independent_semantic_review"
+      },
+      "actions": [
+        {
+          "type": "read",
+          "path": "task.json"
+        },
+        {
+          "type": "select",
+          "skill": "puretokens-connection"
+        },
+        {
+          "type": "read",
+          "path": "skills/puretokens-connection/SKILL.md"
+        },
+        {
+          "type": "say",
+          "text": "我会使用 puretokens-connection 核验一次固定 API 的公开身份标识。"
+        },
+        {
+          "type": "command",
+          "command": "connection",
+          "host": "codex"
+        },
+        {
+          "type": "finish",
+          "text": "公开身份检查尚未执行：执行器无法确认 Codex 当前有效连接（active_connection_selection_unconfirmed）。本次未请求固定 API，也未认证凭据，因此暂时无法确认其公开身份标识；这不表示连接失效或尚未配置。现有连接保持不变。"
+        }
+      ]
+    }
+  ]
+}

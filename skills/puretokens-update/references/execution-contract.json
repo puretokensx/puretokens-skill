@@ -34,7 +34,9 @@
       "installationDiagnostics": "doctor",
       "usageQuestion": "local_guide_only",
       "doNotChainChecksForOneIntent": true,
-      "publicServiceIdentity": "connection_public_identity_only"
+      "publicServiceIdentity": "connection_public_identity_only",
+      "productIntroduction": "local_guide_only",
+      "gettingStarted": "local_guide_only"
     },
     "checkUpdate": {
       "commandTemplate": "native_fetch check-update --host <current-supported-host>",
@@ -60,6 +62,8 @@
     "doesNotClaimSuccessWithoutVersionReceipt": true,
     "neverModifiesOfficialCheckout": true,
     "requiresNewHostConversationAfterSuccess": true,
-    "helpOnlyDoesNotInvokeInit": true
+    "helpOnlyDoesNotInvokeInit": true,
+    "helpOnlyDoesNotInvokeExecutor": true,
+    "helpOnlyDoesNotRequireHostOrConnection": true
   }
 }

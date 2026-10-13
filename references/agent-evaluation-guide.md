@@ -22,9 +22,9 @@ node scripts/agent-eval.mjs prepare --scenario image-short-path
 ```
 
 返回唯一 `session`、`publicTask`、`publicWorkspace`。`--variant 1` 选择同题另一种自然表达。
-八题 ID：`image-short-path`、`unknown-submission`、`redeliver-completed-image`、
-`local-connection-stop`、`audio-mixed-result`、`model-group-unavailable`、
-`service-failure-alternative`、`historical-content-rejection`。
+题目 ID 见 `agent-evaluation-scenarios.json`。产品帮助覆盖 `product-introduction`、
+`product-getting-started`，并用 `explicit-connection-check`、`explicit-public-identity`
+检查明确诊断意图的分流。其余题目覆盖生成、同任务恢复和失败引导。
 
 把以下任务交给不继承历史结论的独立 Agent，替换两个绝对路径；不要附加隐藏规则或预期答案：
 
@@ -73,7 +73,7 @@ node scripts/agent-eval.mjs evaluate --session /absolute/session
 真正的 Agent 结果必须来自独立 Agent 对当前快照的自主动作，保留其模型／运行环境标识和快照摘要。
 先检查失败轨迹，再改由证据证明有问题的说明；不要通过放宽判定掩盖流程错误。
 
-当前题目覆盖默认文生图、未知提交、同任务重交付、本地连接失败、音频混合边界、未知分组名称、
+当前题目覆盖产品介绍、入门、明确连接／身份检查的分流，以及默认文生图、未知提交、同任务重交付、本地连接失败、音频混合边界、未知分组名称、
 服务失败替代流程和历史内容拒绝。它们没有覆盖所有宿主／操作系统、参数、参考附件或真实后端。
 一次模型的一次运行不能代表所有客户端；新增真实失败时增加最小自然语言变体，不持续堆同义规则。
 

@@ -91,7 +91,7 @@ For missing files, local changes or interrupted installation, request a read-onl
 | `puretokens-video` | Generate videos and use declared image/video/audio references or video edits. |
 | `puretokens-audio` | Turn text into speech, transcribe recordings, generate sound scenes, or create music and songs. |
 | `puretokens-evaluate` | Classify text, score against ordered criteria, or make yes/no judgments with Jev. |
-| `puretokens-update` | Initialize, show usage guidance, and safely synchronize these official Skills. |
+| `puretokens-update` | Local product introduction, getting-started and usage help, connection verification, and safe Skill synchronization. |
 
 ## How direct API generation works
 
@@ -279,7 +279,7 @@ files and symlinks, preserving existing contents. An unmarked directory
 must match the current official source exactly; a matching name or self-reported version/hash is
 insufficient. Inventories detect accidental edits, not malicious local tampering.
 
-After a fresh installation or actual version update, the installer automatically runs `init`; an intact same-version shortcut does not. It performs a non-billable fixed `/v1` identity check followed by one authenticated `/v1/media/models` request within a shared 20-second deadline without displaying credentials or host configuration, then prints the current usage guide and examples. If verification does not complete, it reports a sanitized reason such as no active matching connection, missing credential, API rejection with its HTTP status, network failure, or an unconfirmed API identity; it never prints the configured URL, provider, or key. Ask to initialize Pure Tokens Skills or verify authentication to run `init` again explicitly. A general connection check uses only `connection` for public identity, not authentication. Installation diagnostics use `doctor`; help reads the local guide. Choose one intent, without chaining redundant checks.
+After a fresh installation or actual version update, the installer automatically runs `init`; an intact same-version shortcut does not. It performs a non-billable fixed `/v1` identity check followed by one authenticated `/v1/media/models` request within a shared 20-second deadline without displaying credentials or host configuration, then prints a compact result, host-specific examples and the local help entry. If verification does not complete, it reports a sanitized reason such as no active matching connection, missing credential, API rejection with its HTTP status, network failure, or an unconfirmed API identity; it never prints the configured URL, provider, or key. Ask to initialize Pure Tokens Skills or verify authentication to run `init` again explicitly. A general current-connection or authentication check also uses `init` once; only an explicit fixed-API public identity request uses `connection`. Installation diagnostics use `doctor`. Product introductions, getting-started questions and usage help read the [local guide](skills/puretokens-update/references/usage-guide.md) without requiring a host or configured connection, running the executor, reading credentials, using the network, installing anything or creating a paid task. Static help does not promise current models or prices. Choose one intent without chaining redundant checks.
 
 ## Development validation
 

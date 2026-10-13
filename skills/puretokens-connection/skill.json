@@ -4,7 +4,7 @@
   "version": "0.18.8",
   "entry": "SKILL.md",
   "displayName": "Pure Tokens Connection",
-  "description": "Check the fixed Pure Tokens API identity declaration.",
+  "description": "Check the fixed Pure Tokens API public identity only when explicitly requested.",
   "executionContract": "references/execution-contract.json",
   "behaviorScenarios": "references/behavior-scenarios.json",
   "distribution": {
@@ -126,5 +126,5 @@
     "doesNotUseMcpOrFallbackTransport": true,
     "identityDoesNotVerifyCredentials": true
   },
-  "sourceSha256": "8b915aefb49a386f73abbec80731c552b9a39e474b74674df33c3abf2e2cb5ce"
+  "sourceSha256": "7cb65afb76a168fc790dc7d169b112778d05fc98abba8974b70bc18584cd292d"
 }

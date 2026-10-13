@@ -44,6 +44,8 @@ test("connection and initialization have one consistent intent mapping", async (
     explicitAuthenticationCheck: "init",
     installationDiagnostics: "doctor",
     usageQuestion: "local_guide_only",
+    productIntroduction: "local_guide_only",
+    gettingStarted: "local_guide_only",
     doNotChainChecksForOneIntent: true
   });
   const update = await readFile(path.join(repositoryRoot, "skills/puretokens-update/SKILL.md"), "utf8");

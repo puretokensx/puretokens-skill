@@ -1,4 +1,4 @@
 interface:
   display_name: "Pure Tokens Update"
-  short_description: "Install or safely upgrade the local Pure Tokens Skills"
-  default_prompt: "Use $puretokens-update to install or upgrade my local official Pure Tokens Skills safely."
+  short_description: "Explain Pure Tokens, guide setup, or manage Skills"
+  default_prompt: "Use $puretokens-update to answer my Pure Tokens questions or perform the installation or connection check I explicitly request."

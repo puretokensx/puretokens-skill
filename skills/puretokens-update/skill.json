@@ -4,7 +4,7 @@
   "version": "0.18.8",
   "entry": "SKILL.md",
   "displayName": "Pure Tokens Update",
-  "description": "Install or safely upgrade local official Pure Tokens Skills.",
+  "description": "Explain Pure Tokens and getting started locally, or explicitly install, upgrade and verify Skills.",
   "executionContract": "references/execution-contract.json",
   "behaviorScenarios": "references/behavior-scenarios.json",
   "usageGuide": "references/usage-guide.md",
@@ -131,5 +131,5 @@
     "supportsReadOnlyDoctor": true,
     "doesNotSubmitMediaOrReadBilling": true
   },
-  "sourceSha256": "c52475907f0d6ea439d2ee9b599bbb0df8940132b4f42ffca6d5b91b7dc26cc6"
+  "sourceSha256": "6cda336919dd412bfb9d5ce110b7e3ca863aaafb4a8ada85a0bc5c458dd4b483"
 }

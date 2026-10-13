@@ -1,4 +1,4 @@
 interface:
   display_name: "Pure Tokens Connection"
-  short_description: "Check whether the current API endpoint identifies itself as Pure Tokens API."
+  short_description: "Check the fixed API's public identity on explicit request"
   default_prompt: "Use $puretokens-connection to check whether the fixed Pure Tokens API used by this Skill identifies itself correctly."

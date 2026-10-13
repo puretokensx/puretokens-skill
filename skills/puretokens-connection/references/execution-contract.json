@@ -30,6 +30,8 @@
     "neverRetry": true,
     "doesNotExposeHostConfiguration": true,
     "unconfirmedDoesNotProveOtherService": true,
-    "neverClaimsCredentialOrMediaAvailability": true
+    "neverClaimsCredentialOrMediaAvailability": true,
+    "requiresExplicitPublicIdentityRequest": true,
+    "productIntroductionUsesLocalHelp": true
   }
 }

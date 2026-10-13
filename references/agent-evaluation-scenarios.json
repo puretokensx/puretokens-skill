@@ -2,6 +2,34 @@
   "schemaVersion": 1,
   "scenarios": [
     {
+      "id": "product-introduction",
+      "request": "Pure Tokens 是什么？能帮我做什么？",
+      "variants": ["别人推荐了 puretokens，这个服务是干嘛的？"],
+      "context": "用户第一次了解这个产品，没有提供客户端、连接或账户信息。当前对话可读取已提供的 Skills。",
+      "stub": "no-paid-work"
+    },
+    {
+      "id": "product-getting-started",
+      "request": "我想了解怎么开始用 Pure Tokens。网页、Switch、Skills 各有什么用？",
+      "variants": ["我已经在一个 AI 客户端里接了 Pure Tokens，想先了解 Skills 怎么用，还得再装 Switch 吗？"],
+      "context": "用户正在了解使用方式，没有要求执行安装、配置、连接检查或生成，也没有指定客户端。",
+      "stub": "no-paid-work"
+    },
+    {
+      "id": "explicit-connection-check",
+      "request": "检查一下我当前的 Pure Tokens 连接还能用吗。",
+      "variants": ["请验证当前 Pure Tokens 连接的认证。"],
+      "context": "当前是 Codex Desktop 本地会话，可以运行已安装执行器。用户没有要求修改连接或生成内容。",
+      "stub": "connection-unconfirmed"
+    },
+    {
+      "id": "explicit-public-identity",
+      "request": "请核验固定 API 返回的公开身份标识是不是 Pure Tokens API。",
+      "variants": ["帮我检查固定 Pure Tokens API 的公开身份声明。"],
+      "context": "当前是 Codex Desktop 本地会话，可以运行已安装执行器。用户没有要求验证认证或生成内容。",
+      "stub": "connection-unconfirmed"
+    },
+    {
       "id": "image-short-path",
       "request": "帮我生成一张白底的蓝色陶瓷杯产品图，方形，一张，直接用默认模型。",
       "variants": ["做一张方形产品展示图：蓝色陶瓷杯，白背景。默认图片模型即可。"],

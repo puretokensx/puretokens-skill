@@ -1,9 +1,11 @@
 ---
 name: puretokens-connection
-description: 用户询问 Pure Tokens API 的服务身份或公开标识时使用；检查当前连接能否使用、验证认证和安装诊断使用 puretokens-update。
+description: 用户明确要求核验固定 Pure Tokens API 返回的公开身份标识时使用；Pure Tokens 是什么、怎么开始、用法、检查当前连接和验证认证使用 puretokens-update。
 ---
 
 # Pure Tokens Connection
+
+“Pure Tokens 是什么／有什么用／怎么开始”是本地产品介绍，由 puretokens-update 的本地使用指南回答；不执行本页的身份请求，不要求宿主或连接信息。仅当用户明确要求核验固定 API 的公开标识时继续以下流程。
 
 宿主绑定与本地失败停止：首次调用前按当前应用或用户明确指定绑定一个 host，全部命令沿用，不从安装目录推断。`active_connection_*`、`workbuddy_*` 或 `host_credential_adapter_unavailable` 本地失败后停止 API 流程，保留用户原任务和已有 task ID；不得自动调用 puretokens-connection、init、doctor、models 或其他 Skill 探测，不得枚举、更换 `--host` 或借用凭据。仅用户明确重查或有可验证的新依据时，在原 host 检查一次；换宿主须用户明确指定。“继续生成”本身不是重查、换宿主或重提授权；本次未发送不代表此前未提交。
 
@@ -17,7 +19,7 @@ description: 用户询问 Pure Tokens API 的服务身份或公开标识时使�
 
 ## 身份检查
 
-- “这个服务是谁／是不是 Pure Tokens API”使用本页的公开身份检查；“检查当前连接／我的连接还能用吗／能否认证”使用 puretokens-update 的有界 init，检查身份与认证。一个意图只选一个入口，不先执行 connection 再重复 init。安装故障使用对应诊断，用法问题只读本地指南。
+- “核验固定 API 是否返回 Pure Tokens API 的公开身份”使用本页的公开身份检查；“检查当前连接／我的连接还能用吗／能否认证”使用 puretokens-update 的有界 init，检查身份与认证。一个意图只选一个入口，不先执行 connection 再重复 init。安装故障使用对应诊断；产品介绍、入门和用法问题只读本地指南。
 - 每次用户查询只调用一次 `GET https://api.puretokensx.com/v1`；不得调用模型目录、Images、Videos、余额、任务或其他路径，也不得重试。
 - 只有响应 JSON 同时明确返回 `status: "ok"`、`name: "Pure Tokens API"`、`base_url: "/v1"` 时，才回答：`固定 API 返回了 Pure Tokens API 的公开身份标识；此检查未验证凭据、余额、模型权限或媒体可用性。`
 - 响应不可读、字段缺失、值不匹配或请求失败时，只能回答：`固定 Pure Tokens API 未返回可确认的标识，当前无法完成检查。` 不得把该结果归因于用户 Base URL、API Key 或 provider 配置，也不得读取或要求用户粘贴它们。

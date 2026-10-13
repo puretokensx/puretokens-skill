@@ -1,9 +1,11 @@
 ---
 name: puretokens-update
-description: 用户要求安装、升级、检查版本、检查当前连接能否使用、初始化并验证认证、诊断安装或了解 Pure Tokens Skills 用法时使用。
+description: 用户询问 Pure Tokens 是什么、有什么用、怎么开始、网页与 Switch／Skills 的区别，或要求安装、升级、检查版本、检查当前连接、验证认证、诊断安装和了解 Skills 用法时使用。
 ---
 
 # Pure Tokens Update
+
+先分流帮助意图：“Pure Tokens 是什么／有什么用／怎么开始”及用法问题，直接读本 Skill 内的 `references/usage-guide.md`，按所问范围简短介绍后结束。无需确认宿主、已安装状态或有效连接；不运行执行器、init、doctor、安装器，不读凭据或访问网络，不创建计费任务。介绍网页、Switch 和 Skills 的分工；只展示使用示例，不执行。最新模型、分组、价格和账户权限不以静态介绍作承诺，按指南交给对应查询或官方当前信息。
 
 宿主绑定与本地失败停止：首次调用前按当前应用或用户明确指定绑定一个 host，全部命令沿用，不从安装目录推断。`active_connection_*`、`workbuddy_*` 或 `host_credential_adapter_unavailable` 本地失败后停止 API 流程，保留用户原任务和已有 task ID；不得自动调用 puretokens-connection、init、doctor、models 或其他 Skill 探测，不得枚举、更换 `--host` 或借用凭据。仅用户明确重查或有可验证的新依据时，在原 host 检查一次；换宿主须用户明确指定。“继续生成”本身不是重查、换宿主或重提授权；本次未发送不代表此前未提交。
 
@@ -44,7 +46,7 @@ check-update 只比较版本，不证明文件完整，也不修改安装或执�
 
 ## 初始化与诊断
 
-用户意图只选择一个入口：仅“服务是谁／公开身份”由 puretokens-connection 检查；“检查当前连接／还能用吗／初始化／验证认证”执行一次 init；排查安装文件／中断事务用只读 install-inspect；排查宿主加载位置和连接用 doctor；只问用法读本地指南。不要为同一请求依次执行这些命令。
+用户意图只选择一个入口：“是什么／有什么用／怎么开始／用法”读本地指南；明确“核验固定 API 的公开身份”才由 puretokens-connection 检查；“检查当前连接／还能用吗／初始化／验证认证”执行一次 init；排查安装文件／中断事务用只读 install-inspect；排查宿主加载位置和连接用 doctor。不要将产品介绍当作身份核验，也不要为同一意图依次执行这些命令；混合提问只执行用户明确要求的检查，介绍本身不增加请求。
 
 从当前 SKILL.md 的绝对目录解析同级 `../.puretokens-executor/puretokens-api`；Windows 使用 `puretokens-api.exe`，不依赖 PATH。`init --host <host-id>` 先请求固定 `/v1` 公开身份，再请求一次 `/v1/media/models` 验证认证；最多两次只读请求共用 20 秒总预算，不自动重试，无付费任务。超时仅说明连接未验证，不证明凭据无效。`doctor --host <host-id>` 额外检查本次加载位置和当前宿主已知 Skill 目录中的安装版本／重复项，再执行同样的只读检查；不扫描 Home、不读取其他宿主配置，也不自动修复。
 
