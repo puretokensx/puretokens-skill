@@ -1,12 +1,21 @@
-# Legacy updater migration only
+# Local platform release candidates
 
-Neither archive in this directory is an installation package for current users or current hosts. New installation and update flows retrieve the official repository `main` source and run its source-only sync script.
+`npm run release:package` generates six platform archives, four installer scripts
+and a release manifest under the ignored `dist/releases/` directory. Each
+platform archive contains the current Skills and exactly one native executor.
 
-- `puretokens-skill-install.zip` is the source-only migration archive. It contains the current sync implementation and eight Skills; it contains the checksum-verified native executor; it must not contain a Node runtime or retired monolithic model-selection files.
-- `puretokens-skill-install-payload.zip` exists only at the exact path hard-coded into published `0.13.x` updaters. Those old updaters refuse an archive unless it has their legacy runtime marker. The marker performs no API request and is not used by the current Skills; it lets the updater copy the current source-only Skills, after which later updates use the repository-source flow.
+Normal installation and update use the published stable release of
+`puretokensx/puretokens-skill`, verify its manifest and checksums, and download only
+the selected platform archive. A missing stable release is a distribution blocker;
+installers must not fall back to `main`, a source archive or an unpublished draft.
 
-Do not link either file in user installation instructions.
+Local archives are not published assets. Packaging a dirty checkout leaves
+`sourceCommit: null`; such a draft cannot pass `release:verify -- --publishable`.
+Distribution changes also require a new immutable version and the existing
+catalog-freshness and real-host release acceptance gates.
 
-## Platform release candidates
-
-`npm run release:package` builds one archive per OS/architecture under ignored `dist/releases/`, each with exactly one executor, eight Skills, platform installers and checksums. This reduces a full multi-platform source download to a single platform package. These are distribution artifacts, not a host requirement for ZIP installation. Publish matching immutable version assets before moving public installation instructions to them; retain the existing source installer and old migration bridge until users can fetch those assets.
+The retired `puretokens-skill-install.zip` and
+`puretokens-skill-install-payload.zip` migration bridges remain absent.
+Superseded local version archives may be removed after confirming no active
+packaging or verification uses them. Preserve the current candidate and its
+manifest, independent migration/recovery evidence, and published immutable bytes.

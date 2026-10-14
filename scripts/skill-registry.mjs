@@ -616,8 +616,8 @@ function validateUpdateContract(errors, label, contract) {
   }
   const sync = contract.operations?.sync;
   if (!sync || sync.directorySelector !== "download_checksum_verified_selector_from_the_same_stable_release" || sync.commandTemplate !== "native_fetch install_or_update --host <current-supported-host>" ||
-    sync.sourceRepository !== "https://github.com/PureTokens/puretokens-skill.git" ||
-    sync.releaseManifest !== "https://github.com/PureTokens/puretokens-skill/releases/latest/download/release-manifest.json" ||
+    sync.sourceRepository !== "https://github.com/puretokensx/puretokens-skill.git" ||
+    sync.releaseManifest !== "https://github.com/puretokensx/puretokens-skill/releases/latest/download/release-manifest.json" ||
     sync.validationCommand !== "pin_stable_manifest_verify_selector_and_platform_package_then_native_sync" ||
     sync.sameVersion !== "verify_release_executor_checksum_and_all_managed_inventories_then_no_download_sync_or_init") {
     errors.push(`${label} must define stable platform-only sync and the verified same-version shortcut`);

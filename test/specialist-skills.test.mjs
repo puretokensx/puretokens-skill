@@ -247,7 +247,7 @@ for (const kind of ["image", "video"]) {
 }
 
 test("the public install prompt remains extractable in both README files", async () => {
-  const expected = "Install or update the official Pure Tokens Skills from https://github.com/PureTokens/puretokens-skill.";
+  const expected = "Install or update the official Pure Tokens Skills from https://github.com/puretokensx/puretokens-skill.";
   let prompts;
   for (const file of ["README.md", "README.zh-CN.md"]) {
     const readme = await readFile(path.join(repositoryRoot, file), "utf8");

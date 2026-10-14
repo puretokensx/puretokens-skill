@@ -6,6 +6,9 @@
 
 ## Unreleased
 
+- Align the development checkout's installer URLs, update contracts, README prompts and Go module identity with `puretokensx/puretokens-skill`. Existing releases and installed copies are unchanged; publishing still requires stable-release acceptance.
+- Remove retired source/main installation and legacy bridge instructions from the local artifact guide; retain stable manifest verification and immutable-version publication gates.
+
 - Preserve reviewed terminal failure causes across sessions and add explicit same-task re-delivery, with verified local reuse before retrieval; retain H3 adaptive aspect ratios.
 - Add local installation inspection and an explicit stable-release repair path that preserves modified and unknown files. Replace full usage dumps with host-specific activation and concise examples.
 - Clarify host/mode result handoff, connection intent, audio validation and independent speech/music outputs. Remove redundant read-only confirmations while preserving consent for new paid tasks.
