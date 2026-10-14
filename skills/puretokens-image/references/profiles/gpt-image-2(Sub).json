@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
   "schemaVersion": 1,
   "capability": "image",
-  "catalogUpdatedAt": "2026-10-04",
-  "catalogCapturedAt": "2026-10-04T06:19:22.134Z",
+  "catalogUpdatedAt": "2026-10-14",
+  "catalogCapturedAt": "2026-10-14T09:21:16.289Z",
   "id": "gpt-image-2(Sub)",
   "parameterSchema": {
     "properties": {
@@ -31,9 +31,7 @@
       "image_size": {
         "type": "string",
         "enum": [
-          "1K",
-          "2K",
-          "4K"
+          "1K"
         ],
         "default": "1K"
       },
@@ -78,30 +76,6 @@
       },
       "aspect_ratio_by_image_size": {
         "1K": [
-          "1:1",
-          "2:3",
-          "3:2",
-          "3:4",
-          "4:3",
-          "4:5",
-          "5:4",
-          "9:16",
-          "16:9",
-          "21:9"
-        ],
-        "2K": [
-          "1:1",
-          "2:3",
-          "3:2",
-          "3:4",
-          "4:3",
-          "4:5",
-          "5:4",
-          "9:16",
-          "16:9",
-          "21:9"
-        ],
-        "4K": [
           "1:1",
           "2:3",
           "3:2",

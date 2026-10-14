@@ -8,7 +8,7 @@ func TestCurrentCatalogImageTiersAndExactIDs(t *testing.T) {
 			svc, transport := catalogProfileService(t, readInstalledProfileFixture(t, "image", model))
 			r := taskRequest{Kind: "image", Operation: "generate", Model: model, Prompt: "synthetic", Parameters: map[string]any{"image_size": size, "aspect_ratio": "16:9"}}
 			err := prepareProfileRequest(&r, svc)
-			if (err == nil) != (size != "8K") || transport.calls != 0 || r.Model != model {
+			if (err == nil) != (size == "1K") || transport.calls != 0 || r.Model != model {
 				t.Fatalf("image profile mismatch: %s/%s", model, size)
 			}
 		}
@@ -27,7 +27,7 @@ func TestCurrentCatalogImageTiersAndExactIDs(t *testing.T) {
 }
 
 func TestCurrentCatalogVideoOperations(t *testing.T) {
-	for _, model := range []string{"seedance2.0", "seedance-2.5"} {
+	for _, model := range []string{"seedance2.0"} {
 		for _, count := range []int{1, 2} {
 			svc, transport := catalogProfileService(t, readInstalledProfileFixture(t, "video", model))
 			refs := []any{"https://example.com/reference.png"}
@@ -48,6 +48,18 @@ func TestCurrentCatalogVideoOperations(t *testing.T) {
 			if prepareProfileRequest(&r, svc) == nil {
 				t.Fatal("missing required duration accepted")
 			}
+		}
+	}
+	for _, count := range []int{1, 30, 31} {
+		svc, transport := catalogProfileService(t, readInstalledProfileFixture(t, "video", "seedance-2.5"))
+		refs := make([]any, count)
+		for i := range refs {
+			refs[i] = "https://example.com/reference.png"
+		}
+		request := taskRequest{Kind: "video", Operation: "generate", MediaOperation: "video_generation", Model: "seedance-2.5", Prompt: "synthetic", Parameters: map[string]any{"reference_images": refs}}
+		err := prepareProfileRequest(&request, svc)
+		if (err == nil) != (count <= 30) || transport.calls != 0 {
+			t.Fatalf("seedance-2.5 JSON references %d: %v", count, err)
 		}
 	}
 	svc, transport := catalogProfileService(t, readInstalledProfileFixture(t, "video", "minimax_h3"))

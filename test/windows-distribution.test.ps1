@@ -173,6 +173,42 @@ try {
   & (Join-Path $bootstrap "puretokens-skill-fetch.ps1") install -HostId zcode -Target (Join-Path $root "new-host-target")
   if (-not (Test-Path -LiteralPath (Join-Path $root "new-host-target/puretokens-image/SKILL.md"))) { throw "marked old selector blocked ZCode" }
 
+  # Old installations retain their managed files until the newly downloaded
+  # official bootstrap has verified the complete current release.
+  $oldSource = Join-Path $root "old-repository-source"
+  Copy-Item -LiteralPath $source -Destination $oldSource -Recurse
+  @{ version = "0.16.0" } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $oldSource "package.json") -Encoding UTF8
+  $oldFetch = Join-Path $oldSource "runtime/puretokens-skill-fetch.ps1"
+  (Get-Content -LiteralPath $oldFetch -Raw -Encoding UTF8).Replace(
+    'github.com/puretokensx/puretokens-skill', 'github.com/PureTokens/puretokens-skill'
+  ) | Set-Content -LiteralPath $oldFetch -Encoding UTF8
+  $oldTarget = Join-Path $root "old-repository-target"
+  & (Join-Path $oldSource "runtime/puretokens-skill-install.ps1") sync -Target $oldTarget -Source $oldSource
+  'keep personal files' | Set-Content -LiteralPath (Join-Path $oldTarget 'unmanaged.txt') -Encoding UTF8
+  $before = Get-FixtureSnapshot $oldTarget
+  $validChecksum = $release.files[$platform].sha256
+  $release.files[$platform].sha256 = '0' * 64
+  $release | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $root "release.json") -Encoding UTF8
+  $global:fixtureRequests.Clear()
+  $rejected = $false
+  try { & (Join-Path $bootstrap "puretokens-skill-fetch.ps1") update -Target $oldTarget }
+  catch { $rejected = $_.Exception.Message -like '*checksum mismatch*' }
+  if (-not $rejected -or (Get-FixtureSnapshot $oldTarget) -cne $before -or $global:fixtureRequests.Count -ne 3) {
+    throw 'Failed new-bootstrap verification changed an old installation'
+  }
+  $release.files[$platform].sha256 = $validChecksum
+  $release | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $root "release.json") -Encoding UTF8
+  $global:fixtureRequests.Clear()
+  & (Join-Path $bootstrap "puretokens-skill-fetch.ps1") update -Target $oldTarget
+  $upgraded = Get-Content -LiteralPath (Join-Path $oldTarget '.puretokens-executor/runtime.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+  if ($upgraded.version -ne $global:fixtureVersion -or
+      (Get-Content -LiteralPath (Join-Path $oldTarget 'unmanaged.txt') -Raw) -notlike '*keep personal files*' -or
+      (Get-Content -LiteralPath (Join-Path $oldTarget '.puretokens-executor/puretokens-skill-fetch.ps1') -Raw) -like '*github.com/PureTokens/*' -or
+      $global:fixtureRequests.Count -ne 3 -or
+      @($global:fixtureRequests | Where-Object { $_ -notlike 'https://github.com/puretokensx/puretokens-skill/releases/*' }).Count -ne 0) {
+    throw 'The current official bootstrap did not safely upgrade the original installation'
+  }
+
   $newer = Join-Path $root "newer-source"
   Copy-Item -LiteralPath $source -Destination $newer -Recurse
   @{ version = "99.0.0" } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $newer "package.json") -Encoding UTF8

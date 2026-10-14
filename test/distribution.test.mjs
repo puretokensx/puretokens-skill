@@ -176,6 +176,58 @@ test("published checksum mismatch stops before target mutation", async t => {
   assert.deepEqual(await readdir(path.join(f.root, "tmp")), []);
 });
 
+for (const mode of ["platform", "bad-checksum"]) {
+  test(`fresh official bootstrap upgrades an old-repository installation safely (${mode})`, async t => {
+    const f = await fixture(t);
+    const oldSource = path.join(f.root, "old-source");
+    await cp(f.source, oldSource, { recursive: true });
+    await writeFile(path.join(oldSource, "package.json"), JSON.stringify({ version: "0.16.0" }, null, 2));
+    const oldFetch = path.join(oldSource, "runtime/puretokens-skill-fetch.sh");
+    await writeFile(oldFetch, (await readFile(oldFetch, "utf8")).replaceAll(
+      "github.com/puretokensx/puretokens-skill", "github.com/PureTokens/puretokens-skill"));
+    await execFile("sh", [path.join(oldSource, "runtime/puretokens-skill-install.sh"), "sync",
+      "--target", f.target, "--source", oldSource], { env: f.env });
+    await writeFile(path.join(f.target, "unmanaged.txt"), "keep personal files");
+    const snapshot = async () => {
+      const result = {};
+      const walk = async directory => {
+        for (const entry of await readdir(directory, { withFileTypes: true })) {
+          const full = path.join(directory, entry.name);
+          if (entry.isDirectory()) await walk(full);
+          else result[path.relative(f.target, full)] = {
+            sha: createHash("sha256").update(await readFile(full)).digest("hex"),
+            mtime: (await stat(full)).mtimeMs
+          };
+        }
+      };
+      await walk(f.target);
+      return result;
+    };
+    const before = await snapshot();
+    const env = await mockDownloads(f, mode);
+    await assert.rejects(execFile("sh", [path.join(f.target, ".puretokens-executor/puretokens-skill-fetch.sh"),
+      "check-update", "--target", f.target], { env }), /read_release_manifest/);
+    assert.match(await readFile(path.join(f.root, "requests"), "utf8"), /github\.com\/PureTokens\//);
+    assert.deepEqual(await snapshot(), before);
+    await writeFile(path.join(f.root, "requests"), "");
+    const bootstrap = path.join(f.root, "current-official-fetch.sh");
+    await cp(path.join(f.source, "runtime/puretokens-skill-fetch.sh"), bootstrap);
+    if (mode === "bad-checksum") {
+      await assert.rejects(execFile("sh", [bootstrap, "update", "--target", f.target], { env }), /checksum mismatch/);
+      assert.deepEqual(await snapshot(), before, "failed verification rewrote the old installation");
+    } else {
+      await execFile("sh", [bootstrap, "update", "--target", f.target], { env });
+      assert.equal(JSON.parse(await readFile(path.join(f.target, ".puretokens-executor/runtime.json"), "utf8")).version, version);
+      assert.doesNotMatch(await readFile(path.join(f.target, ".puretokens-executor/puretokens-skill-fetch.sh"), "utf8"), /github\.com\/PureTokens\//);
+    }
+    assert.equal(await readFile(path.join(f.target, "unmanaged.txt"), "utf8"), "keep personal files");
+    const requests = (await readFile(path.join(f.root, "requests"), "utf8")).trim().split("\n");
+    assert.equal(requests.length, 3);
+    assert.ok(requests.every(url => url.startsWith("https://github.com/puretokensx/puretokens-skill/releases/")));
+    assert.deepEqual(await readdir(path.join(f.root, "tmp")), []);
+  });
+}
+
 test("unpublished or invalid stable metadata never falls back to main or source", async t => {
   const f = await fixture(t);
   const env = await mockDownloads(f, "platform");

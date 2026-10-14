@@ -97,7 +97,7 @@ test("media receipt schemas reject lost task context and unsafe metadata", () =>
   for (const addition of [
     { raw_response_body: "private upstream data" }, { prompt: "private prompt" },
     { parameters: { image_urls: ["https://reference.example.test/private.png"] } },
-    { requested_count: 7 }, { http_status: 700 }, { submission_outcome: "assumed_success" }
+    { requested_count: 9 }, { http_status: 700 }, { submission_outcome: "assumed_success" }
   ]) rejects("executor-receipt.schema.json", { ...receipt, ...addition });
   const failure = example("submission-400");
   assert.equal(failure.submission_outcome, "rejected");
@@ -107,6 +107,26 @@ test("media receipt schemas reject lost task context and unsafe metadata", () =>
   const retry = example("status-retry");
   rejects("executor-receipt.schema.json", { ...retry, retry_not_before: "2026-02-30T12:00:00Z" }, "format");
   rejects("executor-receipt.schema.json", { ...retry, retry_not_before: "tomorrow" }, "format");
+});
+
+test("eight-image continuation schemas retain the last output and reject overflow", () => {
+  const receipt = example("record-0-submit-receipt");
+  assert.deepEqual(validators.get("executor-receipt.schema.json")({
+    ...receipt, requested_count: 8, parameters: { n: 8 }
+  }), []);
+  const record = example("record-5-delivered-artifact");
+  record.requested_count = 8;
+  record.parameters = { n: 8 };
+  for (let index = 2; index < 8; index++) {
+    record.downloaded[index] = record.downloaded[0];
+    record.download_proofs[index] = structuredClone(record.download_proofs[0]);
+    record.delivered.push(index);
+  }
+  assert.deepEqual(validators.get("task-record.schema.json")(record), []);
+  rejects("task-record.schema.json", { ...record, requested_count: 9 });
+  rejects("task-record.schema.json", { ...record, parameters: { n: 9 } });
+  rejects("task-record.schema.json", { ...record, downloaded: { ...record.downloaded, 8: record.downloaded[0] } });
+  rejects("task-record.schema.json", { ...record, delivered: [...record.delivered, 8] });
 });
 
 test("music schemas preserve asynchronous identity, paid intent and private lyrics", () => {
@@ -218,7 +238,7 @@ test("task records reject credentials, raw inputs and invalid progress", () => {
   for (const addition of [
     { prompt: "private prompt" }, { api_key: "synthetic-private-value" }, { reference_url: "https://reference.example.test" },
     { parameters: { generate_audio: "true" } }, { parameters: { n: 0 } },
-    { downloaded: { 6: "/output/out.png" } }, { delivered: [0, 0] }, { delivered: [6] },
+    { downloaded: { 8: "/output/out.png" } }, { delivered: [0, 0] }, { delivered: [8] },
     { retry_not_before: "later" }, { format: "puretokens-task-v2" }
   ]) rejects("task-record.schema.json", { ...record, ...addition });
   for (const field of ["format", "kind"]) {
@@ -253,7 +273,7 @@ test("recorded task failures and explicit redelivery preserve safe evidence", ()
   assert.equal(done.next_step, "done");
   assert.equal(done.redelivery_index, undefined);
   assert.equal(example("adaptive-receipt").parameters.aspect_ratio, "adaptive");
-  rejects("task-record.schema.json", { ...pending, pending_redelivery_index: 6 });
+  rejects("task-record.schema.json", { ...pending, pending_redelivery_index: 8 });
 });
 
 test("invocation timings are measured phases without private or unobserved labels", () => {

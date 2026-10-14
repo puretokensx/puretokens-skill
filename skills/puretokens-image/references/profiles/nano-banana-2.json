@@ -2,17 +2,21 @@
   "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
   "schemaVersion": 1,
   "capability": "image",
-  "catalogUpdatedAt": "2026-10-04",
-  "catalogCapturedAt": "2026-10-04T06:19:22.134Z",
+  "catalogUpdatedAt": "2026-10-14",
+  "catalogCapturedAt": "2026-10-14T09:21:16.289Z",
   "id": "nano-banana-2",
   "parameterSchema": {
     "properties": {
+      "prompt": {
+        "type": "string",
+        "required": true,
+        "minLength": 3
+      },
       "n": {
         "type": "integer",
-        "enum": [
-          1
-        ],
-        "default": 1
+        "default": 1,
+        "min": 1,
+        "max": 8
       },
       "image_size": {
         "type": "string",
@@ -25,7 +29,7 @@
       },
       "image": {
         "type": "string[]",
-        "maxLength": 6
+        "maxLength": 16
       },
       "aspect_ratio": {
         "type": "string",
@@ -35,6 +39,8 @@
           "3:2",
           "3:4",
           "4:3",
+          "4:5",
+          "5:4",
           "9:16",
           "16:9",
           "21:9"
@@ -94,7 +100,7 @@
             "field": "image",
             "required": true,
             "minItems": 1,
-            "maxItems": 6,
+            "maxItems": 16,
             "transports": [
               "multipart_file"
             ]

@@ -21,7 +21,7 @@ func TestExplicitAlternativeKeepsOriginalTaskAndReference(t *testing.T) {
 		parameters                                                                     map[string]any
 	}{
 		{"image", "gpt-image-2", "nano-banana-2", "edit", "image_edit", "/v1/images/edits", "image", "image", map[string]any{"aspect_ratio": "1:1"}},
-		{"video", "grok-imagine-video-1.5", "minimax_h3", "generate", "image_to_video", "/v1/videos", "image", "first_frame_image", map[string]any{"duration": 5, "resolution": "720p"}},
+		{"video", "grok-imagine-video-1.5", "minimax_h3", "generate", "image_to_video", "/v1/videos", "image", "first_frame_image", map[string]any{"duration": 5}},
 	} {
 		t.Run(tc.kind, func(t *testing.T) {
 			root := t.TempDir()
@@ -157,12 +157,12 @@ func TestExplicitAlternativeKeepsOriginalTaskAndReference(t *testing.T) {
 
 func TestIncompatibleAlternativeDoesNotDropReferencesOrSubmit(t *testing.T) {
 	input := writeFixture(t, "reference.png", string(fixturePNG(t)))
-	images := make([]attachment, 7)
+	images := make([]attachment, 17)
 	for i := range images {
 		images[i] = attachment{Field: "image", Path: input}
 	}
 	for _, request := range []taskRequest{
-		{Kind: "image", Operation: "edit", Model: "nano-banana-2", Prompt: "Use all seven references.",
+		{Kind: "image", Operation: "edit", Model: "nano-banana-2", Prompt: "Use all seventeen references.",
 			MediaOperation: "image_edit", Attachments: images},
 		{Kind: "video", Operation: "generate", Model: "grok-imagine-video-1.5", Prompt: "Keep both the opening and closing frame.",
 			MediaOperation: "image_to_video", Attachments: []attachment{{Field: "image", Path: input}, {Field: "last_frame_image", Path: input}}},

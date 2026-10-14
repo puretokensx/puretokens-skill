@@ -63,7 +63,21 @@ jobs:
       - run: GITHUB_SHA="$(git rev-parse HEAD)" npm run release:package
       - run: npm run release:verify -- --publishable
       - name: Create a draft without changing the public stable release
-        run: gh release create "$RELEASE_TAG" --verify-tag --draft --title "$RELEASE_TAG" --notes "See CHANGELOG.md or CHANGELOG.zh-CN.md for this version's features and fixes."
+        run: |
+          node --input-type=module <<'JS'
+          import { readFileSync, writeFileSync } from "node:fs";
+          const version = process.env.RELEASE_TAG.slice(1);
+          const sections = ["CHANGELOG.md", "CHANGELOG.zh-CN.md"].map(file => {
+            const source = readFileSync(file, "utf8");
+            const heading = `## ${version} - `;
+            const start = source.indexOf(heading);
+            if (start < 0) throw new Error(`Missing ${version} release notes in ${file}`);
+            const end = source.indexOf("\n## ", start + heading.length);
+            return source.slice(start, end < 0 ? undefined : end).trim();
+          });
+          writeFileSync(process.env.RUNNER_TEMP + "/release-notes.md", sections.join("\n\n") + "\n");
+          JS
+          gh release create "$RELEASE_TAG" --verify-tag --draft --title "$RELEASE_TAG" --notes-file "$RUNNER_TEMP/release-notes.md"
       - name: Upload only the verified release set
         run: |
           gh release upload "$RELEASE_TAG" dist/releases/release-manifest.json dist/releases/puretokens-skill-install.sh dist/releases/puretokens-skill-install.ps1 dist/releases/puretokens-skill-fetch.sh dist/releases/puretokens-skill-fetch.ps1 "dist/releases/puretokens-skill-${RELEASE_TAG#v}-darwin-amd64.zip" "dist/releases/puretokens-skill-${RELEASE_TAG#v}-darwin-arm64.zip" "dist/releases/puretokens-skill-${RELEASE_TAG#v}-linux-amd64.zip" "dist/releases/puretokens-skill-${RELEASE_TAG#v}-linux-arm64.zip" "dist/releases/puretokens-skill-${RELEASE_TAG#v}-windows-amd64.zip" "dist/releases/puretokens-skill-${RELEASE_TAG#v}-windows-arm64.zip"
@@ -73,3 +87,14 @@ jobs:
           npm run release:verify -- --publishable --directory "$RUNNER_TEMP/stable-release-assets"
       - name: Promote the complete verified draft
         run: gh release edit "$RELEASE_TAG" --draft=false --latest
+      - name: Verify anonymous stable installation downloads
+        timeout-minutes: 10
+        run: |
+          mkdir "$RUNNER_TEMP/public-stable-assets"
+          for asset in dist/releases/*; do
+            filename="$(basename "$asset")"
+            curl -q --fail --location --silent --show-error --proto '=https' --proto-redir '=https' --connect-timeout 15 --max-time 60 \
+              "https://github.com/${{ github.repository }}/releases/latest/download/$filename" \
+              --output "$RUNNER_TEMP/public-stable-assets/$filename"
+          done
+          npm run release:verify -- --publishable --directory "$RUNNER_TEMP/public-stable-assets"

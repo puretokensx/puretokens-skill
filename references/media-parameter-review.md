@@ -1,8 +1,34 @@
 # Media Parameter Review
 
+## Current review - 2026-10-14
+
+The anonymous production catalog returned 111 models, including 16 image and
+13 video models. The refreshed selection contains 29 media profiles; source
+hash and comparison details are in `acceptance/client-model-sync-20261014.json`.
+
+- Add exact `gemini-nano-banana-2.1` and `muse-video` selection profiles with
+  their declared dedicated APIs and attachment operations. Remove
+  `wan3.0-video` and `wan3.0-video-prime` from installed selection only; existing
+  task records retain their original model IDs.
+- All five GPT Image variants now declare only `image_size=1K`. Remove the
+  previous 2K/4K values and their ratio mappings rather than silently converting
+  a user's size request.
+- H3 retains `adaptive` and its existing frame/reference operations. Remove
+  undeclared resolution, seed and watermark fields, and retain the newly
+  declared JSON generation/reference operation.
+- Synchronize Nano Banana and Seedance parameters and operations from this
+  capture. Explicit live definitions continue to take precedence over the
+  separately reviewed first/last-frame supplement.
+- Keep user-approved defaults `gpt-image-2.5-flare` and `minimax_h3`.
+
+This is public contract synchronization. It adds no evidence of authenticated
+model permission, paid generation, real-client acceptance or native delivery.
+
+## Historical review - 2026-10-04
+
 2026-10-04复核：公开目录112项，29个媒体profile（15图片、14视频）。仅移出未再列出的 `seedream-5.0-pro`，不据此推断永久下线；其余schema经现有审核补充后未变。默认图片 `gpt-image-2.5-flare`、视频 `minimax_h3` 保持；H3首尾帧使用 `image_to_video` 与声明的first/last字段。当前所有图片profile仅声明n=1；多结果执行机制用仓库合成profile测试，不作为线上批量能力声明。脱敏证据见 `acceptance/client-model-sync-20261004.json`。
 
-## Current review — 2026-10-03
+## Historical review - 2026-10-03
 
 The public catalog snapshot captured at 02:02 UTC on 2026-10-03 declares 30 media models. See `acceptance/client-model-sync-20261003.json` for source hash and exact additions/removals; the September findings below are historical and superseded where they conflict.
 

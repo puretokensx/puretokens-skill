@@ -116,13 +116,13 @@ func TestImage25ReferenceEdits(t *testing.T) {
 }
 func TestNanoBananaPortraitLandscapeRatios(t *testing.T) {
 	for _, model := range []string{"nano-banana-2", "nano-banana-2-lite", "nano-banana-pro"} {
-		for _, ratio := range []string{"3:4", "4:3"} {
+		for _, ratio := range []string{"3:4", "4:3", "4:5", "5:4"} {
 			r := taskRequest{Kind: "image", Operation: "generate", Model: model, Prompt: "fixture", Parameters: map[string]any{"aspect_ratio": ratio, "image_size": "1K"}}
 			if err := prepareProfileRequest(&r, profileService()); err != nil {
 				t.Fatalf("%s %s: %v", model, ratio, err)
 			}
 		}
-		for _, ratio := range []string{"4:5", "5:4"} {
+		for _, ratio := range []string{"13:13", "0:1"} {
 			r := taskRequest{Kind: "image", Operation: "generate", Model: model, Prompt: "fixture", Parameters: map[string]any{"aspect_ratio": ratio, "image_size": "1K"}}
 			if prepareProfileRequest(&r, profileService()) == nil {
 				t.Fatalf("%s accepted ratio absent from live schema: %s", model, ratio)

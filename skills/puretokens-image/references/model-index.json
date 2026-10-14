@@ -2,10 +2,15 @@
   "$schema": "https://puretokensx.com/schemas/model-index.schema.json",
   "schemaVersion": 1,
   "capability": "image",
-  "catalogUpdatedAt": "2026-10-04",
-  "catalogCapturedAt": "2026-10-04T06:19:22.134Z",
+  "catalogUpdatedAt": "2026-10-14",
+  "catalogCapturedAt": "2026-10-14T09:21:16.289Z",
   "defaultModel": "gpt-image-2.5-flare",
   "models": [
+    {
+      "id": "gemini-nano-banana-2.1",
+      "aliases": [],
+      "profile": "profiles/gemini-nano-banana-2.1.json"
+    },
     {
       "id": "gpt-image-2",
       "aliases": [

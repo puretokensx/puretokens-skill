@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { execFile as execFileCallback } from "node:child_process";
 import { promisify } from "node:util";
-import { mkdtemp, mkdir, readFile, readdir, rm, writeFile, chmod, rename, cp, stat } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, readdir, rm, writeFile, chmod, rename, cp, stat, symlink, lstat } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import os from "node:os";
@@ -158,6 +158,20 @@ test("explicit repair resumes an interrupted missing-file replacement", async t 
  await execFile("sh", [installer, "repair", "--target", f.target], { cwd: repositoryRoot, env: f.env });
  assert.ok(await readFile(path.join(dir, "SKILL.md")));
  assert.equal((await readdir(f.target)).some(name => name.includes("stage") || name.includes("lock")), false);
+});
+test("repair preserves and rejects non-directory or symlink staging entries before changing installation", async t => {
+ const f = await fixture(t); await install(f);
+ const original = await readFile(path.join(f.target, "puretokens-image/SKILL.md"));
+ for (const kind of ["file", "dangling-link", "directory-link"]) {
+  const entry = path.join(f.target, `.puretokens-skill-stage.${kind}`);
+  if (kind === "file") await writeFile(entry, "preserve unknown transaction");
+  else await symlink(kind === "dangling-link" ? path.join(f.root, "absent") : f.target, entry);
+  await assert.rejects(execFile("sh", [installer, "repair", "--target", f.target], {cwd:repositoryRoot,env:f.env}), /unrecognized staging entry/);
+  assert.deepEqual(await readFile(path.join(f.target, "puretokens-image/SKILL.md")), original);
+  assert.ok(await lstat(entry), "unknown entry must be retained");
+  assert.equal((await readdir(f.target)).includes(".puretokens-install-lock"), false);
+  await rm(entry);
+ }
 });
 test("failure before a transaction plan preserves unverified stage contents and existing installation", async t => {
  const f = await fixture(t); await install(f);

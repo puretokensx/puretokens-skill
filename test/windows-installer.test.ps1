@@ -198,6 +198,16 @@ param($Installer, $Target, $Receipt)
   & $installer repair -Target $target
   if (-not (Test-Path -LiteralPath (Join-Path $image 'SKILL.md'))) { throw 'Explicit repair did not restore the missing managed file' }
   # A kill after planning but before moving the original must remain repairable.
+  $orphan = Join-Path $target '.puretokens-skill-stage-orphan'
+  'preserve unknown transaction' | Set-Content -LiteralPath $orphan
+  $originalImage = [IO.File]::ReadAllBytes((Join-Path $image 'SKILL.md'))
+  $rejected = $false
+  try { & $installer repair -Target $target } catch { $rejected = $true }
+  if (-not $rejected -or -not (Test-Path -LiteralPath $orphan) -or
+      [Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $image 'SKILL.md'))) -cne [Convert]::ToBase64String($originalImage)) {
+    throw 'Repair accepted an unknown non-directory staging entry or changed existing files'
+  }
+  Remove-Item -LiteralPath $orphan
   $stage = Join-Path $target '.puretokens-skill-stage-repair-fixture'
   New-Item -ItemType Directory (Join-Path $stage 'backup') -Force | Out-Null
   Copy-Item -LiteralPath $image -Destination (Join-Path $stage 'puretokens-image') -Recurse

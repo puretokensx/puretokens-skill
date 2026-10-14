@@ -35,7 +35,7 @@
     "requested_count": {
       "type": "integer",
       "minimum": 1,
-      "maximum": 6
+      "maximum": 8
     },
     "parameters": {
       "type": "object",
@@ -43,7 +43,7 @@
         "n": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 6
+          "maximum": 8
         },
         "size": {
           "type": "string",
@@ -150,7 +150,7 @@
     "downloaded": {
       "type": "object",
       "patternProperties": {
-        "^[0-5]$": {
+        "^[0-7]$": {
           "type": "string",
           "minLength": 1
         }
@@ -163,13 +163,13 @@
       "items": {
         "type": "integer",
         "minimum": 0,
-        "maximum": 5
+        "maximum": 7
       }
     },
     "download_proofs": {
       "type": "object",
       "patternProperties": {
-        "^[0-5]$": {
+        "^[0-7]$": {
           "type": "object",
           "required": [
             "sha256",
@@ -286,7 +286,7 @@
     "pending_redelivery_index": {
       "type": "integer",
       "minimum": 0,
-      "maximum": 5,
+      "maximum": 7,
       "description": "One explicitly requested repeat handoff. Preserve historical delivered indexes and clear only after delivered acknowledges this index."
     }
   },

@@ -310,6 +310,86 @@ func TestRecordDoesNotProjectArbitraryLocalFileAsDownloaded(t *testing.T) {
 	}
 }
 
+func TestEightImageResultsPreserveCountAndSameTaskDelivery(t *testing.T) {
+	counts := map[string]int{}
+	image := fixturePNG(t)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		counts[r.Method]++
+		if r.Method == http.MethodPost {
+			var body struct {
+				Model string `json:"model"`
+				N     int    `json:"n"`
+			}
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.Model != "nano-banana-2" || body.N != 8 {
+				t.Errorf("submission lost exact model/count: %+v %v", body, err)
+			}
+			io.WriteString(w, `{"id":"eight-image-task","status":"pending"}`)
+			return
+		}
+		if strings.HasSuffix(r.URL.Path, "/content") {
+			w.Header().Set("Content-Type", "image/png")
+			w.Write(image)
+			return
+		}
+		io.WriteString(w, `{"id":"eight-image-task","status":"completed"}`)
+	}))
+	defer server.Close()
+	svc := fixtureService(server)
+	svc.wait = func(context.Context, time.Duration) bool { return true }
+	dir := t.TempDir()
+	path := filepath.Join(dir, "task.json")
+	request := taskRequest{Kind: "image", Operation: "generate", Model: "nano-banana-2", Prompt: "fixture", Parameters: map[string]any{"n": float64(8)}, OutputDir: dir}
+	var out bytes.Buffer
+	invoke := func(command string, index int) receipt {
+		t.Helper()
+		out.Reset()
+		if err := executeRecordedTask(command, path, taskRequest{}, index, "", &out, svc); err != nil {
+			t.Fatalf("%s index %d: %v %s", command, index, err, out.String())
+		}
+		return decodeReceipt(t, &out)
+	}
+	if err := executeRecordedTask("submit", path, request, 0, "", &out, svc); err != nil {
+		t.Fatal(err, out.String())
+	}
+	submitted := decodeReceipt(t, &out)
+	if submitted.RequestedCount != 8 || submitted.Parameters["n"] != float64(8) {
+		t.Fatalf("eight-image receipt lost count: %+v", submitted)
+	}
+	invoke("resume", 0)
+	for index := 0; index < 8; index++ {
+		result := invoke("content", index)
+		if result.NextStep != "deliver" || len(result.DownloadedPaths) != 1 {
+			t.Fatalf("index %d lost handoff: %+v", index, result)
+		}
+		invoke("delivered", index)
+	}
+	record, err := loadTaskRecord(path)
+	if err != nil || record.RequestedCount != 8 || record.Parameters["n"] != float64(8) ||
+		len(record.Downloaded) != 8 || len(record.DownloadProofs) != 8 || len(record.Delivered) != 8 {
+		t.Fatalf("record lost eight outputs: %+v %v", record, err)
+	}
+	before := counts["GET"]
+	if result := invoke("resume", 0); result.NextStep != "done" {
+		t.Fatalf("completed task resumed: %+v", result)
+	}
+	if result := invoke("redeliver", 7); result.NextStep != "deliver" || result.DownloadedIndexes[0] != 7 {
+		t.Fatalf("last output cannot be reattached: %+v", result)
+	}
+	invoke("delivered", 7)
+	if counts["POST"] != 1 || counts["GET"] != before {
+		t.Fatal("same-task recovery submitted again or downloaded an existing output")
+	}
+	out.Reset()
+	if err := executeRecordedTask("redeliver", path, taskRequest{}, 8, "", &out, svc); err == nil {
+		t.Fatal("out-of-range index accepted")
+	}
+	request.Parameters["n"] = float64(9)
+	out.Reset()
+	if err := executeRecordedTask("submit", filepath.Join(dir, "invalid.json"), request, 0, "", &out, svc); err == nil || counts["POST"] != 1 {
+		t.Fatal("out-of-range count submitted")
+	}
+}
+
 func TestUnknownRecordAndLockedRecordNeverSubmit(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { t.Error("network request not expected") }))
 	defer server.Close()

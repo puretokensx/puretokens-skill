@@ -21,7 +21,7 @@ description: 用户询问 Pure Tokens 是什么、有什么用、怎么开始、
 
 保留下载回执的 next_step；network_access_denied／tls_security_context_unavailable 提示用户先核实客户端当前会话权限，不宣称原因已唯一确定。用户处理阻塞并明确要求继续后：同步前只在原宿主再执行一次官方 fetch；已同步且仅 init 失败，明确要求继续连接验证才执行一次 init；同步状态未知先另行诊断本地状态，不自动重跑。未变更环境的同一错误不反复测试，不更换传输、宿主或权限模式。
 
-已安装时，从本 SKILL.md 的绝对目录解析`../.puretokens-executor/puretokens-skill-fetch.sh`（Windows 为 `.ps1`）。首次安装由宿主现成 HTTPS 下载能力把 `https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh`（Windows 改为 `.ps1`）下载为本地文件，再运行；不把远程响应管道进 shell，不安装 Git、Node、Python 或 Go。
+已安装且使用本版本时，从本 SKILL.md 的绝对目录解析`../.puretokens-executor/puretokens-skill-fetch.sh`（Windows 为 `.ps1`）。用户通过当前官方安装提示词安装或升级旧版本时，由宿主现成 HTTPS 下载能力把 `https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh`（Windows 改为 `.ps1`）下载为唯一临时本地文件，沿用已确认的宿主和目标目录执行 install／update。旧 fetch 可能指向旧仓库；不执行它、不手改受管脚本，不在下载失败后自动改路。不把远程响应管道进 shell，不安装 Git、Node、Python 或 Go。
 
 ```text
 macOS/Linux: sh <fetch脚本绝对路径> check-update --host <当前宿主ID>

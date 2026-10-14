@@ -1,0 +1,116 @@
+{
+  "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
+  "schemaVersion": 1,
+  "capability": "image",
+  "catalogUpdatedAt": "2026-10-14",
+  "catalogCapturedAt": "2026-10-14T09:21:16.289Z",
+  "id": "gemini-nano-banana-2.1",
+  "parameterSchema": {
+    "properties": {
+      "prompt": {
+        "type": "string",
+        "required": true,
+        "minLength": 3
+      },
+      "n": {
+        "type": "integer",
+        "default": 1,
+        "min": 1,
+        "max": 8
+      },
+      "image_size": {
+        "type": "string",
+        "enum": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "default": "1K"
+      },
+      "image": {
+        "type": "string[]",
+        "maxLength": 16
+      },
+      "aspect_ratio": {
+        "type": "string",
+        "enum": [
+          "1:1",
+          "2:3",
+          "3:2",
+          "3:4",
+          "4:3",
+          "4:5",
+          "5:4",
+          "9:16",
+          "16:9",
+          "21:9",
+          "4:1",
+          "1:4",
+          "8:1",
+          "1:8"
+        ]
+      }
+    },
+    "constraints": {
+      "reference_transport": {
+        "image": [
+          "public_https_url"
+        ]
+      }
+    },
+    "lifecycle": {
+      "create": {
+        "successStatus": 200,
+        "idField": "id",
+        "object": "image",
+        "initialStatuses": [
+          "pending"
+        ]
+      },
+      "poll": {
+        "method": "GET",
+        "path": "/v1/images/{image_id}",
+        "intervalSeconds": 3,
+        "statusField": "status",
+        "pendingStatuses": [
+          "pending"
+        ],
+        "successStatuses": [
+          "completed"
+        ],
+        "failureStatuses": [
+          "failed"
+        ],
+        "resultFields": [
+          "content_url",
+          "content_urls"
+        ]
+      }
+    },
+    "operations": {
+      "image_edit": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/images/edits",
+          "contentType": "multipart/form-data"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt",
+          "image"
+        ],
+        "inputs": {
+          "image": {
+            "field": "image",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 16,
+            "transports": [
+              "multipart_file"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

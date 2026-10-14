@@ -324,8 +324,8 @@ func prepareProfileRequest(request *taskRequest, svc service) error {
 	count := 1
 	if n, exists := request.Parameters["n"]; exists {
 		value, ok := number(n)
-		if !ok || value != math.Trunc(value) || value < 1 || value > 6 {
-			return errors.New("Image count must be an integer from 1 through 6.")
+		if !ok || value != math.Trunc(value) || value < 1 || value > maxImageCount {
+			return errors.New("Image count must be an integer from 1 through 8.")
 		}
 		count = int(value)
 	} else if request.RequestedCount > 1 {

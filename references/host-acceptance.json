@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "version": "0.18.8",
-  "checkedAt": "2026-10-04",
+  "version": "0.19.0",
+  "checkedAt": "2026-10-14",
   "method": "isolated fixture coverage and packaged native offline task recovery; nineteen real-host cases now include audio, music, evaluation, workflows and local help, all remain pending; historical 0.18.3 evidence remains in references/acceptance/0.18.3-host-acceptance.json",
   "stablePublicationException": {
     "kind": "maintainer-approved-pending-acceptance",
-    "version": "0.18.8",
+    "version": "0.19.0",
     "approved": true,
-    "approvedAt": "2026-10-04",
-    "reason": "The maintainer explicitly requested publication of 0.18.8 after the readiness review, retaining acceptance gaps only in maintenance records rather than user-facing release, installation or update notices. This is an independent decision for the installation-permissions patch; all 166 pending host/OS summary checks and the empty real-host evidence array remain unchanged. Engineering, committed-source CI, reproducible-build and uploaded-asset verification gates remain mandatory."
+    "approvedAt": "2026-10-14",
+    "reason": "The maintainer explicitly requested fixing stable-download availability and publishing all local changes in this task. This version-specific publication decision preserves all 166 pending host/OS summary checks and the empty real-host evidence array, with acceptance gaps retained in maintenance records only. Engineering checks, committed-source CI, reproducible builds, uploaded-asset verification and anonymous public-download verification remain mandatory."
   },
   "guide": "references/host-acceptance-guide.md",
   "evidence": [],

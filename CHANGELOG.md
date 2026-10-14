@@ -4,21 +4,20 @@
 
 # Changelog
 
-## Unreleased
+## 0.19.0 - 2026-10-14
 
-- Align the development checkout's installer URLs, update contracts, README prompts and Go module identity with `puretokensx/puretokens-skill`. Existing releases and installed copies are unchanged; publishing still requires stable-release acceptance.
-- Remove retired source/main installation and legacy bridge instructions from the local artifact guide; retain stable manifest verification and immutable-version publication gates.
+- Restore stable installation and update downloads from `puretokensx/puretokens-skill`, including upgrades from the previous repository, with verified packages for macOS, Windows and Linux.
+- Add local installation inspection and explicitly requested repair while preserving customizations and unknown files.
+- Offer compatible image/video models after eligible failures, with current-connection evidence and confirmation before any new paid task.
+- Show exact-model group guidance using live Switch names while preserving existing group selections.
+- Preserve terminal failure reasons across sessions and support explicit delivery of an existing task's result again, reusing verified local files when available.
+- Answer product introductions and getting-started questions from local help, and distinguish connection verification from public API identity checks.
+- Provide client-specific loading steps, concise usage examples and clearer delivery guidance for images, video, speech and music.
+- Refresh 29 image/video profiles against the current public catalog, including updated GPT Image limits, H3 parameters and same-task delivery of up to eight images for models that support it.
 
-- Preserve reviewed terminal failure causes across sessions and add explicit same-task re-delivery, with verified local reuse before retrieval; retain H3 adaptive aspect ratios.
-- Add local installation inspection and an explicit stable-release repair path that preserves modified and unknown files. Replace full usage dumps with host-specific activation and concise examples.
-- Clarify host/mode result handoff, connection intent, audio validation and independent speech/music outputs. Remove redundant read-only confirmations while preserving consent for new paid tasks.
-- Add invocation-local phase timings and an offline agent-trajectory harness; fixtures and agent simulations remain distinct from real-client acceptance.
+## 0.18.9 (migration draft) - 2026-10-12
 
-- Add an anonymous exact-model group lookup using live Switch display names; preserve existing groups when guiding users to reapply configuration, and separate public membership from current-Key permission. Missing or conflicting mappings never fall back to guessed group names.
-
-- Image/video failures may offer compatible models backed by the current connection's catalog. Explain any required changes and possible charges, obtain explicit consent for one new task, and preserve the original task.
-- Unknown submissions, pending tasks, reconciliation and delivery failures retain same-task recovery. Explain permission, balance, rate-limit and content restrictions without automatic model switching or retry loops.
-- Generate the shared failure guidance into independently installable image/video Skills, distinguishing compatible candidates from official successors. Default models and API transport are unchanged.
+- Prepare official install and update URLs for `puretokensx/puretokens-skill`, retaining pinned-version downloads and checksum verification.
 
 ## 0.18.8 - 2026-10-04
 

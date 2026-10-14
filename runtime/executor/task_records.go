@@ -227,7 +227,7 @@ func loadTaskRecord(path string) (taskRecord, error) {
 	if decoder.Decode(&extra) != io.EOF {
 		return record, errors.New("record contains additional content")
 	}
-	if record.Format != taskRecordFormat || (record.Kind != "image" && record.Kind != "video" && record.Kind != "music") || (record.TaskID != "" && !validTaskID(record.TaskID)) || record.RequestedCount < 0 || record.RequestedCount > 6 || record.WaitWindowsCompleted < 0 || record.WaitWindowsCompleted > 2 {
+	if record.Format != taskRecordFormat || (record.Kind != "image" && record.Kind != "video" && record.Kind != "music") || (record.TaskID != "" && !validTaskID(record.TaskID)) || record.RequestedCount < 0 || record.RequestedCount > maxImageCount || record.WaitWindowsCompleted < 0 || record.WaitWindowsCompleted > 2 {
 		return record, errors.New("record has unsupported metadata")
 	}
 	if !validTaskFailure(record.LastFailure, record.Status) {

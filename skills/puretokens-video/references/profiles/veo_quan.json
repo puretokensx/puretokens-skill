@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
   "schemaVersion": 1,
   "capability": "video",
-  "catalogUpdatedAt": "2026-10-04",
-  "catalogCapturedAt": "2026-10-04T06:19:22.134Z",
+  "catalogUpdatedAt": "2026-10-14",
+  "catalogCapturedAt": "2026-10-14T09:21:16.289Z",
   "id": "veo_quan",
   "parameterSchema": {
     "properties": {

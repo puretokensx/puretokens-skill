@@ -14,6 +14,14 @@ Local archives are not published assets. Packaging a dirty checkout leaves
 Distribution changes also require a new immutable version and the existing
 catalog-freshness and real-host release acceptance gates.
 
+Publish with `Publish verified stable release` using the matching immutable tag.
+The workflow uploads all eleven assets to a draft, downloads and verifies them,
+then promotes it to the latest stable release. A draft is visible only to
+authorized maintainers and cannot serve ordinary installation. After promotion,
+the workflow anonymously downloads all eleven assets through `releases/latest`
+and verifies their bytes against the tagged source. Publication is complete only
+after this public check passes.
+
 The retired `puretokens-skill-install.zip` and
 `puretokens-skill-install-payload.zip` migration bridges remain absent.
 Superseded local version archives may be removed after confirming no active

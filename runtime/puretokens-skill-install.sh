@@ -451,7 +451,8 @@ acquire_update_lock() {
     done
   fi
   for previous_stage in "$target_root"/.puretokens-skill-stage.*; do
-    [ -d "$previous_stage" ] || continue
+    [ -e "$previous_stage" ] || [ -L "$previous_stage" ] || continue
+    [ -d "$previous_stage" ] && [ ! -L "$previous_stage" ] || fail "an unrecognized staging entry needs inspection; left untouched"
     [ -f "$previous_stage/transaction-v1" ] || fail "an unrecognized staging directory needs inspection; left untouched"
     "$ownership_guard" install-transaction-verify --directory "$previous_stage" --target-directory "$target_root" --source-directory "$source_root" || fail "previous update recovery failed verification; all transaction files were preserved"
   done

@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-index.schema.json",
   "schemaVersion": 1,
   "capability": "video",
-  "catalogUpdatedAt": "2026-10-04",
-  "catalogCapturedAt": "2026-10-04T06:19:22.134Z",
+  "catalogUpdatedAt": "2026-10-14",
+  "catalogCapturedAt": "2026-10-14T09:21:16.289Z",
   "defaultModel": "minimax_h3",
   "models": [
     {
@@ -22,6 +22,11 @@
       "id": "minimax_h3",
       "aliases": [],
       "profile": "profiles/minimax_h3.json"
+    },
+    {
+      "id": "muse-video",
+      "aliases": [],
+      "profile": "profiles/muse-video.json"
     },
     {
       "id": "omni",
@@ -67,22 +72,6 @@
       "id": "veo_quan",
       "aliases": [],
       "profile": "profiles/veo_quan.json"
-    },
-    {
-      "id": "wan3.0-video",
-      "aliases": [
-        "wan3 video",
-        "wan 3 video"
-      ],
-      "profile": "profiles/wan3.0-video.json"
-    },
-    {
-      "id": "wan3.0-video-prime",
-      "aliases": [
-        "wan3 video prime",
-        "wan 3 video prime"
-      ],
-      "profile": "profiles/wan3.0-video-prime.json"
     }
   ]
 }

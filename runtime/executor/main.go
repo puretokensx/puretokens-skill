@@ -31,6 +31,7 @@ const (
 	maxResponseBytes       = 2 << 20
 	maxImageBytes    int64 = 25 << 20
 	maxVideoBytes    int64 = 512 << 20
+	maxImageCount          = 8
 )
 
 var executorVersion = "0.18.7"
@@ -704,7 +705,7 @@ func validateTaskRequest(request taskRequest) error {
 	if request.Operation != "generate" && request.Operation != "edit" && request.Operation != "continue" {
 		return errors.New("invalid operation")
 	}
-	if request.RequestedCount < 0 || request.RequestedCount > 6 {
+	if request.RequestedCount < 0 || request.RequestedCount > maxImageCount {
 		return errors.New("invalid requested count")
 	}
 	if request.WaitWindowsCompleted < 0 || request.WaitWindowsCompleted > 2 {

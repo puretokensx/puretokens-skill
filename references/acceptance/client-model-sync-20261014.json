@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-14",
+  "candidateVersion": "0.19.0",
+  "catalog": {
+    "source": "https://console.puretokensx.com/api/product/docs/model-catalog",
+    "capturedAt": "2026-10-14T09:21:16.289Z",
+    "sha256": "aac9851e530e06bbcdccf1928b4ec4b709b22eb941feef9e1c65f4045bd981a1",
+    "total": 111,
+    "media": {
+      "current": 29,
+      "image": 16,
+      "video": 13,
+      "added": ["gemini-nano-banana-2.1", "muse-video"],
+      "removed": ["wan3.0-video", "wan3.0-video-prime"],
+      "parameterSchemaChanged": [
+        "gpt-image-2",
+        "gpt-image-2.5",
+        "gpt-image-2.5-flare",
+        "gpt-image-2.5-sunburst",
+        "gpt-image-2(Sub)",
+        "minimax_h3",
+        "nano-banana-2",
+        "nano-banana-2-lite",
+        "nano-banana-pro",
+        "seedance-2.0",
+        "seedance-2.0-fast",
+        "seedance-2.0-mini",
+        "seedance-2.5"
+      ]
+    },
+    "defaults": ["gpt-image-2.5-flare", "minimax_h3"]
+  },
+  "scope": "Anonymous public contract capture and installed selection synchronization only; removed model IDs are not rewritten in existing tasks.",
+  "authenticatedPermissionVerified": false,
+  "realHostAcceptance": "pending",
+  "billableRequests": 0
+}

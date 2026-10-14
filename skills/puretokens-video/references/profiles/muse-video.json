@@ -1,0 +1,120 @@
+{
+  "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
+  "schemaVersion": 1,
+  "capability": "video",
+  "catalogUpdatedAt": "2026-10-14",
+  "catalogCapturedAt": "2026-10-14T09:21:16.289Z",
+  "id": "muse-video",
+  "parameterSchema": {
+    "properties": {
+      "prompt": {
+        "type": "string",
+        "required": true
+      },
+      "duration": {
+        "type": "integer",
+        "enum": [
+          6
+        ],
+        "default": 6
+      },
+      "aspect_ratio": {
+        "type": "string",
+        "enum": [
+          "16:9",
+          "9:16"
+        ]
+      },
+      "reference_images": {
+        "type": "string[]",
+        "maxLength": 10
+      },
+      "extra": {
+        "type": "string"
+      },
+      "timeout": {
+        "type": "integer",
+        "min": 1
+      }
+    },
+    "constraints": {
+      "reference_transport": {
+        "reference_images": [
+          "public_https_url",
+          "image_base64",
+          "max_10"
+        ]
+      },
+      "unsupported_inputs": {
+        "reference_videos": [
+          "not_supported"
+        ],
+        "reference_audios": [
+          "not_supported"
+        ],
+        "first_frame_image": [
+          "not_supported"
+        ],
+        "last_frame_image": [
+          "not_supported"
+        ]
+      }
+    },
+    "lifecycle": {
+      "create": {
+        "successStatus": 200,
+        "idField": "id",
+        "object": "video",
+        "initialStatuses": [
+          "queued",
+          "in_progress"
+        ]
+      },
+      "poll": {
+        "method": "GET",
+        "path": "/v1/videos/{task_id}",
+        "intervalSeconds": 5,
+        "statusField": "status",
+        "pendingStatuses": [
+          "queued",
+          "in_progress"
+        ],
+        "successStatuses": [
+          "completed"
+        ],
+        "failureStatuses": [
+          "failed"
+        ],
+        "resultFields": [
+          "metadata.url"
+        ]
+      }
+    },
+    "operations": {
+      "reference_image_video": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "multipart/form-data"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt",
+          "reference_images"
+        ],
+        "inputs": {
+          "reference_images": {
+            "field": "reference_images",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 10,
+            "transports": [
+              "https_url",
+              "multipart_file"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

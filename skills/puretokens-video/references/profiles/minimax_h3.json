@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
   "schemaVersion": 1,
   "capability": "video",
-  "catalogUpdatedAt": "2026-10-04",
-  "catalogCapturedAt": "2026-10-04T06:19:22.134Z",
+  "catalogUpdatedAt": "2026-10-14",
+  "catalogCapturedAt": "2026-10-14T09:21:16.289Z",
   "id": "minimax_h3",
   "parameterSchema": {
     "properties": {
@@ -32,14 +32,6 @@
         ],
         "default": "16:9"
       },
-      "resolution": {
-        "type": "string",
-        "enum": [
-          "720p",
-          "2k",
-          "4k"
-        ]
-      },
       "image_urls": {
         "type": "string[]",
         "maxLength": 9
@@ -51,12 +43,6 @@
       "video_urls": {
         "type": "string[]",
         "maxLength": 3
-      },
-      "aigc_watermark": {
-        "type": "boolean"
-      },
-      "seed": {
-        "type": "integer"
       },
       "first_frame_image": {
         "type": "string"
@@ -125,6 +111,43 @@
       }
     },
     "operations": {
+      "video_generation": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt"
+        ],
+        "inputs": {
+          "reference_images": {
+            "field": "reference_images",
+            "minItems": 0,
+            "maxItems": 9,
+            "transports": [
+              "https_url"
+            ]
+          },
+          "reference_videos": {
+            "field": "reference_videos",
+            "minItems": 0,
+            "maxItems": 3,
+            "transports": [
+              "https_url"
+            ]
+          },
+          "reference_audios": {
+            "field": "reference_audios",
+            "minItems": 0,
+            "maxItems": 3,
+            "transports": [
+              "https_url"
+            ]
+          }
+        }
+      },
       "image_to_video": {
         "request": {
           "method": "POST",

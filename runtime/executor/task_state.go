@@ -69,7 +69,7 @@ func taskReceipt(request taskRequest, id, status string) receipt {
 				if math.IsNaN(number) || math.IsInf(number, 0) || number <= 0 {
 					continue
 				}
-				if key == "n" && (number > 6 || math.Trunc(number) != number) {
+				if key == "n" && (number > maxImageCount || math.Trunc(number) != number) {
 					continue
 				}
 			}
@@ -101,7 +101,7 @@ func taskReceipt(request taskRequest, id, status string) receipt {
 		model = request.Model
 	}
 	count := request.RequestedCount
-	if count < 0 || count > 6 {
+	if count < 0 || count > maxImageCount {
 		count = 0
 	}
 	kind := request.Kind

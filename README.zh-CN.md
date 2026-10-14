@@ -6,7 +6,7 @@
 
 用于检查 Pure Tokens 连接、余额与模型目录，生成图片和视频，以及用 Jev 评估文本的官方 Skills。
 
-0.18.8 完善安装权限指引、Windows 下载错误提示及安装受阻后的继续流程。不默认要求完全访问，也不自动修改客户端权限。
+0.19.0 恢复 `puretokensx/puretokens-skill` 的稳定版下载，增加本地安装恢复、模型替代建议、线上分组指引和产品帮助。
 
 0.18.7 增加 MiniMax Code Desktop 适配，限 macOS／Windows 本地默认连接。有桌面偏好配置的独立安装须使用已确认的目标目录或客户端运行目录环境。连接和会话要求见 `references/switch-skill-compatibility.md`。
 
@@ -31,10 +31,10 @@ Install or update the official Pure Tokens Skills from https://github.com/pureto
 
 1. 下载官方说明前，先依据当前客户端已报告的信息确认能执行本地命令、HTTPS 下载并写入下载临时目录及目标 Skill 目录；未报告的权限记为未知，不等于拒绝；按正常流程执行，不增加探测命令或读取配置。需要授权时使用客户端实际提供的审批，过期或上轮授权不能代替当前审批；网络授权不代表全部执行权限，不默认要求完全访问或自动修改权限。阅读官方安装说明，只确定本次安装所需的当前客户端、官方宿主 ID 和执行环境。不要从模型名称或共享 Skill 目录猜客户端；无法确定时只问必要信息。不支持、审批被拒或没有执行能力时说明并停止。
 
-2. 首次安装，将以下官方稳定版入口下载为本地文件：
+2. 安装或更新时，将以下当前官方稳定版入口下载为唯一临时本地文件：
    macOS/Linux：https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh
    Windows：https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.ps1
-   已安装时，按官方说明定位该客户端官方 Skill 同级 .puretokens-executor 中的 fetch 脚本，执行 update。不要将远程内容直接管道进 shell。
+   已安装时沿用该客户端已确认的宿主和目标目录，执行 update；旧版本的本地 fetch 可能指向旧仓库，因此本次使用刚下载的入口，不改写旧受管脚本。不要将远程内容直接管道进 shell。
 
 3. 替换下面的绝对路径、操作和宿主 ID 后执行一次；首次安装用 install，已有安装用 update：
    macOS/Linux：sh "<fetch脚本绝对路径>" <操作> --host <当前宿主ID>
@@ -55,10 +55,10 @@ Install or update the official Pure Tokens Skills for the client I am currently 
 
 1. Before downloading instructions, use information already reported by the current client to establish local command, HTTPS download, temporary-directory and target Skill-directory access. Unreported permissions remain unknown, not denied; proceed normally without extra probes or configuration reads. Use the client's actual approval controls when needed; expired or previous-turn grants do not replace current approval. Network approval does not establish all execution permissions; do not require Full Access by default or change permissions automatically. Read the official installation instructions and identify only the current client, its documented host ID and its execution environment. Do not infer the client from a model name or shared Skill directory; ask only for missing essential information. Explain and stop if the environment is unsupported, approval is denied or commands cannot execute.
 
-2. For a first installation, save the official stable-release entry point as a local file:
+2. For installation or update, save the current official stable-release entry point as a unique temporary local file:
    macOS/Linux: https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh
    Windows: https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.ps1
-   For an existing installation, follow the official instructions to locate the fetch script in .puretokens-executor alongside that client's official Skills and use update. Never pipe remote content directly into a shell.
+   For an existing installation, keep its confirmed host and target directory and run update with the newly downloaded entry; an older local fetch may still point to the previous repository. Do not modify the old managed script. Never pipe remote content directly into a shell.
 
 3. Substitute the absolute path, operation and host ID below, then run once. Use install for a first installation or update for an existing installation:
    macOS/Linux: sh "<absolute-fetch-path>" <operation> --host <current-host-id>
@@ -191,7 +191,7 @@ Claude Desktop 请选择本地 Code 会话并使用宿主 ID `claude-desktop`；
 <!-- media-model-catalog:start -->
 ## 媒体模型清单
 
-已与基础模型目录同步：2026-10-04T06:19:22.134Z。
+已与基础模型目录同步：2026-10-14T09:21:16.289Z。
 
 这份清单用于安装后的模型选择，不是每次请求的认证检查。普通生成只读选中 profile；仅明确查询、profile 缺口或拒绝诊断时读取实时目录。经审查的本地兼容补充定义单独注明来源。
 
@@ -201,6 +201,7 @@ README 只从基础目录中带有明确图片/视频能力的模型生成，不
 
 | 模型 ID | 提供方 | 也可以这样说 | 适合 | 示例 |
 | --- | --- | --- | --- | --- |
+| `gemini-nano-banana-2.1` | Google | 仅精确 ID | 图片生成 | `用 gemini-nano-banana-2.1 生成一张图片。` |
 | `gpt-image-2` | OpenAI | `image2` | 图片生成 | `用 gpt-image-2 生成一张图片。` |
 | `gpt-image-2.5` | OpenAI | 仅精确 ID | 图片生成 | `用 gpt-image-2.5 生成一张图片。` |
 | `gpt-image-2.5-flare` | OpenAI | 仅精确 ID | 图片生成 | `用 gpt-image-2.5-flare 生成一张图片。` |
@@ -224,6 +225,7 @@ README 只从基础目录中带有明确图片/视频能力的模型生成，不
 | `grok-imagine-video` | xAI | `grok video` | 视频生成 | `用 grok-imagine-video 生成一条视频。` |
 | `grok-imagine-video-1.5` | xAI | 仅精确 ID | 视频生成 | `用 grok-imagine-video-1.5 生成一条短视频。` |
 | `minimax_h3` | MiniMax | 仅精确 ID | 视频生成 | `用 minimax_h3 生成一条短视频。` |
+| `muse-video` | Meta | 仅精确 ID | 视频生成 | `用 muse-video 生成一条短视频。` |
 | `omni` | Google | 仅精确 ID | 视频生成 | `用 omni 生成一条短视频。` |
 | `seedance-2.0` | ByteDance | 仅精确 ID | 视频生成 | `用 seedance-2.0 生成一条视频。` |
 | `seedance-2.0-fast` | ByteDance | 仅精确 ID | 视频生成 | `用 seedance-2.0-fast 生成一条视频。` |
@@ -233,8 +235,6 @@ README 只从基础目录中带有明确图片/视频能力的模型生成，不
 | `veo_fast` | Google | 仅精确 ID | 视频生成 | `用 veo_fast 生成一条短视频。` |
 | `veo_lite` | Google | 仅精确 ID | 视频生成 | `用 veo_lite 生成一条短视频。` |
 | `veo_quan` | Google | 仅精确 ID | 视频生成 | `用 veo_quan 生成一条短视频。` |
-| `wan3.0-video` | Qwen | `wan3 video`, `wan 3 video` | 视频生成 | `用 wan3.0-video 生成一条短视频。` |
-| `wan3.0-video-prime` | Qwen | `wan3 video prime`, `wan 3 video prime` | 视频生成 | `用 wan3.0-video-prime 生成一条短视频。` |
 
 <!-- media-model-catalog:end -->
 

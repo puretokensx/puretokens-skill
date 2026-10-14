@@ -432,7 +432,8 @@ try {
       if (Test-InstallationEntry $destination) { Assert-OwnedInstallation $destination $name }
     }
   }
-  foreach ($previous in @(Get-ChildItem -LiteralPath $targetRoot -Directory -Force | Where-Object { $_.Name -like ".puretokens-skill-stage-*" })) {
+  foreach ($previous in @(Get-ChildItem -LiteralPath $targetRoot -Force | Where-Object { $_.Name -like ".puretokens-skill-stage-*" })) {
+    if (-not $previous.PSIsContainer -or ($previous.Attributes -band [IO.FileAttributes]::ReparsePoint)) { Fail "unknown staging entry; left untouched" }
     if (-not (Test-Path -LiteralPath (Join-Path $previous.FullName "transaction-v1"))) { Fail "unknown staging directory; left untouched" }
     $verified = Invoke-NativeExecutor $script:ownershipGuard @("install-transaction-verify", "--directory", $previous.FullName, "--target-directory", $targetRoot, "--source-directory", $sourceRoot)
     if ($verified.ExitCode -ne 0) { Fail "previous update recovery failed verification; all transaction files were preserved" }
