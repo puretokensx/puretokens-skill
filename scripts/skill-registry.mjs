@@ -633,6 +633,13 @@ function validateUpdateContract(errors, label, contract) {
     selection.diagnosticCommand !== "native_fetch detect-host") {
     errors.push(`${label} must bound launcher-only detection, preserve explicit choices and stop before download on uncertain host evidence`);
   }
+  const target = sync?.targetSelection;
+  if (!target || target.default !== "verified_release_selector" ||
+    !sameArray(target.workspaceTargetRequiredFor, ["octop"]) ||
+    target.missingWorkspaceTarget !== "stop_before_release_download_or_installation_writes_with_confirm_workspace_target" ||
+    target.confirmedCustomTarget !== "preserve") {
+    errors.push(`${label} must resolve installation targets in the installer and request a missing workspace before downloads`);
+  }
   const init = contract.operations?.init;
   if (!init || init.commandTemplate !== "native_executor init --host <current-supported-host>" ||
     init.checks !== "public_identity_then_one_authenticated_catalog_check_without_displaying_configuration" ||

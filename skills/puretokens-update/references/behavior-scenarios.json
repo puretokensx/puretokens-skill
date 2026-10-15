@@ -34,14 +34,19 @@
       "then": "Run the official fetch install without host/target parameters. The script chooses the OS and architecture and inspects at most eight direct launcher names and parent IDs, accepting only native codex/opencode launchers and stopping at unknown interpreters or editors. Preserve explicit choices instead of detecting again. detect-host is offline and read-only, never a routine generation preflight; it proves neither credentials, the selected chat model, API acceptance nor attachment delivery."
     },
     {
+      "id": "update-workspace-target-required",
+      "when": "the official fetch is invoked for Octop without a confirmed workspace target",
+      "then": "The fetch stops before release download or installation writes with stage=select_target, error_code=workspace_target_required and next_step=confirm_workspace_target. Ask only for the current workspace, retain host octop and pass its absolute .octop/skills target on the next explicit invocation. Do not guess a global directory or retry a download."
+    },
+    {
       "id": "update-fresh-source-checkout",
       "when": "an official Skill install or update is requested",
       "then": "Use the official native fetch wrapper, installed or freshly downloaded from the stable release to a local file. Pin the stable manifest version and source commit, verify its selector and current-platform archive, then invoke native sync. No main/source archive fallback, third-party mirror, remote shell pipe or user runtime installation."
     },
     {
       "id": "update-self-contained-bootstrap",
-      "when": "a complete official install prompt supplies the stable fetch address and commands, or the user explicitly continues an older attempt that stopped only at documentation before fetch was requested",
-      "then": "Make the first required download the official stable-release fetch script saved to a unique local file. Do not request repository pages, README or raw.githubusercontent.com as a prerequisite. Preserve confirmed host/target options; otherwise let fetch attempt offline current-client detection and ask only for a missing selection if requested. Let the verified selector resolve the default target, retaining explicit Octop and MiniMax target requirements. A historical documentation failure does not establish release-asset failure. Respect host approvals and stop on actual fetch, release-download, checksum or execution failure; no documentation retry, mirror, source archive, alternate transport or automatic rerun."
+      "when": "the short official installation prompt names the stable fetch scripts and install operation, or the user explicitly continues an older attempt that stopped only at documentation before fetch was requested",
+      "then": "Make the first required download the official stable-release fetch script saved to a unique local file. Do not request repository pages, README or raw.githubusercontent.com as a prerequisite. Preserve confirmed host/target options; otherwise let fetch attempt offline current-client detection and ask only for a missing selection if requested. Let the verified selector resolve the default target, retaining explicit Octop and MiniMax target requirements. A historical documentation failure does not establish release-asset failure. Respect host approvals and stop on actual fetch, release-download, checksum or execution failure; no documentation retry, mirror, source archive, alternate transport or automatic rerun. The public prompt contains no client mapping, platform commands, init/doctor instructions or failure-recovery checklist; these responsibilities belong to the fetch/sync implementation and this installed Skill."
     },
     {
       "id": "update-source-acquisition-unavailable",

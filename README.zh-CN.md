@@ -8,13 +8,13 @@
 
 0.19.0 恢复 `puretokensx/puretokens-skill` 的稳定版下载，增加本地安装恢复、模型替代建议、线上分组指引和产品帮助。
 
-源码版本 0.19.1 压缩安装提示词，并在 fetch 中增加有界的当前客户端识别；实际安装版本以已发布的稳定清单为准。
+源码版本 0.19.2 将安装提示词精简为任务和官方入口；客户端／平台选择、校验及初始化均由安装工程承担；实际安装版本以已发布的稳定清单为准。
 
 0.18.7 增加 MiniMax Code Desktop 适配，限 macOS／Windows 本地默认连接。有桌面偏好配置的独立安装须使用已确认的目标目录或客户端运行目录环境。连接和会话要求见 `references/switch-skill-compatibility.md`。
 
 ## 让 Agent 安装
 
-下方保留一句话兼容入口，它需要 Agent 能读取仓库说明。推荐复制完整的[中文安装提示词](#中文安装提示词)或[英文安装提示词](#英文安装提示词)：两者直接提供稳定 fetch 地址和命令，不依赖先读取 README 或 `raw.githubusercontent.com`。系统、架构及默认目录由安装器选择；fetch 0.19.1 还会尝试识别当前客户端。
+下方保留一句话兼容入口，它需要 Agent 能读取仓库说明。直接复制简短的[中文安装提示词](#中文安装提示词)或[英文安装提示词](#英文安装提示词)，只表达安装目标并提供官方稳定入口，不依赖先读取 README 或 `raw.githubusercontent.com`。客户端／系统选择、校验、安全同步、初始化及结果引导均由安装工程负责；仅在回执要求确认时询问缺失信息。
 
 安装前，当前客户端会话需要允许执行本地命令、HTTPS 下载，以及写入下载临时目录和目标 Skill 目录。通过客户端提供的正规审批入口授权；仅有网络授权不代表命令执行与文件访问权限齐备。不默认要求“完全访问”，也不自动修改权限。优先使用宿主已报告的权限信息，不在正常安装中增加探测命令。
 
@@ -29,33 +29,17 @@ Install or update the official Pure Tokens Skills from https://github.com/pureto
 ### 中文安装提示词
 
 ```text
-请为当前客户端安装或更新 Pure Tokens 官方 Skills，不先读取仓库网页或 README。
-
-从 https://github.com/puretokensx/puretokens-skill/releases/latest/download/ 下载 puretokens-skill-fetch.sh（Windows 用 puretokens-skill-fetch.ps1），保存为唯一临时本地文件后执行：
-macOS/Linux：sh "<脚本绝对路径>" install
-Windows：powershell.exe -NoProfile -ExecutionPolicy Bypass -File "<脚本绝对路径>" install
-
-由官方脚本选择系统、架构和稳定包，并尝试识别当前客户端。若脚本不支持自动识别或要求确认，只问缺失的客户端／目标目录，再按脚本参数执行一次；不根据模型名、目录或其他已装客户端猜测。沿用已确认的自定义目标；Octop 须指定当前工作区的 .octop/skills。
-
-由脚本完成版本固定、校验、同步和自动 init；始终使用刚下载的入口，不执行旧 fetch，不使用通用安装器、main 源码或镜像，不安装额外运行环境。保留现有连接与用户文件，不读取、索取或展示认证配置。遵守当前会话审批；失败或输出不确定时报告阶段并停止，不自动重试、修复或重装。
-
-简要汇报客户端、实际版本、安装状态及连接验证状态，复用脚本的加载指引和示例，不重复 init／doctor，不自动生成内容。同步成功但 init 失败应说明“安装已完成，连接未验证”；同版已校验则无需重复安装或 init。
+请为当前客户端安装或更新 Pure Tokens 官方 Skills，并告知结果。
+从以下官方稳定发布地址下载 puretokens-skill-fetch.sh 或 puretokens-skill-fetch.ps1，保存到本地后执行 install：
+https://github.com/puretokensx/puretokens-skill/releases/latest/download/
 ```
 
 ### 英文安装提示词
 
 ```text
-Install or update the official Pure Tokens Skills for this client without first fetching repository pages or README.
-
-Download puretokens-skill-fetch.sh (puretokens-skill-fetch.ps1 on Windows) from https://github.com/puretokensx/puretokens-skill/releases/latest/download/ to a unique temporary local file, then run:
-macOS/Linux: sh "<absolute-script-path>" install
-Windows: powershell.exe -NoProfile -ExecutionPolicy Bypass -File "<absolute-script-path>" install
-
-Let the official script select the OS, architecture and stable package and attempt current-client detection. If detection is unsupported or confirmation is required, ask only for the missing client/target, then run once with the script's parameters. Do not infer the client from models, directories or other installed apps. Keep a confirmed custom target; Octop requires the current workspace's .octop/skills.
-
-Let the script pin, verify, synchronize and automatically initialize. Always use the newly downloaded entry, never an old fetch, generic installer, main source or mirror; install no extra runtime. Preserve connections and user files; do not read, request or display authentication configuration. Respect current-session approvals. On failure or uncertain output, report the stage and stop without automatic retries, repair or reinstallation.
-
-Briefly report the client, actual version, installation and connection-verification status. Reuse the script's loading guidance and examples without extra init/doctor or generation. Successful sync with failed init means installed, connection unverified; a verified same-version result needs no repeated install or init.
+Install or update the official Pure Tokens Skills for this client and report the result.
+Download puretokens-skill-fetch.sh or puretokens-skill-fetch.ps1 from the stable release address below, save it locally and run install:
+https://github.com/puretokensx/puretokens-skill/releases/latest/download/
 ```
 
 Agent 从官方仓库最新正式发布的附件下载 `puretokens-skill-fetch.sh`（Windows 为 `.ps1`）到本地文件，执行 install。固定下载入口为 `https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh`，Windows 将末尾 `.sh` 改为 `.ps1`。已安装时使用同级 `.puretokens-executor` 中的 fetch 执行 check-update 或 update。下载不能直接管道进 shell；没有正式发布资源就停止，不改用 main、源码归档或镜像。

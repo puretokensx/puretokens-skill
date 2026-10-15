@@ -260,10 +260,11 @@ test("the public install prompt remains extractable in both README files", async
     assert.ok(complete.every(Boolean), "both complete prompts must remain copyable");
     for (const prompt of complete) {
       assert.ok(prompt.includes("https://github.com/puretokensx/puretokens-skill/releases/latest/download/"));
-      assert.ok(prompt.includes('sh "<') && prompt.includes("powershell.exe -NoProfile -ExecutionPolicy Bypass -File"));
       assert.ok(prompt.includes("puretokens-skill-fetch.sh") && prompt.includes("puretokens-skill-fetch.ps1"));
+      assert.ok(prompt.includes("install"));
       assert.doesNotMatch(prompt, /--host codex|-Host codex/);
     }
+    assert.ok(complete[0].length <= 300 && complete[1].length <= 600, "copyable prompts should contain only the task and bootstrap entry");
     if (prompts) assert.deepEqual(complete, prompts, "permission/continuation instructions must not drift between READMEs");
     prompts = complete;
   }

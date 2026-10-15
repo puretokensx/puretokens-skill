@@ -8,13 +8,13 @@ Official Skills for checking a Pure Tokens connection, balance and model catalog
 
 Version 0.19.0 restores stable downloads from `puretokensx/puretokens-skill` and adds local installation recovery, model alternatives, live group guidance and product help.
 
-Source version 0.19.1 shortens the installation prompts and adds bounded current-client detection to fetch. Installation uses the version selected by the published stable manifest.
+Source version 0.19.2 keeps the installation prompt to the task and official entry; client/platform selection, verification and initialization belong to the installer. Installation uses the version selected by the published stable manifest.
 
 Version 0.18.7 adds MiniMax Code Desktop for local macOS/Windows default connections. Standalone installation with Desktop preferences requires a confirmed target or the client runtime data-directory environment. See `references/switch-skill-compatibility.md` for the connection and session requirements.
 
 ## Agent-assisted installation
 
-The one-line compatibility entry is preserved below and requires access to the repository instructions. Prefer the complete [Chinese](#chinese-installation-prompt) or [English](#english-installation-prompt) prompt: each supplies the stable fetch address and commands, without a README or `raw.githubusercontent.com` prerequisite. The installer selects the OS, architecture and default directory; fetch 0.19.1 also attempts current-client detection.
+The one-line compatibility entry is preserved below and requires access to the repository instructions. Use the short [Chinese](#chinese-installation-prompt) or [English](#english-installation-prompt) prompt to identify the task and official stable entry without a README or `raw.githubusercontent.com` prerequisite. The installer owns client/platform selection, verification, safe synchronization, initialization and result guidance; ask for missing information only when its receipt requires confirmation.
 
 Before installation, the current client session needs permission to run local commands, download over HTTPS, and write the temporary download and target Skill directories. Use the client's supported approval controls; a network-only grant does not establish command or filesystem access. Do not require Full Access by default or change permissions automatically. Use permissions already reported by the host; do not add diagnostic probes to a normal installation.
 
@@ -29,33 +29,17 @@ Install or update the official Pure Tokens Skills from https://github.com/pureto
 ### Chinese installation prompt
 
 ```text
-请为当前客户端安装或更新 Pure Tokens 官方 Skills，不先读取仓库网页或 README。
-
-从 https://github.com/puretokensx/puretokens-skill/releases/latest/download/ 下载 puretokens-skill-fetch.sh（Windows 用 puretokens-skill-fetch.ps1），保存为唯一临时本地文件后执行：
-macOS/Linux：sh "<脚本绝对路径>" install
-Windows：powershell.exe -NoProfile -ExecutionPolicy Bypass -File "<脚本绝对路径>" install
-
-由官方脚本选择系统、架构和稳定包，并尝试识别当前客户端。若脚本不支持自动识别或要求确认，只问缺失的客户端／目标目录，再按脚本参数执行一次；不根据模型名、目录或其他已装客户端猜测。沿用已确认的自定义目标；Octop 须指定当前工作区的 .octop/skills。
-
-由脚本完成版本固定、校验、同步和自动 init；始终使用刚下载的入口，不执行旧 fetch，不使用通用安装器、main 源码或镜像，不安装额外运行环境。保留现有连接与用户文件，不读取、索取或展示认证配置。遵守当前会话审批；失败或输出不确定时报告阶段并停止，不自动重试、修复或重装。
-
-简要汇报客户端、实际版本、安装状态及连接验证状态，复用脚本的加载指引和示例，不重复 init／doctor，不自动生成内容。同步成功但 init 失败应说明“安装已完成，连接未验证”；同版已校验则无需重复安装或 init。
+请为当前客户端安装或更新 Pure Tokens 官方 Skills，并告知结果。
+从以下官方稳定发布地址下载 puretokens-skill-fetch.sh 或 puretokens-skill-fetch.ps1，保存到本地后执行 install：
+https://github.com/puretokensx/puretokens-skill/releases/latest/download/
 ```
 
 ### English installation prompt
 
 ```text
-Install or update the official Pure Tokens Skills for this client without first fetching repository pages or README.
-
-Download puretokens-skill-fetch.sh (puretokens-skill-fetch.ps1 on Windows) from https://github.com/puretokensx/puretokens-skill/releases/latest/download/ to a unique temporary local file, then run:
-macOS/Linux: sh "<absolute-script-path>" install
-Windows: powershell.exe -NoProfile -ExecutionPolicy Bypass -File "<absolute-script-path>" install
-
-Let the official script select the OS, architecture and stable package and attempt current-client detection. If detection is unsupported or confirmation is required, ask only for the missing client/target, then run once with the script's parameters. Do not infer the client from models, directories or other installed apps. Keep a confirmed custom target; Octop requires the current workspace's .octop/skills.
-
-Let the script pin, verify, synchronize and automatically initialize. Always use the newly downloaded entry, never an old fetch, generic installer, main source or mirror; install no extra runtime. Preserve connections and user files; do not read, request or display authentication configuration. Respect current-session approvals. On failure or uncertain output, report the stage and stop without automatic retries, repair or reinstallation.
-
-Briefly report the client, actual version, installation and connection-verification status. Reuse the script's loading guidance and examples without extra init/doctor or generation. Successful sync with failed init means installed, connection unverified; a verified same-version result needs no repeated install or init.
+Install or update the official Pure Tokens Skills for this client and report the result.
+Download puretokens-skill-fetch.sh or puretokens-skill-fetch.ps1 from the stable release address below, save it locally and run install:
+https://github.com/puretokensx/puretokens-skill/releases/latest/download/
 ```
 
 The agent saves the latest official stable release's `puretokens-skill-fetch.sh` (Windows: `.ps1`) locally and runs install. The fixed bootstrap URL is `https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh`; Windows uses the `.ps1` suffix. Installed copies in `.puretokens-executor` provide check-update and update. Never pipe remote content into a shell or fall back to main, source archives or mirrors when stable assets are absent.

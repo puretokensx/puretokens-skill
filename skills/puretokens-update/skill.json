@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "puretokens-update",
-  "version": "0.19.1",
+  "version": "0.19.2",
   "entry": "SKILL.md",
   "displayName": "Pure Tokens Update",
   "description": "Explain Pure Tokens and getting started locally, or explicitly install, upgrade and verify Skills.",
@@ -131,5 +131,5 @@
     "supportsReadOnlyDoctor": true,
     "doesNotSubmitMediaOrReadBilling": true
   },
-  "sourceSha256": "dd917383e8de5684b1c3e9ef63aa4c84bcda80d8e0ffc477adf884040b65cec9"
+  "sourceSha256": "75f3cb50bff47f722374ca3763b30cf05aa500d0b5f090090ee650aaf6a9b49e"
 }

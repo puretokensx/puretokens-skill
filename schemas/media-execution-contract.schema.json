@@ -1062,7 +1062,8 @@
         "directorySelector",
         "sameVersion",
         "completedCleanupFailure",
-        "hostSelection"
+        "hostSelection",
+        "targetSelection"
       ],
       "properties": {
         "commandTemplate": {
@@ -1103,6 +1104,16 @@
             "doesNotReadConfigurationOrCommandLines": true,
             "doesNotIdentifyChatModelOrVerifyAPI": true,
             "diagnosticCommand": "native_fetch detect-host"
+          }
+        },
+        "targetSelection": {
+          "const": {
+            "default": "verified_release_selector",
+            "workspaceTargetRequiredFor": [
+              "octop"
+            ],
+            "missingWorkspaceTarget": "stop_before_release_download_or_installation_writes_with_confirm_workspace_target",
+            "confirmedCustomTarget": "preserve"
           }
         }
       },

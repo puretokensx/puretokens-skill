@@ -45,6 +45,9 @@ if (-not $HostId -and -not $Target) {
   $HostId = Get-CurrentHost
   Write-Output "Pure Tokens Skills current client: $HostId (detected)."
 }
+if ($HostId -eq "octop" -and -not $Target) {
+  Fail "stage=select_target error_code=workspace_target_required installation_status=not_started installed_files_changed=false next_step=confirm_workspace_target; confirm the current Octop workspace and run once with -Host octop -Target <absolute-workspace>/.octop/skills. No network request or installation write was made."
+}
 function Get-OfficialFile([string]$Url, [string]$Destination, [string]$Stage) {
   $status = 0
   $category = "transport_failure"

@@ -41,6 +41,13 @@ function Invoke-WebRequest {
 }
 try {
   $state = $global:ptHostDetectionFixture
+  $rejected = $false
+  try { & $fetch install -Host octop | Out-Null }
+  catch {
+    $rejected = $_.Exception.Message -like "*stage=select_target error_code=workspace_target_required*" -and
+      $_.Exception.Message -like "*next_step=confirm_workspace_target*"
+  }
+  if (-not $rejected -or $state.Queries.Count -ne 0 -or $state.Requests.Count -ne 0) { throw "Missing workspace was not confirmed before downloads or detection" }
   foreach ($case in @(
     @{ Name = "codex.exe"; Host = "codex" },
     @{ Name = "opencode.exe"; Host = "opencode" }

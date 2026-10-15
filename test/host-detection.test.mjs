@@ -81,6 +81,17 @@ test("host detection is bounded when only shell ancestors are visible", async t 
   assert.ok((await readFile(f.env.PT_PROCESS_CALLS, "utf8")).trim().split("\n").length <= 8);
 });
 
+test("the installer asks for Octop's missing workspace before detection, downloads or writes", async t => {
+  const f = await fixture(t, "/usr/bin/node");
+  await assert.rejects(execFile("sh", [fetch, "install", "--host", "octop"], { env: f.env }), error => {
+    assert.match(error.stderr, /stage=select_target error_code=workspace_target_required/);
+    assert.match(error.stderr, /next_step=confirm_workspace_target/);
+    assert.match(error.stderr, /installation_status=not_started installed_files_changed=false/);
+    return true;
+  });
+  assert.deepEqual(await readdir(f.root), ["tools"]);
+});
+
 test("PowerShell host detection preserves the same launcher boundary", async t => {
   try { await execFile("pwsh", ["-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"]); }
   catch (error) { if (error.code === "ENOENT") { t.skip("PowerShell is unavailable; Windows detection remains unverified"); return; } throw error; }

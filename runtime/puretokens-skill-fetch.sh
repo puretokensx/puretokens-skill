@@ -49,6 +49,9 @@ if [ -z "$host" ] && [ -z "$target" ]; then
   host=$(detect_current_host) || exit 1
   printf '%s\n' "Pure Tokens Skills current client: $host (detected)."
 fi
+if [ "$host" = octop ] && [ -z "$target" ]; then
+  fail "stage=select_target error_code=workspace_target_required installation_status=not_started installed_files_changed=false next_step=confirm_workspace_target; confirm the current Octop workspace and run once with --host octop --target <absolute-workspace>/.octop/skills. No network request or installation write was made."
+fi
 command -v curl >/dev/null 2>&1 || fail "curl is unavailable; use a host session with native HTTPS download support"
 download_root=$(mktemp -d "${TMPDIR:-/tmp}/puretokens-download.XXXXXX") || fail "cannot create a private download directory"
 trap 'rm -rf -- "$download_root"' EXIT

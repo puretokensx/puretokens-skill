@@ -4,6 +4,11 @@
 
 # Changelog
 
+## 0.19.2 - 2026-10-15
+
+- Reduce the copyable installation prompts to three lines containing only the task, official stable entry and install operation. Keep client/platform selection, verification, initialization and failure guidance in the installer and installed instructions.
+- Request Octop's missing workspace target before release downloads or installation writes, preserving explicit client and directory choices.
+
 ## 0.19.1 - 2026-10-15
 
 - Shorten both installation prompts and download the official stable fetch directly, without first fetching README.
