@@ -34,13 +34,18 @@
       "then": "Use the official native fetch wrapper, installed or freshly downloaded from the stable release to a local file. Pin the stable manifest version and source commit, verify its selector and current-platform archive, then invoke native sync. No main/source archive fallback, third-party mirror, remote shell pipe or user runtime installation."
     },
     {
+      "id": "update-self-contained-bootstrap",
+      "when": "a complete official install prompt supplies execution steps and host IDs, or the user explicitly continues an older attempt that stopped only at documentation before fetch was requested",
+      "then": "For a confirmed current host, make the first required download the official stable-release fetch script saved to a unique local file. Do not request repository pages, README or raw.githubusercontent.com as a prerequisite. Let the official selector resolve the default target, retaining explicit Octop and MiniMax target requirements. A historical documentation failure does not establish release-asset failure. Respect host approvals and stop on actual fetch, release-download, checksum or execution failure; no documentation retry, mirror, source archive, alternate transport or automatic rerun."
+    },
+    {
       "id": "update-source-acquisition-unavailable",
       "when": "the stable manifest, selector or platform archive cannot be downloaded or the native installer cannot execute",
       "then": "Report the actual failure and stop before installed-file writes. Do not install Git, Node, Python, Go, dependencies or an alternate transport."
     },
     {
       "id": "update-bootstrap-permission-denied",
-      "when": "the host denies command execution, network approval or the initial README/fetch download before the installer starts",
+      "when": "the host denies command execution, network approval or the fetch download before the installer starts",
       "then": "Report installation not started, the confirmed phase and sanitized restriction. Use only host-reported permission information and available native approval controls; do not invent a grant or retry a denial. Unknown permissions stay unknown. Explain required command, HTTPS and directory access without reading configuration, changing permissions or requiring Full Access by default."
     },
     {

@@ -12,11 +12,11 @@
 
 ## 让 Agent 安装
 
-下方保留一句话兼容入口。需要明确安装步骤时，请复制完整的[中文安装提示词](#中文安装提示词)或[英文安装提示词](#英文安装提示词)。
+下方保留一句话兼容入口，它需要 Agent 能读取仓库说明。推荐复制完整的[中文安装提示词](#中文安装提示词)或[英文安装提示词](#英文安装提示词)：两者自带宿主 ID 和执行步骤，首次下载就是稳定发布的 fetch 脚本，不依赖先读取 README 或 `raw.githubusercontent.com`。
 
 安装前，当前客户端会话需要允许执行本地命令、HTTPS 下载，以及写入下载临时目录和目标 Skill 目录。通过客户端提供的正规审批入口授权；仅有网络授权不代表命令执行与文件访问权限齐备。不默认要求“完全访问”，也不自动修改权限。优先使用宿主已报告的权限信息，不在正常安装中增加探测命令。
 
-如果读取本 README 或下载入口脚本失败，安装器尚未启动。先检查当前客户端会话的执行／网络权限并说明失败阶段，不据此判断 API Key 有问题或要求重装。下方完整提示词已包含首次下载前的权限指引，逐步安装时优先复制完整提示词。仅在排查失败时按需阅读[权限与继续安装说明](skills/puretokens-update/references/install-permissions.md)。
+如果下载入口脚本失败，安装器尚未启动。说明失败阶段，按实际错误和宿主已报告的权限处理，不据此判断 API Key 有问题或要求重装。读取 README 失败不能证明发布附件也不可达；旧提示词已在此停止时，仅在用户明确要求继续后使用完整提示词，不重试文档下载。仅在排查失败时按需阅读[权限与继续安装说明](skills/puretokens-update/references/install-permissions.md)。
 
 ### 复制给可在本机执行命令的 Agent
 
@@ -29,7 +29,9 @@ Install or update the official Pure Tokens Skills from https://github.com/pureto
 ```text
 请为我当前使用的客户端安装或更新 Pure Tokens 官方 Skills，仓库：https://github.com/puretokensx/puretokens-skill。
 
-1. 下载官方说明前，先依据当前客户端已报告的信息确认能执行本地命令、HTTPS 下载并写入下载临时目录及目标 Skill 目录；未报告的权限记为未知，不等于拒绝；按正常流程执行，不增加探测命令或读取配置。需要授权时使用客户端实际提供的审批，过期或上轮授权不能代替当前审批；网络授权不代表全部执行权限，不默认要求完全访问或自动修改权限。阅读官方安装说明，只确定本次安装所需的当前客户端、官方宿主 ID 和执行环境。不要从模型名称或共享 Skill 目录猜客户端；无法确定时只问必要信息。不支持、审批被拒或没有执行能力时说明并停止。
+1. 本提示词已包含安装步骤和宿主映射，不先下载仓库网页、README、raw.githubusercontent.com 或其他远程安装说明。依据当前客户端已报告的信息确认客户端及本地执行环境，按下列映射选择宿主 ID；不要从模型名称或共享 Skill 目录猜客户端，无法确定时只问必要信息：
+   Claude Code=claude-code；Codex（桌面／CLI）=codex；WorkBuddy=workbuddy；Gemini CLI=gemini-cli；Grok Build=grok-build；OpenCode=opencode；Trae／TraeWork=trae；Claude Desktop（本地 Code 会话）=claude-desktop；社区 DSH Desktop=dsh-desktop；官方 DeepSeek Harness=deepseek-harness；MiniMax Code Desktop=minimax-code；ZCode=zcode；Kimi Code=kimi-code；Qoder=qoder；Pi=pi；Hermes=hermes；EvoX=evox；VS Code=vscode；Octop=octop。
+   当前会话需能执行本地命令、HTTPS 下载并写入下载临时目录及目标 Skill 目录。未报告的权限记为未知，不等于拒绝；按正常流程执行，不增加探测命令或读取配置。需要授权时使用客户端实际提供的审批，遵守其当前有效范围；网络授权不代表全部执行权限，不默认要求完全访问或自动修改权限。不支持、审批被拒或没有执行能力时说明并停止。
 
 2. 安装或更新时，将以下当前官方稳定版入口下载为唯一临时本地文件：
    macOS/Linux：https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh
@@ -39,9 +41,9 @@ Install or update the official Pure Tokens Skills from https://github.com/pureto
 3. 替换下面的绝对路径、操作和宿主 ID 后执行一次；首次安装用 install，已有安装用 update：
    macOS/Linux：sh "<fetch脚本绝对路径>" <操作> --host <当前宿主ID>
    Windows：powershell.exe -NoProfile -ExecutionPolicy Bypass -File "<fetch脚本绝对路径>" <操作> -Host <当前宿主ID>
-   自定义目录按官方说明附加 --target / -Target 绝对路径；Octop 必须指定当前工作区的 .octop/skills。由官方脚本选择当前系统和架构的稳定版包，校验并同步完整 Skills 与原生执行器。不要复制单个 SKILL.md、使用通用安装器或回退 main、源码包、镜像；不要为此安装 Node、npm、Python、Go、Git 或服务。
+   默认目标目录由官方脚本解析；已确认的自定义 Skill 目录附加 --target / -Target 绝对路径；Octop 必须指定当前工作区的 .octop/skills。MiniMax Desktop 若要求确认运行目录，先取得该客户端的明确目标，不猜路径。由官方脚本选择当前系统和架构的稳定版包，校验并同步完整 Skills 与原生执行器。不要复制单个 SKILL.md、使用通用安装器或回退 main、源码包、镜像；不要为此安装 Node、npm、Python、Go、Git 或服务。
 
-4. 保留现有连接和用户文件。不要自行读取、展示或修改认证配置，也不要索取或转述凭据；由原生执行器按当前宿主规则完成只读验证。下载、校验、执行权限或文件冲突失败时，报告已完成阶段与脱敏原因并停止；不自动删除、修复、重装、换宿主或改用其他执行方式。读取说明或下载入口脚本失败时明确“安装尚未开始”，先引导检查当前会话权限，不仅凭 TLS 错误断定 Key、证书或客户端有问题。用户处理阻塞并明确要求继续后，尚未同步才在原宿主执行一次官方流程；已同步且仅连接验证失败时，只在用户要求继续验证后执行一次 init，不重装。超时、同步中断或输出不确定时不得猜测成功或直接重跑，先另行诊断。
+4. 保留现有连接和用户文件。不要自行读取、展示或修改认证配置，也不要索取或转述凭据；由原生执行器按当前宿主规则完成只读验证。下载、校验、执行权限或文件冲突失败时，报告已完成阶段与脱敏原因并停止；不自动删除、修复、重装、换宿主或改用其他执行方式。下载入口脚本或启动失败时明确“安装尚未开始”，按实际错误和宿主已报告的权限处理，不仅凭 TLS 错误断定 Key、证书、客户端或权限有问题。用户处理阻塞并明确要求继续后，尚未同步才在原宿主执行一次官方流程；已同步且仅连接验证失败时，只在用户要求继续验证后执行一次 init，不重装。超时、同步中断或输出不确定时不得猜测成功或直接重跑，先另行诊断。
 
 5. 复用脚本的同步与自动 init 结果，不另跑 init、doctor、余额或模型查询。自动 init 最多两次只读请求，共用 20 秒预算；安装成功而 init 失败应报告“安装已完成，连接验证未完成”。同版完整性校验通过的快速返回表示“已是当前稳定版且文件完整”，无需再下载、写入或初始化。
 
@@ -53,7 +55,9 @@ Install or update the official Pure Tokens Skills from https://github.com/pureto
 ```text
 Install or update the official Pure Tokens Skills for the client I am currently using. Repository: https://github.com/puretokensx/puretokens-skill.
 
-1. Before downloading instructions, use information already reported by the current client to establish local command, HTTPS download, temporary-directory and target Skill-directory access. Unreported permissions remain unknown, not denied; proceed normally without extra probes or configuration reads. Use the client's actual approval controls when needed; expired or previous-turn grants do not replace current approval. Network approval does not establish all execution permissions; do not require Full Access by default or change permissions automatically. Read the official installation instructions and identify only the current client, its documented host ID and its execution environment. Do not infer the client from a model name or shared Skill directory; ask only for missing essential information. Explain and stop if the environment is unsupported, approval is denied or commands cannot execute.
+1. This prompt includes the installation steps and host mapping. Do not first download repository pages, README, raw.githubusercontent.com or other remote installation instructions. Identify the current client and local execution environment from host-reported information, then select its host ID below. Do not infer the client from a model name or shared Skill directory; ask only for missing essential information:
+   Claude Code=claude-code; Codex (Desktop/CLI)=codex; WorkBuddy=workbuddy; Gemini CLI=gemini-cli; Grok Build=grok-build; OpenCode=opencode; Trae/TraeWork=trae; Claude Desktop (local Code session)=claude-desktop; community DSH Desktop=dsh-desktop; official DeepSeek Harness=deepseek-harness; MiniMax Code Desktop=minimax-code; ZCode=zcode; Kimi Code=kimi-code; Qoder=qoder; Pi=pi; Hermes=hermes; EvoX=evox; VS Code=vscode; Octop=octop.
+   This session needs local command, HTTPS download, temporary-directory and target Skill-directory access. Unreported permissions remain unknown, not denied; proceed normally without extra probes or configuration reads. Use the client's actual approval controls when needed, respecting their current scope. Network approval does not establish all execution permissions; do not require Full Access by default or change permissions automatically. Explain and stop if the environment is unsupported, approval is denied or commands cannot execute.
 
 2. For installation or update, save the current official stable-release entry point as a unique temporary local file:
    macOS/Linux: https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh
@@ -63,9 +67,9 @@ Install or update the official Pure Tokens Skills for the client I am currently 
 3. Substitute the absolute path, operation and host ID below, then run once. Use install for a first installation or update for an existing installation:
    macOS/Linux: sh "<absolute-fetch-path>" <operation> --host <current-host-id>
    Windows: powershell.exe -NoProfile -ExecutionPolicy Bypass -File "<absolute-fetch-path>" <operation> -Host <current-host-id>
-   For a custom directory, add the documented --target / -Target absolute path; Octop requires the current workspace's .octop/skills. Let the official script select, verify and synchronize the stable package for this OS and architecture, including the complete Skills and native executor. Do not copy only SKILL.md, use a generic installer, or fall back to main, source archives or mirrors. Do not install Node, npm, Python, Go, Git or services for this task.
+   Let the official script resolve the default target. For a confirmed custom Skill directory, add --target / -Target with its absolute path; Octop requires the current workspace's .octop/skills. If MiniMax Desktop requires its runtime directory to be confirmed, obtain that client's explicit target instead of guessing. Let the official script select, verify and synchronize the stable package for this OS and architecture, including the complete Skills and native executor. Do not copy only SKILL.md, use a generic installer, or fall back to main, source archives or mirrors. Do not install Node, npm, Python, Go, Git or services for this task.
 
-4. Preserve existing connections and user files. Do not independently read, display or modify authentication configuration, or request or relay credentials; let the native executor perform the documented read-only verification for this host. On download, checksum, execution-permission or file-conflict failure, report the completed stage and sanitized cause, then stop. Do not automatically delete, repair, reinstall, switch hosts or use another execution path. If reading instructions or downloading the entry script fails, say "Installation has not started" and guide the user to check current-session permissions first; TLS errors alone do not establish a key, certificate or client defect. After the user resolves the blocker and explicitly continues, run the official workflow once on the same host only if synchronization has not begun. After successful sync with failed connection verification, run init alone only when further verification is requested; do not reinstall. A timeout, interrupted sync or uncertain output requires separate diagnosis, not assumed success or an automatic rerun.
+4. Preserve existing connections and user files. Do not independently read, display or modify authentication configuration, or request or relay credentials; let the native executor perform the documented read-only verification for this host. On download, checksum, execution-permission or file-conflict failure, report the completed stage and sanitized cause, then stop. Do not automatically delete, repair, reinstall, switch hosts or use another execution path. If downloading or launching the entry script fails, say "Installation has not started" and use the actual error and host-reported permissions; TLS errors alone do not establish a key, certificate, client or permission defect. After the user resolves the blocker and explicitly continues, run the official workflow once on the same host only if synchronization has not begun. After successful sync with failed connection verification, run init alone only when further verification is requested; do not reinstall. A timeout, interrupted sync or uncertain output requires separate diagnosis, not assumed success or an automatic rerun.
 
 5. Reuse the script's synchronization and automatic init results. Do not add init, doctor, balance or model queries. Automatic init allows at most two read-only requests within one 20-second budget. Successful synchronization followed by failed init means “Installed; connection not verified.” A same-version verified fast return means “Already on the current stable version; files verified,” with no further download, writes or initialization.
 

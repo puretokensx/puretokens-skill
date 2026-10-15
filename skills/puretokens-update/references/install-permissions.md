@@ -14,13 +14,18 @@
 
 | 已有证据 | 向用户说明 | 下一步 |
 | --- | --- | --- |
-| 读取 README、下载 fetch 或启动命令被阻止 | 安装尚未开始；没有安装脚本执行证据 | 检查当前会话命令／网络／目录权限；无法确认时只问一个必要问题 |
+| 旧提示词停在读取 README，fetch 尚未请求 | 安装尚未开始；只确认文档读取失败，不能推断发布附件不可达或权限被拒 | 用户明确继续、宿主已确认且无宿主拒绝时，使用自带步骤的完整官方提示词直接下载稳定 fetch 一次，不重试文档 |
+| 下载 fetch 或启动命令被阻止 | 安装尚未开始；没有安装脚本执行证据 | 根据实际错误及宿主已报告的命令／网络／目录权限处理；无法确认时只问一个必要问题 |
 | fetch 的 read_release_manifest、download_selector、download_platform_archive 失败 | 本次安装／更新未完成；仅当回执确认 installed_files_changed=false 才说旧安装未修改 | 保留 stage、error_code、非零 http_status、next_step；按类别处理 |
 | sync 已明确成功，init 失败 | 安装已完成，连接验证未完成 | 用户要求继续连接验证后只执行一次 init，不重新下载或同步 |
 | 同步中断、命令超时或输出不确定 | 安装状态未确认 | 用户另行授权诊断本地版本、受管清单和未完成事务；不自动重跑，不把 doctor 当完整性校验 |
 | 同版完整性检查成功 | 已是当前稳定版且文件完整 | 不下载、不写入、不补 init；需要加载时新开对话 |
 
-README/bootstrap 下载发生在 fetch 启动之前，其异常无法由尚未下载的脚本捕获。安装入口必须直接给权限提醒；不能声称只更新安装器即可覆盖这个阶段。此指南及 README 不会自动改写外部网页硬编码或用户已复制的提示词。
+完整官方提示词自带宿主映射、稳定 fetch 地址和命令；首次所需下载就是稳定发布入口，不先请求 README、raw.githubusercontent.com 或其他远程说明。默认目录由脚本解析，Octop 仍须明确当前工作区目标，MiniMax Desktop 要求确认运行目录时不猜路径。只给仓库地址的一句话入口仍依赖文档可达性。
+
+文档读取失败和发布附件下载失败是不同阶段；不能把一次文档连接中断定性为 Key、权限、证书或整个 GitHub 的问题。旧流程已经停止时不自动恢复，只在用户明确继续后执行上述官方入口；不是镜像、main 源码或其他传输兜底。真实宿主拒绝、入口或发布附件失败仍按原规则停止。
+
+bootstrap 下载发生在 fetch 启动之前，其异常无法由尚未下载的脚本捕获。安装入口必须直接给权限提醒；不能声称只更新安装器即可覆盖这个阶段。此指南及 README 不会自动改写外部网页硬编码或用户已复制的提示词。
 
 ## 下载错误分类
 
@@ -51,6 +56,8 @@ README/bootstrap 下载发生在 fetch 启动之前，其异常无法由尚未�
 ## English summary
 
 Use host-reported command, HTTPS, temporary-directory and target-directory permissions; unknown means unknown, not denied. Proceed with normal required commands and native approval when there is no explicit block, without extra probes. Network approval is not proof of every execution permission. Use only the current client's available approval controls. Reuse old outcomes as evidence, not as an expired grant: a turn-scoped permission must cover the current turn or be approved again. Full Access is not a default requirement, and a Windows security-context error is not an API-key rejection or proof of a client defect.
+
+The complete official prompts include host IDs and execution steps; the first required download is the stable fetch, without a README or raw.githubusercontent.com prerequisite. A documentation failure does not establish release-asset failure. If an older prompt already stopped at documentation, explicit user continuation and a confirmed host allow one direct stable-fetch attempt, respecting host approvals; do not retry documentation, a denied action or a failed release download.
 
 Report the last confirmed phase. Before fetch starts, installation has not started; only a verified fetch receipt can establish that installed files were preserved. After the user resolves the blocker and explicitly continues, run the same official workflow once on the same host, with fresh manifest/checksum verification and no partial-download reuse. If sync succeeded and only init failed, run init alone only when connection verification is explicitly requested. Unknown sync output requires separate local diagnosis, not reinstall. No automatic retries, permission changes, alternate transport or paid submissions.
 
