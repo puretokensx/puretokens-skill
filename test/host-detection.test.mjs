@@ -49,7 +49,10 @@ exit 99
 
 for (const [executable, host] of [
   ["/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex", "codex"],
-  ["/opt/opencode/bin/opencode", "opencode"]
+  ["/opt/opencode/bin/opencode", "opencode"],
+  ["/opt/grok/bin/grok", "grok-build"],
+  ["/opt/qoder/bin/qodercli", "qoder"],
+  ["/opt/qoder/bin/qoder", "qoder"]
 ]) {
   test(`host detection recognizes a direct ${host} launcher without network or configuration reads`, async t => {
     const f = await fixture(t, executable);
@@ -61,7 +64,7 @@ for (const [executable, host] of [
   });
 }
 
-for (const executable of ["/usr/bin/node", "/usr/bin/python3", "/Applications/Visual Studio Code.app/Contents/MacOS/Electron", "/opt/claude"]) {
+for (const executable of ["/usr/bin/node", "/usr/bin/python3", "/Applications/Visual Studio Code.app/Contents/MacOS/Electron", "/opt/claude", "/opt/dsh", "/opt/pi", "/opt/hermes"]) {
   test(`host detection stops at an unconfirmed launcher instead of borrowing the outer Codex session: ${path.basename(executable)}`, async t => {
     const f = await fixture(t, executable);
     await assert.rejects(execFile("sh", [fetch, "install"], { env: f.env }), error => {
@@ -79,6 +82,24 @@ test("host detection is bounded when only shell ancestors are visible", async t 
   const f = await fixture(t, "/bin/bash", "/bin/sh");
   await assert.rejects(execFile("sh", [fetch, "detect-host"], { env: f.env }), /current_host_unconfirmed/);
   assert.ok((await readFile(f.env.PT_PROCESS_CALLS, "utf8")).trim().split("\n").length <= 8);
+});
+
+test("temporary-directory creation failure reports the stage and does not download or change installation", async t => {
+  const f = await fixture(t, "/opt/codex");
+  const marker = path.join(f.root, "keep");
+  await writeFile(marker, "original");
+  const tool = path.join(f.root, "tools/mktemp");
+  await writeFile(tool, "#!/bin/sh\nprintf 'private-path-and-token' >&2\nexit 73\n");
+  await chmod(tool, 0o700);
+  await assert.rejects(execFile("sh", [fetch, "install", "--host", "codex"], { env: f.env }), error => {
+    assert.match(error.stderr, /stage=prepare_download error_code=local_io_failure/);
+    assert.match(error.stderr, /installation_status=not_started installed_files_changed=false/);
+    assert.match(error.stderr, /next_step=review_download_directory_permissions/);
+    assert.doesNotMatch(error.stderr, /private-path-and-token/);
+    return true;
+  });
+  assert.equal(await readFile(marker, "utf8"), "original");
+  await assert.rejects(readFile(f.env.PT_PROCESS_CALLS), { code: "ENOENT" });
 });
 
 test("the installer asks for Octop's missing workspace before detection, downloads or writes", async t => {

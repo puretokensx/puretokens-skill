@@ -10,6 +10,12 @@ import { repositoryRoot } from "../scripts/skill-registry.mjs";
 const execFile = promisify(execFileCallback);
 const names = ["puretokens-balance", "puretokens-connection", "puretokens-models", "puretokens-image", "puretokens-video", "puretokens-audio", "puretokens-evaluate", "puretokens-update"];
 const installer = path.join(repositoryRoot, "runtime/puretokens-skill-install.sh");
+test("PowerShell local failures preserve file and init outcomes without exposing private errors", async t => {
+ try { await execFile("pwsh", ["-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"]); }
+ catch (error) { if (error.code === "ENOENT") { t.skip("PowerShell is unavailable; local failure fixtures remain unverified"); return; } throw error; }
+ const { stdout } = await execFile("pwsh", ["-NoProfile", "-File", path.join(repositoryRoot, "test/support/installer-local-failures.ps1")]);
+ assert.match(stdout, /verification evidence passed \(offline\)/);
+});
 async function fixture(t) {
  const root = await mkdtemp(path.join(os.tmpdir(), "pt-installer-test-"));
  t.after(() => rm(root, { recursive: true, force: true }));
@@ -117,7 +123,13 @@ test("a failed update restores every existing Skill and releases its lock", asyn
  const tools = path.join(f.root, "tools"); await mkdir(tools);
  const wrapper = path.join(tools, "mv");
  await writeFile(wrapper, '#!/bin/sh\ncase "$2" in */backup/puretokens-connection) exit 73 ;; esac\nexec /bin/mv "$@"\n'); await chmod(wrapper, 0o700);
- await assert.rejects(install(f, { ...f.env, PATH: `${tools}${path.delimiter}${f.env.PATH}` }));
+ await assert.rejects(install(f, { ...f.env, PATH: `${tools}${path.delimiter}${f.env.PATH}` }), error => {
+  assert.match(error.stderr, /stage=replace_files error_code=local_io_failure/);
+  assert.match(error.stderr, /installed_files_changed=unknown/);
+  assert.match(error.stdout, /recovery_status=restored installation_status=not_completed installed_files_changed=false/);
+  assert.doesNotMatch(error.stderr, new RegExp(f.root));
+  return true;
+ });
  for (const name of names) assert.equal(await readFile(path.join(f.target, name, "SKILL.md"), "utf8"), originals.get(name));
  assert.equal((await readdir(f.target)).some(x => x.includes("stage") || x.includes("lock")), false);
  await install(f);
@@ -142,6 +154,48 @@ test("failed-update rollback preserves unknown stage content before restoring an
  assert.equal(await readFile(path.join(stage, "personal.txt"), "utf8"), "keep my work");
  assert.ok(await readFile(path.join(stage, "backup/puretokens-balance/SKILL.md")), "global preflight must precede rollback mutations");
  assert.equal((await readdir(f.target)).includes(".puretokens-install-lock"), false);
+});
+
+test("a blocked target reports a sanitized local failure before modifying managed files", async t => {
+ const f = await fixture(t);
+ await writeFile(f.target, "preserve this existing file");
+ await assert.rejects(install(f), error => {
+  assert.match(error.stderr, /stage=prepare_target error_code=local_io_failure/);
+  assert.match(error.stderr, /installation_status=not_completed installed_files_changed=false/);
+  assert.match(error.stderr, /next_step=review_install_directory_access/);
+  assert.doesNotMatch(error.stderr, new RegExp(f.root));
+  return true;
+ });
+ assert.equal(await readFile(f.target, "utf8"), "preserve this existing file");
+});
+
+test("native init launch failure stays unverified without changing a completed installation", async t => {
+ const f = await fixture(t);
+ await install(f);
+ const binary = path.join(f.target, ".puretokens-executor/puretokens-api");
+ await writeFile(binary, "#!/bin/sh\nprintf 'private-launch-error' >&2\nexit 126\n");
+ const { stdout, stderr } = await execFile("sh", [installer, "init", "--target", f.target, "--host", "codex"], { env: f.env });
+ assert.match(stdout, /init_status=unverified stage=init error_code=executor_unavailable/);
+ assert.match(stdout, /next_step=review_host_execution_permissions/);
+ assert.doesNotMatch(stdout + stderr, /private-launch-error|synchronized with/);
+ for (const name of names) assert.ok(await readFile(path.join(f.target, name, "SKILL.md")));
+});
+
+test("init only accepts complete successful identity and credential evidence", async t => {
+ const f = await fixture(t);
+ await install(f);
+ const binary = path.join(f.target, ".puretokens-executor/puretokens-api");
+ for (const [receipt, exit, verified] of [
+  [{ configuration_status: "verified" }, 0, false],
+  [{ configuration_status: "verified", api_identity_confirmed: true, credential_verified: false }, 0, false],
+  [{ configuration_status: "verified", api_identity_confirmed: true, credential_verified: true }, 1, false],
+  [{ configuration_status: "verified", api_identity_confirmed: true, credential_verified: true }, 0, true]
+ ]) {
+  await writeFile(binary, `#!/bin/sh\nprintf '%s\\n' '${JSON.stringify(receipt)}'\nexit ${exit}\n`);
+  const { stdout } = await execFile("sh", [installer, "init", "--target", f.target, "--host", "codex"], { env: f.env });
+  assert.match(stdout, new RegExp(`init_status=${verified ? "verified" : "unverified"}(?:\\n|$)`));
+  if (!verified) assert.doesNotMatch(stdout, /fixed API identity verified/);
+ }
 });
 
 test("explicit repair resumes an interrupted missing-file replacement", async t => {

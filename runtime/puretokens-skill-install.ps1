@@ -19,8 +19,15 @@ param(
 
 $ErrorActionPreference = "Stop"
 $currentSkills = @("puretokens-balance", "puretokens-connection", "puretokens-models", "puretokens-image", "puretokens-video", "puretokens-audio", "puretokens-evaluate", "puretokens-update")
+$script:installStage = "arguments"
+$script:installationStatus = "not_started"
+$script:installedFilesChanged = "false"
 
-function Fail([string]$Message) { throw "Pure Tokens Skill installer: $Message" }
+function Fail([string]$Message) {
+  $exception = New-Object System.InvalidOperationException("Pure Tokens Skill installer: stage=$script:installStage error_code=validation_failed installation_status=$script:installationStatus installed_files_changed=$script:installedFilesChanged next_step=review_installation_failure; $Message")
+  $exception.Data["puretokens_receipt"] = $true
+  throw $exception
+}
 
 # Only the verified native executor uses this launcher. No shell, window,
 # elevation, credential argument or fallback launch is involved.
@@ -138,7 +145,7 @@ function Test-OfficialSource([string]$SourceRoot) {
 }
 
 function Test-InstalledTarget([string]$TargetRoot) {
-  if (-not (Test-Path -LiteralPath $TargetRoot -PathType Container)) { Fail "target Skill directory does not exist: $TargetRoot" }
+  if (-not (Test-Path -LiteralPath $TargetRoot -PathType Container)) { Fail "target Skill directory does not exist or is inaccessible" }
   foreach ($name in $currentSkills) {
     if (-not (Test-ManagedSkill (Join-Path $TargetRoot $name) $name)) { Fail "target is missing the managed Skill: $name" }
   }
@@ -208,9 +215,11 @@ function Show-InstallationSummary([string]$RequestedHost) {
 # /generated:install-activation
 
 function Invoke-Init([string]$TargetRoot, [string]$RequestedHost) {
+  try {
   Test-InstalledTarget $TargetRoot
   if ([string]::IsNullOrWhiteSpace($RequestedHost)) {
     Write-Output "Pure Tokens Skill init: host ID was not supplied, so the connection check was deferred."
+    Write-Output "init_status=deferred next_step=confirm_current_client"
   } else {
     Write-Output "Installation host: $RequestedHost"
     $executor = Join-Path (Join-Path $TargetRoot ".puretokens-executor") "puretokens-api.exe"
@@ -220,12 +229,20 @@ function Invoke-Init([string]$TargetRoot, [string]$RequestedHost) {
     if ($initOutput.Count -gt 0) {
       try { $json = ($initOutput -join "`n") | ConvertFrom-Json } catch { $json = $null }
     }
-    if ($null -ne $json -and $json.configuration_status -eq "verified") {
+    if ($result.ExitCode -eq 0 -and $null -ne $json -and $json.configuration_status -eq "verified" -and
+        $json.api_identity_confirmed -is [bool] -and $json.api_identity_confirmed -eq $true -and
+        $json.credential_verified -is [bool] -and $json.credential_verified -eq $true) {
       Write-Output "Pure Tokens Skill init: fixed API identity verified for the current host."
+      Write-Output "init_status=verified"
     } elseif ($null -ne $json) {
       $state = if ([string]::IsNullOrWhiteSpace($json.configuration_status)) { "unverified" } else { $json.configuration_status }
       $message = if ([string]::IsNullOrWhiteSpace($json.message)) { "The fixed API identity is not verified in this host session." } else { $json.message }
+      if ($state -eq "verified") {
+        $state = "unverified"
+        $message = "The verification receipt did not confirm both API identity and credential authentication."
+      }
       Write-Output "Pure Tokens Skill init: $message [$state]"
+      Write-Output "init_status=unverified"
       if ($null -ne $json.http_status -and [int]$json.http_status -gt 0) {
         Write-Output "HTTP status: $($json.http_status)"
       }
@@ -234,7 +251,14 @@ function Invoke-Init([string]$TargetRoot, [string]$RequestedHost) {
       }
     } else {
       Write-Output "Pure Tokens Skill init: configuration could not be checked in this host session."
+      Write-Output "init_status=unverified stage=init error_code=executor_output_unavailable next_step=review_host_execution_permissions"
     }
+  }
+  } catch {
+    # Installation is already committed. Never throw an init-only failure into
+    # transaction recovery or relabel successfully synchronized files as failed.
+    Write-Output "Pure Tokens Skill init: configuration could not be checked in this host session."
+    Write-Output "init_status=unverified stage=init error_code=executor_unavailable next_step=review_host_execution_permissions; check whether this session permits the installed native executor and file checks. The exact cause is unconfirmed; Full Access is not a default requirement."
   }
   Write-Output ""
   Show-InstallationSummary $RequestedHost
@@ -385,6 +409,7 @@ function Restore-Transaction([string]$TargetRoot, [string]$StageRoot) {
 $stageRoot = $null
 $updateLock = $null
 try {
+  $script:installStage = "select_target"
   if ([string]::IsNullOrWhiteSpace($Target) -and [string]::IsNullOrWhiteSpace($HostId)) { Fail "-Host or -Target is required" }
   if ($HostId -in @("pi", "hermes", "evox")) { $null = Get-TargetForHost $HostId }
   if ([string]::IsNullOrWhiteSpace($Target)) { $Target = Get-TargetForHost $HostId }
@@ -396,19 +421,22 @@ try {
   if ($Command -eq "locate") { Write-Output $Target; exit 0 }
 
   if ($Command -eq "verify-installed") {
+    $script:installStage = "verify_installed"
     Confirm-InstalledInventories $Target
     exit 0
   }
 
   if ($Command -eq "init") {
+    $script:installStage = "init"
     $targetRoot = (Resolve-Path -LiteralPath $Target).Path
     Invoke-Init $targetRoot $HostId
     exit 0
   }
 
+  $script:installStage = "verify_source"
   if (-not [string]::IsNullOrWhiteSpace($Source)) {
     if (-not [System.IO.Path]::IsPathRooted($Source)) { Fail "-Source must be an absolute official source directory" }
-    if (-not (Test-Path -LiteralPath $Source -PathType Container)) { Fail "-Source does not exist: $Source" }
+    if (-not (Test-Path -LiteralPath $Source -PathType Container)) { Fail "-Source does not exist" }
     $sourceRoot = (Resolve-Path -LiteralPath $Source).Path
   } else {
     $bundledSourceRoot = Split-Path -Parent $PSScriptRoot
@@ -420,12 +448,16 @@ try {
   if ($Command -eq "check") { Write-Output "Official Pure Tokens Skill source passed native static validation."; exit 0 }
   $releaseVersion = Get-SourceVersion $sourceRoot
 
+  $script:installationStatus = "not_completed"
+  $script:installStage = "prepare_target"
   New-Item -ItemType Directory -Path $Target -Force | Out-Null
   $targetRoot = (Resolve-Path -LiteralPath $Target).Path
   Test-GeminiDuplicates $targetRoot
   $script:ownershipGuard = Get-ExecutorArtifact $sourceRoot
   if ($NoRecovery -and @(Get-ChildItem -LiteralPath $targetRoot -Force -Filter ".puretokens-skill-stage-*").Count -gt 0) { Fail "installation transaction requires review; existing files were preserved" }
-  try { $updateLock = [System.IO.File]::Open((Join-Path $targetRoot ".puretokens-install.lock"), [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None) } catch { Fail "another update is in progress or the update lock is not writable" }
+  $script:installStage = "acquire_lock"
+  try { $updateLock = [System.IO.File]::Open((Join-Path $targetRoot ".puretokens-install.lock"), [System.IO.FileMode]::OpenOrCreate, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None) } catch { Fail "another update is in progress or the update lock is not writable; check directory access and other installations" }
+  $script:installStage = "recover_transaction"
   if ($Command -eq "repair") {
     foreach ($name in ($currentSkills + @(".puretokens-executor"))) {
       $destination = Join-Path $targetRoot $name
@@ -439,11 +471,15 @@ try {
     if ($verified.ExitCode -ne 0) { Fail "previous update recovery failed verification; all transaction files were preserved" }
   }
   foreach ($previous in @(Get-ChildItem -LiteralPath $targetRoot -Directory -Force | Where-Object { $_.Name -like ".puretokens-skill-stage-*" })) {
-    if (-not (Test-Path -LiteralPath (Join-Path $previous.FullName "committed"))) { Restore-Transaction $targetRoot $previous.FullName }
+    if (-not (Test-Path -LiteralPath (Join-Path $previous.FullName "committed"))) {
+      $script:installedFilesChanged = "unknown"
+      Restore-Transaction $targetRoot $previous.FullName
+    }
     Remove-CompletedStage $previous.FullName
   }
   # Recheck after obtaining the installation lock: another sync may have
   # completed while this version's archive was still downloading.
+  $script:installStage = "verify_installed"
   if (Test-ManagedExecutor (Join-Path $targetRoot ".puretokens-executor")) {
     $installedVersion = (Get-Content -LiteralPath (Join-Path $targetRoot ".puretokens-executor/runtime.json") -Raw -Encoding UTF8 | ConvertFrom-Json).version
     if ($installedVersion -notmatch '^\d+\.\d+\.\d+$') { Fail "installed executor version is invalid; left untouched" }
@@ -456,6 +492,7 @@ try {
   $executorDestination = Join-Path $targetRoot ".puretokens-executor"
   if (Test-InstallationEntry $executorDestination) { Assert-OwnedInstallation $executorDestination ".puretokens-executor" }
 
+  $script:installStage = "stage_files"
   $stageRoot = Join-Path $targetRoot (".puretokens-skill-stage-" + [Guid]::NewGuid().ToString("N"))
   New-Item -ItemType Directory -Path (Join-Path $stageRoot "backup") -Force | Out-Null
   New-Item -ItemType File -Path (Join-Path $stageRoot "transaction-v1") | Out-Null
@@ -483,15 +520,19 @@ try {
     $plan += [PSCustomObject]@{ name = $name; action = $action }
   }
   $plan | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $stageRoot "plan.json") -Encoding utf8
+  $script:installStage = "replace_files"
   foreach ($entry in $plan) {
     $destination = Join-Path $targetRoot $entry.name
     if ($entry.action -eq "replace") {
       Assert-OwnedInstallation $destination $entry.name (Join-Path (Join-Path $sourceRoot "skills") $entry.name)
+      $script:installedFilesChanged = "unknown"
       Move-Item -LiteralPath $destination -Destination (Join-Path (Join-Path $stageRoot "backup") $entry.name)
     } elseif (Test-InstallationEntry $destination) { Fail "a destination appeared during installation; existing files were preserved" }
+    $script:installedFilesChanged = "unknown"
     Move-Item -LiteralPath (Join-Path $stageRoot $entry.name) -Destination $destination
   }
   # Require the inventory itself, even if install-verify could adopt an exact source copy.
+  $script:installStage = "verify_synced"
   foreach ($name in ($currentSkills + @(".puretokens-executor"))) {
     $installed = Join-Path $targetRoot $name
     if (-not (Test-Path -LiteralPath (Join-Path $installed ".puretokens-managed.json") -PathType Leaf)) { Fail "managed inventory missing; installation is incomplete" }
@@ -499,19 +540,43 @@ try {
     if ($result.ExitCode -ne 0) { Fail "installed managed files could not be verified" }
   }
   New-Item -ItemType File -Path (Join-Path $stageRoot "committed") | Out-Null
+  $script:installationStatus = "completed"
+  $script:installedFilesChanged = "true"
   Write-Output "Pure Tokens Skills $releaseVersion synchronized with the native API executor at $targetRoot"
+  Write-Output "installation_status=completed installed_files_changed=true"
   Remove-CompletedStage $stageRoot
   $stageRoot = $null
   $updateLock.Dispose(); $updateLock = $null
   if ($env:PTP_OPERATIONS_RECEIPTS -eq "1") {
     try { $null = Invoke-NativeExecutor (Join-Path (Join-Path $targetRoot ".puretokens-executor") "puretokens-api.exe") @("operations-receipt", "installed") } catch { }
   }
+  $script:installStage = "init"
   Invoke-Init $targetRoot $HostId
+} catch {
+  if ($_.Exception.Data["puretokens_receipt"]) { throw }
+  $category = "local_operation_failed"
+  $next = "review_local_access"
+  if ($_.Exception -is [System.UnauthorizedAccessException] -or $_.CategoryInfo.Category -eq "PermissionDenied") {
+    $category = "local_access_denied"
+    $next = "review_host_permissions"
+  } elseif ($_.Exception -is [System.IO.IOException]) {
+    $category = "local_io_failure"
+    $next = "review_install_directory_access"
+  }
+  $exception = New-Object System.InvalidOperationException("Pure Tokens Skill installer: stage=$script:installStage error_code=$category installation_status=$script:installationStatus installed_files_changed=$script:installedFilesChanged next_step=$next; a local operation could not complete. Check current-session directory/command permissions, file locks and available disk space; the exact cause is unconfirmed. No automatic retry.")
+  $exception.Data["puretokens_receipt"] = $true
+  throw $exception
 } finally {
   try {
     if ($null -ne $stageRoot -and (Test-Path -LiteralPath $stageRoot)) {
-      if (-not (Test-Path -LiteralPath (Join-Path $stageRoot "committed"))) { Restore-Transaction $targetRoot $stageRoot }
+      if (-not (Test-Path -LiteralPath (Join-Path $stageRoot "committed"))) {
+        Restore-Transaction $targetRoot $stageRoot
+        $script:installedFilesChanged = "false"
+        Write-Output "recovery_status=restored installation_status=not_completed installed_files_changed=false; the previous managed files were restored."
+      }
       Remove-CompletedStage $stageRoot
     }
+  } catch {
+    Write-Output "recovery_status=incomplete installation_status=$script:installationStatus installed_files_changed=$script:installedFilesChanged next_step=inspect_installation; retained the managed transaction. Do not reinstall or retry automatically."
   } finally { if ($null -ne $updateLock) { $updateLock.Dispose() } }
 }

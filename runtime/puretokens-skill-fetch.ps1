@@ -12,7 +12,15 @@ param(
 )
 $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-function Fail([string]$Message) { throw "Pure Tokens Skill download: $Message" }
+$script:installStage = "arguments"
+function Fail([string]$Message) {
+  if (-not $Message.StartsWith("stage=")) {
+    $Message = "stage=$script:installStage error_code=validation_failed installation_status=not_completed installed_files_changed=false next_step=review_installation_failure; $Message"
+  }
+  $exception = New-Object System.InvalidOperationException("Pure Tokens Skill download: $Message")
+  $exception.Data["puretokens_receipt"] = $true
+  throw $exception
+}
 function Read-Json([string]$File) { return (Get-Content -LiteralPath $File -Raw -Encoding UTF8 | ConvertFrom-Json) }
 function Get-CurrentHost {
   # Query only the direct launcher chain's names and parent IDs. Never read
@@ -28,6 +36,9 @@ function Get-CurrentHost {
     switch ($process.Name.ToLowerInvariant()) {
       "codex.exe" { return "codex" }
       "opencode.exe" { return "opencode" }
+      "grok.exe" { return "grok-build" }
+      "qodercli.exe" { return "qoder" }
+      "qoder.exe" { return "qoder" }
       { $_ -in @("powershell.exe", "pwsh.exe", "cmd.exe", "bash.exe", "sh.exe") } {}
       default { $candidatePid = 0 }
     }
@@ -35,18 +46,6 @@ function Get-CurrentHost {
     $candidatePid = $process.ParentProcessId
   }
   Fail "stage=detect_host error_code=current_host_unconfirmed installation_status=not_started installed_files_changed=false next_step=confirm_current_client; confirm this client's host ID and run once with -Host <id>. Supported IDs: claude-code, codex, workbuddy, gemini-cli, grok-build, opencode, trae, claude-desktop, dsh-desktop, deepseek-harness, minimax-code, zcode, kimi-code, qoder, pi, hermes, evox, vscode, octop. No network request or installation write was made."
-}
-if ($Command -eq "detect-host") {
-  if ($HostId -or $Target) { Fail "detect-host takes no host or target options" }
-  Get-CurrentHost
-  return
-}
-if (-not $HostId -and -not $Target) {
-  $HostId = Get-CurrentHost
-  Write-Output "Pure Tokens Skills current client: $HostId (detected)."
-}
-if ($HostId -eq "octop" -and -not $Target) {
-  Fail "stage=select_target error_code=workspace_target_required installation_status=not_started installed_files_changed=false next_step=confirm_workspace_target; confirm the current Octop workspace and run once with -Host octop -Target <absolute-workspace>/.octop/skills. No network request or installation write was made."
 }
 function Get-OfficialFile([string]$Url, [string]$Destination, [string]$Stage) {
   $status = 0
@@ -111,13 +110,31 @@ function Get-OfficialFile([string]$Url, [string]$Destination, [string]$Stage) {
   }
   Fail "stage=$Stage error_code=$category http_status=$status installation_status=not_completed installed_files_changed=false next_step=$nextStep; $guidance Installed files were not changed. After resolving the issue and explicitly choosing to continue, run the same official fetch command once; no automatic retry."
 }
-$locationOptions = @{}
-if ($HostId) { $locationOptions.HostId = $HostId }
-if ($Target) { $locationOptions.Target = $Target }
-$downloadRoot = Join-Path ([IO.Path]::GetTempPath()) ("puretokens-download-" + [Guid]::NewGuid().ToString("N"))
+$downloadRoot = $null
+$delegated = $false
 try {
+  $script:installStage = "detect_host"
+  # Keep selection in this script's scope so confirmed values reach sync/init.
+  if ($Command -eq "detect-host") {
+    if ($HostId -or $Target) { Fail "detect-host takes no host or target options" }
+    Get-CurrentHost
+    return
+  }
+  if (-not $HostId -and -not $Target) {
+    $HostId = Get-CurrentHost
+    Write-Output "Pure Tokens Skills current client: $HostId (detected)."
+  }
+  if ($HostId -eq "octop" -and -not $Target) {
+    Fail "stage=select_target error_code=workspace_target_required installation_status=not_started installed_files_changed=false next_step=confirm_workspace_target; confirm the current Octop workspace and run once with -Host octop -Target <absolute-workspace>/.octop/skills. No network request or installation write was made."
+  }
+  $locationOptions = @{}
+  if ($HostId) { $locationOptions.HostId = $HostId }
+  if ($Target) { $locationOptions.Target = $Target }
+  $script:installStage = "prepare_download"
+  $downloadRoot = Join-Path ([IO.Path]::GetTempPath()) ("puretokens-download-" + [Guid]::NewGuid().ToString("N"))
   New-Item -ItemType Directory -Path $downloadRoot | Out-Null
   $releaseFile = Join-Path $downloadRoot "release.json"
+  $script:installStage = "read_release_manifest"
   $null = Get-OfficialFile "https://github.com/puretokensx/puretokens-skill/releases/latest/download/release-manifest.json" $releaseFile read_release_manifest
   try { $release = Read-Json $releaseFile } catch { Fail "the stable release manifest is unreadable" }
   if ($release.schemaVersion -ne 2) { Fail "the stable release manifest format is unsupported; no source fallback" }
@@ -129,8 +146,10 @@ try {
   $selector = $release.installers.powershell
   if ($null -eq $selector -or $selector.filename -cne "puretokens-skill-install.ps1" -or $selector.sha256 -cnotmatch '^[0-9a-f]{64}$') { Fail "the stable directory selector is invalid" }
   $locationInstaller = Join-Path $downloadRoot "puretokens-skill-install.ps1"
+  $script:installStage = "download_selector"
   $null = Get-OfficialFile "$releaseOrigin/$($selector.filename)" $locationInstaller download_selector
   if ((Get-FileHash -LiteralPath $locationInstaller -Algorithm SHA256).Hash.ToLowerInvariant() -cne $selector.sha256) { Fail "stable directory selector checksum mismatch" }
+  $script:installStage = "select_target"
   $Target = & $locationInstaller locate @locationOptions
   $installedVersion = "not_installed"
   $installedFile = Join-Path $Target ".puretokens-executor/runtime.json"
@@ -152,6 +171,7 @@ try {
   $artifact = $release.files.PSObject.Properties[$platform].Value
   if ($null -eq $artifact -or $artifact.filename -cne "puretokens-skill-$availableVersion-$platform.zip" -or $artifact.sha256 -cnotmatch '^[0-9a-f]{64}$' -or $artifact.executorSha256 -cnotmatch '^[0-9a-f]{64}$') { Fail "published platform metadata is invalid" }
   if ($installedVersion -eq $availableVersion -and $Command -ne "repair") {
+    $script:installStage = "verify_installed"
     $executor = Join-Path $Target ".puretokens-executor/puretokens-api.exe"
     if (-not (Test-Path -LiteralPath $executor -PathType Leaf) -or ((Get-Item -LiteralPath $executor).Attributes -band [IO.FileAttributes]::ReparsePoint)) { Fail "installed executor is missing or unsupported; existing files were preserved" }
     if ((Get-FileHash -LiteralPath $executor -Algorithm SHA256).Hash.ToLowerInvariant() -cne $artifact.executorSha256) { Fail "installed executor checksum mismatch; existing files were preserved" }
@@ -162,8 +182,10 @@ try {
     Write-Output "Pure Tokens Skills $availableVersion are already current and verified; no archive downloaded, no files changed, init not run."
     return
   }
+  $script:installStage = "download_platform_archive"
   $null = Get-OfficialFile "$releaseOrigin/$($artifact.filename)" $archive download_platform_archive
   if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant() -cne $artifact.sha256) { Fail "published platform archive checksum mismatch" }
+  $script:installStage = "verify_archive"
   $archiveRoot = "puretokens-skill"
   Add-Type -AssemblyName System.IO.Compression.FileSystem
   $zip = [IO.Compression.ZipFile]::OpenRead($archive)
@@ -174,7 +196,9 @@ try {
     }
   } finally { $zip.Dispose() }
   $unpacked = Join-Path $downloadRoot "unpacked"
+  $script:installStage = "extract_archive"
   [IO.Compression.ZipFile]::ExtractToDirectory($archive, $unpacked)
+  $script:installStage = "verify_archive"
   $sourceRoot = Join-Path $unpacked $archiveRoot
   if ((Read-Json (Join-Path $sourceRoot "package.json")).version -ne $availableVersion) { Fail "the archive version does not match the stable release" }
   if ((Get-FileHash -LiteralPath (Join-Path $sourceRoot "runtime/puretokens-skill-install.ps1") -Algorithm SHA256).Hash.ToLowerInvariant() -cne $selector.sha256) { Fail "archive selector does not match the stable release" }
@@ -183,10 +207,31 @@ try {
   if ($Command -ne "repair") { $syncOptions.NoRecovery = $true }
   if ($HostId) { $syncOptions.HostId = $HostId }
   $syncCommand = if ($Command -eq "repair") { "repair" } else { "sync" }
+  $script:installStage = "sync"
+  $delegated = $true
   & (Join-Path $sourceRoot "runtime/puretokens-skill-install.ps1") $syncCommand @syncOptions
+} catch {
+  if ($_.Exception.Data["puretokens_receipt"]) { throw }
+  $category = "local_operation_failed"
+  $next = "review_local_access"
+  if ($_.Exception -is [System.UnauthorizedAccessException] -or $_.CategoryInfo.Category -eq "PermissionDenied") {
+    $category = "local_access_denied"
+    $next = "review_host_permissions"
+  } elseif ($_.Exception -is [System.IO.IOException]) {
+    $category = "local_io_failure"
+    $next = "review_download_directory_permissions"
+  }
+  $state = if ($delegated) { "unconfirmed" } else { "not_completed" }
+  if ($script:installStage -eq "prepare_download") {
+    $state = "not_started"
+    $next = "review_download_directory_permissions"
+  }
+  $changed = if ($delegated) { "unknown" } else { "false" }
+  Fail "stage=$script:installStage error_code=$category installation_status=$state installed_files_changed=$changed next_step=$next; a local operation could not complete. Check current-session command/directory access, file locks and available disk space; the exact cause is unconfirmed. No automatic retry."
 } finally {
-  if (Test-Path -LiteralPath $downloadRoot) {
-    try { Remove-Item -LiteralPath $downloadRoot -Recurse -Force -ErrorAction Stop }
-    catch { Write-Output "cleanup_status: pending; download temporary files were retained. Preserve the preceding install result; do not bypass host cleanup restrictions." }
+  if ($downloadRoot) {
+    try {
+      if (Test-Path -LiteralPath $downloadRoot) { Remove-Item -LiteralPath $downloadRoot -Recurse -Force -ErrorAction Stop }
+    } catch { Write-Output "cleanup_status: pending; download temporary files were retained. Preserve the preceding install result; do not bypass host cleanup restrictions." }
   }
 }

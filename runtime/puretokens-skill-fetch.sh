@@ -3,7 +3,35 @@
 set -eu
 umask 077
 
-fail() { printf '%s\n' "Pure Tokens Skill download: $*" >&2; exit 1; }
+stage=arguments
+failure_reported=false
+download_root=
+fail() {
+  failure_reported=true
+  case "$*" in
+    stage=*) printf '%s\n' "Pure Tokens Skill download: $*" >&2 ;;
+    *) printf '%s\n' "Pure Tokens Skill download: stage=$stage error_code=validation_failed installation_status=not_completed installed_files_changed=false next_step=review_installation_failure; $*" >&2 ;;
+  esac
+  exit 1
+}
+finish_download() {
+  result=$?
+  trap - EXIT HUP INT TERM
+  if [ "$result" -ne 0 ] && [ "$failure_reported" = false ]; then
+    state=not_completed
+    changed=false
+    if [ "$stage" = sync ]; then state=unconfirmed; changed=unknown; fi
+    printf '%s\n' "Pure Tokens Skill download: stage=$stage error_code=local_operation_failed installation_status=$state installed_files_changed=$changed next_step=review_local_access; a local operation could not complete. Check available disk space and current-session command/directory access; the exact cause is unconfirmed. No automatic retry." >&2
+  fi
+  if [ -n "$download_root" ] && ! rm -rf -- "$download_root" 2>/dev/null; then
+    printf '%s\n' "cleanup_status: pending; download temporary files were retained. Preserve the preceding install result; do not bypass host cleanup restrictions."
+  fi
+  exit "$result"
+}
+trap finish_download EXIT
+trap 'exit 130' INT
+trap 'exit 129' HUP
+trap 'exit 143' TERM
 detect_current_host() {
   # Inspect only the direct launcher chain, never arguments, configuration,
   # directory presence or inherited session markers. An unknown launcher is
@@ -20,6 +48,8 @@ EOF
     case "${executable##*/}" in
       codex) printf '%s\n' codex; return 0 ;;
       opencode) printf '%s\n' opencode; return 0 ;;
+      grok) printf '%s\n' grok-build; return 0 ;;
+      qoder|qodercli) printf '%s\n' qoder; return 0 ;;
       sh|bash|zsh|dash|ksh|fish|pwsh) ;;
       *) break ;;
     esac
@@ -42,24 +72,25 @@ while [ "$#" -gt 0 ]; do
 done
 if [ "$command_name" = detect-host ]; then
   [ -z "$host$target" ] || fail "detect-host takes no host or target options"
+  stage=detect_host
   detect_current_host
   exit 0
 fi
 if [ -z "$host" ] && [ -z "$target" ]; then
-  host=$(detect_current_host) || exit 1
+  stage=detect_host
+  host=$(detect_current_host) || { failure_reported=true; exit 1; }
   printf '%s\n' "Pure Tokens Skills current client: $host (detected)."
 fi
 if [ "$host" = octop ] && [ -z "$target" ]; then
   fail "stage=select_target error_code=workspace_target_required installation_status=not_started installed_files_changed=false next_step=confirm_workspace_target; confirm the current Octop workspace and run once with --host octop --target <absolute-workspace>/.octop/skills. No network request or installation write was made."
 fi
 command -v curl >/dev/null 2>&1 || fail "curl is unavailable; use a host session with native HTTPS download support"
-download_root=$(mktemp -d "${TMPDIR:-/tmp}/puretokens-download.XXXXXX") || fail "cannot create a private download directory"
-trap 'rm -rf -- "$download_root"' EXIT
-trap 'exit 130' INT
-trap 'exit 129' HUP
-trap 'exit 143' TERM
+stage=prepare_download
+download_root=$(mktemp -d "${TMPDIR:-/tmp}/puretokens-download.XXXXXX" 2>/dev/null) ||
+  fail "stage=$stage error_code=local_io_failure installation_status=not_started installed_files_changed=false next_step=review_download_directory_permissions; cannot create the private download directory. Check available disk space and temporary-directory write permission."
 
 download() {
+  stage=$3
   # URLs are constructed below from fixed official origins and validated IDs.
   download_exit=0
   download_status=$(curl --silent --show-error --location --proto '=https' --proto-redir '=https' --tlsv1.2 --connect-timeout 15 --max-time 180 \
@@ -78,15 +109,33 @@ download() {
   elif [ "$download_status" != 200 ]; then
     download_error=http_error
   fi
-  [ -z "$download_error" ] || fail "stage=$3 error_code=$download_error http_status=$download_status installation_status=not_completed installed_files_changed=false; the official source download failed; no installed files were changed; no automatic retry"
+  if [ -n "$download_error" ]; then
+    next_step=review_download_failure
+    [ "$download_error" != local_io_failure ] || next_step=review_download_directory_permissions
+    fail "stage=$3 error_code=$download_error http_status=$download_status installation_status=not_completed installed_files_changed=false next_step=$next_step; the official source download failed. For local I/O failures, check temporary-directory write permission and available disk space. No installed files were changed; no automatic retry."
+  fi
 }
-json_string() { sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" "$1" | sed -n '1p'; }
-json_number() { sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*\\([0-9][0-9]*\\)[[:space:]]*[,}]*[[:space:]]*$/\\1/p" "$1" | sed -n '1p'; }
+json_string() { sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" "$1" 2>/dev/null | sed -n '1p'; }
+json_number() { sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*\\([0-9][0-9]*\\)[[:space:]]*[,}]*[[:space:]]*$/\\1/p" "$1" 2>/dev/null | sed -n '1p'; }
 version_valid() { printf '%s\n' "$1" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; }
 sha256_file() {
-  if command -v shasum >/dev/null 2>&1; then shasum -a 256 "$1" | awk '{print $1}'
-  elif command -v sha256sum >/dev/null 2>&1; then sha256sum "$1" | awk '{print $1}'
+  if command -v shasum >/dev/null 2>&1; then shasum -a 256 "$1" 2>/dev/null | awk '{print $1}'
+  elif command -v sha256sum >/dev/null 2>&1; then sha256sum "$1" 2>/dev/null | awk '{print $1}'
   else fail "SHA-256 verification is unavailable"; fi
+}
+run_installer() {
+  installer_status=0
+  { sh "$@" 2>"$download_root/installer-error"; } 2>/dev/null || installer_status=$?
+  [ "$installer_status" -ne 0 ] || return 0
+  if grep -q '^Pure Tokens Skill installer: stage=' "$download_root/installer-error" 2>/dev/null; then
+    # Forward only reviewed receipt lines, never raw command errors or paths.
+    sed -n '/^Pure Tokens Skill installer: stage=/p; /^recovery_status=/p' "$download_root/installer-error" >&2 2>/dev/null
+    return "$installer_status"
+  fi
+  state=not_completed
+  changed=false
+  if [ "$stage" = sync ]; then state=unconfirmed; changed=unknown; fi
+  fail "stage=$stage error_code=installer_unavailable installation_status=$state installed_files_changed=$changed next_step=review_host_execution_permissions; the installer did not return a usable failure receipt. Check current-session execution permissions; the exact cause is unconfirmed. No automatic retry."
 }
 
 download 'https://github.com/puretokensx/puretokens-skill/releases/latest/download/release-manifest.json' "$download_root/release.json" read_release_manifest
@@ -107,7 +156,8 @@ download "$release_origin/$selector_name" "$location_installer" download_selecto
 set -- locate
 [ -z "$host" ] || set -- "$@" --host "$host"
 [ -z "$target" ] || set -- "$@" --target "$target"
-target=$(sh "$location_installer" "$@") || exit 1
+stage=select_target
+target=$(run_installer "$location_installer" "$@") || { failure_reported=true; exit 1; }
 installed_version=not_installed
 if [ -f "$target/.puretokens-executor/runtime.json" ]; then
   if [ "$(json_string "$target/.puretokens-executor/runtime.json" name)" = puretokens-api-executor ]; then
@@ -143,7 +193,8 @@ if [ "$installed_version" = "$available_version" ] && [ "$command_name" != repai
   [ "$(json_string "$target/.puretokens-executor/runtime.json" platform)" = "$platform" ] || fail "installed platform does not match; existing files were preserved"
   set -- verify-installed --target "$target" --release-manifest "$download_root/release.json"
   [ -z "$host" ] || set -- "$@" --host "$host"
-  sh "$location_installer" "$@" || exit 1
+  stage=verify_installed
+  run_installer "$location_installer" "$@" || { failure_reported=true; exit 1; }
   printf '%s\n' "Pure Tokens Skills $available_version are already current and verified; no archive downloaded, no files changed, init not run."
   exit 0
 fi
@@ -151,6 +202,7 @@ command -v unzip >/dev/null 2>&1 || fail "ZIP extraction is unavailable; use a h
 download "$release_origin/$filename" "$download_root/source.zip" download_platform_archive
 [ "$(sha256_file "$download_root/source.zip")" = "$checksum" ] || fail "published platform archive checksum mismatch"
 archive_root=puretokens-skill
+stage=verify_archive
 
 # Reject escaping paths, unexpected archive roots and symlinks before extraction.
 unzip -Z1 "$download_root/source.zip" > "$download_root/entries" 2>/dev/null || fail "the archive is unreadable"
@@ -160,8 +212,10 @@ awk -v root="$archive_root/" '
 ' "$download_root/entries" || fail "the archive contains an unsafe path"
 unzip -Z -l "$download_root/source.zip" > "$download_root/archive-info" 2>/dev/null || fail "the archive cannot be inspected"
 if awk '$1 ~ /^l/ {found=1} END {exit !found}' "$download_root/archive-info"; then fail "archive symlinks are unsupported"; fi
-mkdir "$download_root/unpacked"
-unzip -q "$download_root/source.zip" -d "$download_root/unpacked" || fail "the archive could not be extracted"
+stage=extract_archive
+mkdir "$download_root/unpacked" 2>/dev/null
+unzip -q "$download_root/source.zip" -d "$download_root/unpacked" 2>/dev/null || fail "the archive could not be extracted; check available disk space and temporary-directory write permission"
+stage=verify_archive
 source_root="$download_root/unpacked/$archive_root"
 [ "$(json_string "$source_root/package.json" version)" = "$available_version" ] || fail "the archive version does not match the stable release"
 [ "$(sha256_file "$source_root/runtime/puretokens-skill-install.sh")" = "$selector_checksum" ] || fail "archive selector does not match the stable release"
@@ -171,4 +225,5 @@ sync_command=sync
 set -- "$sync_command" --source "$source_root" --target "$target"
 [ "$command_name" = repair ] || set -- "$@" --no-recovery
 [ -z "$host" ] || set -- "$@" --host "$host"
-sh "$source_root/runtime/puretokens-skill-install.sh" "$@"
+stage=sync
+run_installer "$source_root/runtime/puretokens-skill-install.sh" "$@" || { failure_reported=true; exit 1; }

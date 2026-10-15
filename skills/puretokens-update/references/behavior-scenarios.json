@@ -31,7 +31,7 @@
     {
       "id": "update-automatic-host-detection",
       "when": "the user requests installation without an already confirmed client or custom target",
-      "then": "Run the official fetch install without host/target parameters. The script chooses the OS and architecture and inspects at most eight direct launcher names and parent IDs, accepting only native codex/opencode launchers and stopping at unknown interpreters or editors. Preserve explicit choices instead of detecting again. detect-host is offline and read-only, never a routine generation preflight; it proves neither credentials, the selected chat model, API acceptance nor attachment delivery."
+      "then": "Reuse the current application's or user's confirmed host explicitly without asking again. Otherwise run the official fetch install without host/target parameters. It chooses OS and architecture and inspects at most eight direct launcher names and parent IDs, accepting native codex/opencode/grok/qoder or qodercli (corresponding .exe on Windows) as codex/opencode/grok-build/qoder. Stop at unknown interpreters or ambiguous editors/Claude/DSH launchers rather than borrowing an outer host. Other supported hosts use an explicit confirmed ID. detect-host is offline and read-only, never a routine generation preflight; it proves neither credentials, the selected chat model, API acceptance nor attachment delivery."
     },
     {
       "id": "update-workspace-target-required",
@@ -126,7 +126,12 @@
     {
       "id": "install-host-launch-failure",
       "when": "official installation cannot launch the executor, capture output or finish within its timeout",
-      "then": "Stop and report completed stages and the sanitized failure. Do not create probes, shims, Python patches, modify official scripts, switch launch mechanisms, run doctor repeatedly or resubmit installation automatically. Required host approvals remain required."
+      "then": "Report the sanitized stage and stop further automatic checks. If synchronization already committed, keep installation_status=completed and report init_status=unverified for launch, timeout or output-capture failure; never roll back or relabel the install as failed. Before commit report the actual incomplete state. Do not create probes, shims, Python patches, modify official scripts, switch launch mechanisms, run doctor repeatedly or resubmit installation automatically. Required host approvals remain required."
+    },
+    {
+      "id": "install-local-write-failure",
+      "when": "temporary-directory creation, target creation, staging copies or replacement of managed files fails",
+      "then": "Preserve stage, error_code, installation_status, installed_files_changed and next_step. Suppress raw command errors and private exception messages. Suggest relevant directory permissions, file locks and available disk space without claiming an unproven cause. Before managed replacements files remain unchanged; after replacement starts state is unknown until verified transaction recovery explicitly reports restored. Incomplete recovery retains transaction files and requires explicit diagnosis, with no automatic reinstall, retry, elevation or permission changes."
     }
   ]
 }

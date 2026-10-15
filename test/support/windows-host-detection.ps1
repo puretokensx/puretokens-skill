@@ -7,6 +7,13 @@ $global:ptHostDetectionFixture = @{
   Requests = New-Object 'System.Collections.Generic.List[string]'
   Launcher = "codex.exe"; OuterLauncher = "codex.exe"; Mode = "valid"
   Root = $null; HostId = $null; Target = $null
+  DenyTempWrite = $false
+}
+function New-Item {
+  [CmdletBinding()]
+  param($Path, $ItemType, [switch]$Force)
+  if ($global:ptHostDetectionFixture.DenyTempWrite) { throw [UnauthorizedAccessException]::new("private-directory-error") }
+  Microsoft.PowerShell.Management\New-Item @PSBoundParameters
 }
 function Get-CimInstance {
   param($ClassName, $Filter, $Property, $ErrorAction)
@@ -50,14 +57,17 @@ try {
   if (-not $rejected -or $state.Queries.Count -ne 0 -or $state.Requests.Count -ne 0) { throw "Missing workspace was not confirmed before downloads or detection" }
   foreach ($case in @(
     @{ Name = "codex.exe"; Host = "codex" },
-    @{ Name = "opencode.exe"; Host = "opencode" }
+    @{ Name = "opencode.exe"; Host = "opencode" },
+    @{ Name = "grok.exe"; Host = "grok-build" },
+    @{ Name = "qodercli.exe"; Host = "qoder" },
+    @{ Name = "qoder.exe"; Host = "qoder" }
   )) {
     $state.Launcher = $case.Name
     $state.Queries.Clear()
     $result = & $fetch detect-host
     if ($result -cne $case.Host -or $state.Queries.Count -ne 2) { throw "Direct native launcher was not detected" }
   }
-  foreach ($name in @("node.exe", "python.exe", "Code.exe", "claude.exe")) {
+  foreach ($name in @("node.exe", "python.exe", "Code.exe", "claude.exe", "dsh.exe", "pi.exe", "hermes.exe")) {
     $state.Launcher = $name
     $state.Queries.Clear()
     $rejected = $false
@@ -86,6 +96,19 @@ try {
     if (-not $rejected -or $state.Queries.Count -ne 1) { throw "Unavailable process evidence did not stop safely" }
   }
   if ($state.Requests.Count -ne 0) { throw "Unconfirmed host attempted a release download" }
+  $state.Mode = "valid"
+  $state.Launcher = "codex.exe"
+  $state.DenyTempWrite = $true
+  $rejected = $false
+  try { & $fetch install | Out-Null }
+  catch {
+    $rejected = $_.Exception.Message -like "*stage=prepare_download error_code=local_access_denied*" -and
+      $_.Exception.Message -like "*installation_status=not_started installed_files_changed=false*" -and
+      $_.Exception.Message -like "*next_step=review_download_directory_permissions*" -and
+      $_.Exception.Message -notlike "*private-directory-error*"
+  }
+  $state.DenyTempWrite = $false
+  if (-not $rejected -or $state.Requests.Count -ne 0) { throw "Temporary-directory denial was not reported before downloading" }
   $state.Mode = "valid"
   $state.Root = Join-Path ([IO.Path]::GetTempPath()) ("pt-host-detection-" + [Guid]::NewGuid().ToString("N"))
   $state.Target = Join-Path $state.Root "target"

@@ -22,7 +22,9 @@
 | 同步中断、命令超时或输出不确定 | 安装状态未确认 | 用户另行授权诊断本地版本、受管清单和未完成事务；不自动重跑，不把 doctor 当完整性校验 |
 | 同版完整性检查成功 | 已是当前稳定版且文件完整 | 不下载、不写入、不补 init；需要加载时新开对话 |
 
-简短官方提示词仅提供安装意图、稳定 fetch 地址、入口文件及 install 子命令；首次所需下载就是稳定发布入口，不先请求 README、raw.githubusercontent.com 或其他远程说明。系统、架构和默认目录由脚本解析。新版 fetch 在未传 host／target 时先离线尝试识别明确的原生 Codex／OpenCode；通用解释器、编辑器或模糊进程不作为证据。识别失败或旧版要求 host 时，只确认缺失客户端后显式执行一次，不属于失败下载的重试。已有自定义目标仍沿用；Octop 缺少工作区目标时由入口返回 confirm_workspace_target，MiniMax Desktop 要求确认运行目录时不猜路径。只给仓库地址的一句话入口仍依赖文档可达性。
+简短官方提示词仅提供安装意图、稳定 fetch 地址、入口文件及 install 子命令；首次所需下载就是稳定发布入口，不先请求 README、raw.githubusercontent.com 或其他远程说明。系统、架构和默认目录由脚本解析。当前应用或用户已确认宿主时直接显式沿用，不要求用户重复选择。尚无 host／target 时先离线尝试识别明确的原生 codex、opencode、grok、qoder／qodercli（Windows 对应 .exe），分别映射到 Codex、OpenCode、Grok Build、Qoder；通用解释器、编辑器或模糊进程不作为证据。识别失败或旧版要求 host 时，只确认缺失客户端后显式执行一次，不属于失败下载的重试。已有自定义目标仍沿用；Octop 缺少工作区目标时由入口返回 confirm_workspace_target，MiniMax Desktop 要求确认运行目录时不猜路径。只给仓库地址的一句话入口仍依赖文档可达性。
+
+自动识别不覆盖所有已支持客户端。Claude Code／Desktop 使用有歧义的 Claude 启动器时不能互猜；WorkBuddy、Gemini CLI、Trae、DSH Desktop、DeepSeek Harness、MiniMax Code、ZCode、Kimi Code、Pi、Hermes、EvoX、VS Code、Octop 如仅能看到通用解释器或编辑器，则沿用当前应用的明确身份，否则确认一次。目录存在、会话标记和外层进程均不替代证据。
 
 文档读取失败和发布附件下载失败是不同阶段；不能把一次文档连接中断定性为 Key、权限、证书或整个 GitHub 的问题。旧流程已经停止时不自动恢复，只在用户明确继续后执行上述官方入口；不是镜像、main 源码或其他传输兜底。真实宿主拒绝、入口或发布附件失败仍按原规则停止。
 
@@ -44,6 +46,14 @@ bootstrap 下载发生在 fetch 启动之前，其异常无法由尚未下载的
 
 下载回执的 http_status=0 表示没有可报告的 HTTP 状态。host 权限状态不能由下载脚本自行确认；它只提供检查建议，不宣称已检查 UI、授权期限或策略。Full Access 不是默认安装要求；不改变证书、代理、账号、系统权限或使用其他工具绕过失败。
 
+## 本地写入、同步与初始化回执
+
+Shell／PowerShell 安装器为本地失败提供 stage、error_code、installation_status、installed_files_changed 和 next_step，不输出原始命令错误或异常。典型阶段为 prepare_download、prepare_target、acquire_lock、stage_files、replace_files、verify_synced；local_io_failure／local_operation_failed 不能单独证明权限被拒，typed local_access_denied 才表示捕获到访问拒绝。建议检查对应目录访问权限、文件占用及可用磁盘空间，不自动修改权限。
+
+写入前失败时 installed_files_changed=false；替换开始后状态先为 unknown。只有事务恢复明确成功并返回 recovery_status=restored，才可说明原受管文件已恢复。incomplete 保留事务及未知文件，下一步是显式诊断；不要自动再装。清理失败仍单独报告 cleanup_status=pending，不改变已提交安装结果。
+
+同步提交后返回 installation_status=completed。自动 init 单独返回 verified／unverified／deferred；执行器无法启动、超时或无法捕获输出仍是“安装完成，连接未验证”，不抛回同步恢复，不自动重装。verified 要求进程成功且回执同时确认身份和凭据；缺失证据不得当成成功。同版完整性快速返回不运行 init。bootstrap 启动前的宿主拒绝仍须由宿主报告，安装器不能捕获尚未运行时的错误。
+
 ## 用户明确继续后的行为
 
 1. 复用已有失败阶段和授权结果作为诊断证据。只在用户已处理阻塞并明确要求继续后，恢复对应阶段；不后台等待或自动重试。授权必须仍覆盖当前会话／轮次／动作；本轮授权不能跨轮复用。授权过期时按宿主要求重新审批，不能因为历史获批跳过审批；同一有效或已拒绝的申请不循环提交。
@@ -58,7 +68,9 @@ bootstrap 下载发生在 fetch 启动之前，其异常无法由尚未下载的
 
 Use host-reported command, HTTPS, temporary-directory and target-directory permissions; unknown means unknown, not denied. Proceed with normal required commands and native approval when there is no explicit block, without extra probes. Network approval is not proof of every execution permission. Use only the current client's available approval controls. Reuse old outcomes as evidence, not as an expired grant: a turn-scoped permission must cover the current turn or be approved again. Full Access is not a default requirement, and a Windows security-context error is not an API-key rejection or proof of a client defect.
 
-The complete prompts include the stable fetch address and commands, without a README or raw.githubusercontent.com prerequisite. Fetch selects the OS, architecture and default directory. New fetch versions attempt offline detection of direct native Codex/OpenCode launchers when no host/target is supplied; uncertain evidence or an older entry requires one explicit client selection. Preserve confirmed choices. A documentation failure does not establish release-asset failure. If an older prompt already stopped at documentation, explicit user continuation allows one direct stable-fetch attempt, respecting host approvals; do not retry documentation, a denied action or a failed release download.
+The complete prompts include the stable fetch address and commands, without a README or raw.githubusercontent.com prerequisite. Fetch selects the OS, architecture and default directory. New fetch versions recognize direct native codex, opencode, grok and qoder/qodercli launchers (the corresponding .exe names on Windows) when no host/target is supplied; uncertain evidence or an older entry requires one explicit client selection. Reuse a host already confirmed by the current application or user. A documentation failure does not establish release-asset failure. If an older prompt already stopped at documentation, explicit user continuation allows one direct stable-fetch attempt, respecting host approvals; do not retry documentation, a denied action or a failed release download.
+
+Local failures include the phase, safe category, installation state, whether managed files changed, and a next step. Unknown file state stays unknown until verified recovery reports restored; incomplete recovery preserves the transaction for explicit diagnosis. A committed synchronization remains completed when native init cannot launch or capture output: report init as unverified without reinstalling. Full Access is never a blanket remedy.
 
 Report the last confirmed phase. Before fetch starts, installation has not started; only a verified fetch receipt can establish that installed files were preserved. After the user resolves the blocker and explicitly continues, run the same official workflow once on the same host, with fresh manifest/checksum verification and no partial-download reuse. If sync succeeded and only init failed, run init alone only when connection verification is explicitly requested. Unknown sync output requires separate local diagnosis, not reinstall. No automatic retries, permission changes, alternate transport or paid submissions.
 
@@ -67,3 +79,6 @@ Report the last confirmed phase. Before fetch starts, installation has not start
 - Microsoft Windows Sockets error codes：`https://learn.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2`
 - Microsoft security error codes：`https://learn.microsoft.com/en-us/windows/win32/com/com-error-codes-4`
 - OpenAI Windows sandbox：`https://openai.com/index/building-codex-windows-sandbox/`
+
+- Grok CLI reference（启动命令）：`https://docs.x.ai/build/cli/reference.md`
+- Qoder CLI installation（qoder 命令及原生安装）：`https://docs.qoder.com/cli/installation.md`；官方原生安装脚本 `https://qoder.com/install` 与 `https://qoder.com/install.ps1` 使用 qodercli bootstrap。只识别进程名，不运行这些外部安装器。

@@ -26,6 +26,8 @@ try {
       $actualProcess = & $command.Source -NoProfile -Command '[Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture.ToString()'
       if ($LASTEXITCODE -ne 0 -or $actualProcess -ne 'X86') { throw "SysWOW64 fixture did not execute a 32-bit PowerShell process" }
     }
+    & $command.Source -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repository 'test/support/installer-local-failures.ps1')
+    if ($LASTEXITCODE -ne 0) { throw "$engine local failure regression" }
     foreach ($newHost in @('kimi-code', 'qoder', 'pi', 'hermes', 'evox', 'deepseek-harness', 'minimax-code')) {
       $variable = switch ($newHost) { 'kimi-code' { 'KIMI_CODE_HOME' }; 'qoder' { 'QODER_CONFIG_DIR' }; 'pi' { 'PI_CODING_AGENT_DIR' }; 'hermes' { 'HERMES_HOME' }; 'evox' { 'EVOX_AGENT_DIR' }; 'deepseek-harness' { 'DSH_HOME' }; 'minimax-code' { 'MINIMAX_DATA_DIR' } }
       $hostRoot = Join-Path $root ("$newHost $engine " + [char]0x7528 + [char]0x6237 + " spaces")

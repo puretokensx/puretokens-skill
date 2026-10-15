@@ -1,6 +1,6 @@
 {
   "name": "puretokens-skill",
-  "version": "0.19.2",
+  "version": "0.19.3",
   "description": "Installable Pure Tokens skills and skill management tooling.",
   "private": true,
   "type": "module",

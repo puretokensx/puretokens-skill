@@ -4,6 +4,13 @@
 
 # Changelog
 
+## 0.19.3 - 2026-10-15
+
+- Extend bounded host detection to native Grok Build and Qoder CLI launchers. Preserve confirmed clients; ambiguous launchers require one explicit selection.
+- Report sanitized local download/write/sync failures with their phase, installation state and next step; distinguish verified transaction recovery from unknown file state.
+- Keep committed installation successful when init cannot launch, times out or cannot capture output. Accept verification only with successful identity and credential evidence.
+- Keep installation prompts short and synchronize update instructions, contracts and offline Shell/PowerShell regression coverage.
+
 ## 0.19.2 - 2026-10-15
 
 - Reduce the copyable installation prompts to three lines containing only the task, official stable entry and install operation. Keep client/platform selection, verification, initialization and failure guidance in the installer and installed instructions.

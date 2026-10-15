@@ -201,6 +201,38 @@ test("download wrapper installs only the verified stable platform package", asyn
   assert.deepEqual(await readdir(path.join(f.root, "tmp")), []);
 });
 
+test("an unavailable child installer reports safe state without exposing shell errors or retrying", async t => {
+  const f = await fixture(t);
+  const env = await mockDownloads(f);
+  await mkdir(f.target);
+  await writeFile(path.join(f.target, "sentinel"), "keep");
+  const launcher = path.join(f.root, "tools/sh");
+  await writeFile(launcher, `#!/bin/sh
+if [ "$2" = "$PT_REJECT_INSTALLER_COMMAND" ]; then
+  printf 'private-execution-error %s\\n' "$1" >&2
+  exit 126
+fi
+exec /bin/sh "$@"
+`);
+  await chmod(launcher, 0o700);
+  for (const [command, phase, state, changed, count] of [
+    ["locate", "select_target", "not_completed", "false", 2],
+    ["sync", "sync", "unconfirmed", "unknown", 3]
+  ]) {
+    await writeFile(path.join(f.root, "requests"), "");
+    await assert.rejects(execFile("/bin/sh", [path.join(f.source, "runtime/puretokens-skill-fetch.sh"), "install", "--target", f.target], {
+      env: { ...env, PT_REJECT_INSTALLER_COMMAND: command }
+    }), error => {
+      assert.match(error.stderr, new RegExp(`stage=${phase} error_code=installer_unavailable installation_status=${state} installed_files_changed=${changed}`));
+      assert.match(error.stderr, /next_step=review_host_execution_permissions/);
+      assert.doesNotMatch(error.stderr, /private-execution-error|puretokens-download\./);
+      return true;
+    });
+    assert.equal((await readFile(path.join(f.root, "requests"), "utf8")).trim().split("\n").length, count);
+    assert.deepEqual(await readdir(f.target), ["sentinel"]);
+  }
+});
+
 test("published checksum mismatch stops before target mutation", async t => {
   const f = await fixture(t);
   const env = await mockDownloads(f, "bad-checksum");

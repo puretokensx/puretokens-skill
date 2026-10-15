@@ -15,11 +15,13 @@ description: 用户询问 Pure Tokens 是什么、有什么用、怎么开始、
 
 直接使用官方 fetch 入口，不先下载在线 README、raw.githubusercontent.com 或其他远程说明。安装提示词只表达当前客户端的安装／更新意图，提供稳定入口和 install 子命令，不承载客户端映射、系统分支、校验、初始化或排障规则。由入口识别客户端、选择系统／架构与目标目录、固定和校验稳定版本、保护受管文件并汇报安装及连接验证结果；仅回执明确要求确认时询问缺失信息。不委托通用 skill-installer 复制目录，不调用 CUA／浏览器自动化兜底，不反复检查环境或只重复说明计划。下载脚本已取得时直接运行一次；宿主阻止执行或下载失败就保留脱敏结果并停止，不绕过权限。
 
-安装入口尚无已确认的 host／target 时，执行 fetch install，由脚本先离线识别客户端；已有确认值则显式沿用。它最多检查八层直接启动进程的名称和父 PID，仅明确的原生 Codex／OpenCode 启动器可自动识别，不越过 Node、Electron 或模糊的 Claude 进程借用外层身份。`current_host_unconfirmed` 或旧入口要求 host 时，只询问缺失的客户端，再带参数执行一次；不是下载失败后的自动重试。不根据模型名、目录存在或继承的会话标记猜宿主。`detect-host` 只读、无网络，不是普通生成预检；识别不证明当前聊天模型、凭据或 API／交付能力。任何 API 命令仍须绑定已确认的 host。
+当前应用或用户已明确的 host 直接显式沿用，不重复询问。安装入口尚无已确认的 host／target 时，执行 fetch install，由脚本先离线识别客户端。它最多检查八层直接启动进程的名称和父 PID，接受明确的原生 codex、opencode、grok、qoder／qodercli 启动器（Windows 对应 .exe），映射到 codex、opencode、grok-build、qoder；不越过 Node、Python、Electron 或模糊的 Claude／DSH 进程借用外层身份。`current_host_unconfirmed` 或旧入口要求 host 时，只询问缺失的客户端，再带参数执行一次；不是下载失败后的自动重试。不根据模型名、目录存在或继承的会话标记猜宿主。其他已支持客户端仍可按已确认 host 安装。`detect-host` 只读、无网络，不是普通生成预检；识别不证明当前聊天模型、凭据或 API／交付能力。任何 API 命令仍须绑定已确认的 host。
 
 安装需当前会话允许命令执行、HTTPS 下载及临时／目标目录写入；优先使用宿主已报告的权限与审批能力，不额外探测或读取宿主配置。未知权限不等于拒绝，按正常流程及原生审批执行；审批须覆盖当前动作，遵守宿主实际有效范围。网络授权不证明完整执行权限，不默认要求“完全访问”或自动扩大权限。fetch 下载或启动失败应报告“安装尚未开始”。旧提示词若停在读取说明，仅在用户明确继续且宿主已确认时，使用完整官方提示词直接请求稳定 fetch 一次，不重试文档；历史文档失败不能证明发布附件不可达，也不允许绕过宿主拒绝或重试失败的发布下载。权限错误、Windows 安全上下文错误及用户明确要求继续安装时，按需读 `references/install-permissions.md`，不要一律归因于 Key、证书、客户端损坏或权限问题。
 
 下载失败时明确“安装未完成”，报告 stage、error_code 和非零 http_status；http_status=0 表示没有可报告的 HTTP 状态，不猜测为 403 或密钥问题。不展示原始异常、响应、请求头或配置，不自动重试或改用镜像。同步成功但 init 失败时说明“安装已完成，连接验证未完成”，不回滚、不重装。同步后脚本自动执行一次同宿主 init；同版完整性核验快速返回则不执行。已有结果不重复运行 init，不在安装会话自动继续生成。
+
+目录创建、暂存复制、文件替换及同步校验失败也保留 stage、error_code、installation_status、installed_files_changed 和 next_step；未知原因如实说明，权限／文件锁／磁盘空间只是检查方向。`installed_files_changed=unknown` 不代表旧安装完好；仅 `recovery_status=restored` 才报告原受管文件已恢复，`incomplete` 保留事务并先诊断。已提交安装后，执行器启动／输出／超时失败仅报告 `init_status=unverified`，不改报安装失败；不自动重试、提权、修复或补跑 doctor。
 
 保留下载回执的 next_step；network_access_denied／tls_security_context_unavailable 提示用户先核实客户端当前会话权限，不宣称原因已唯一确定。用户处理阻塞并明确要求继续后：同步前只在原宿主再执行一次官方 fetch；已同步且仅 init 失败，明确要求继续连接验证才执行一次 init；同步状态未知先另行诊断本地状态，不自动重跑。未变更环境的同一错误不反复测试，不更换传输、宿主或权限模式。
 

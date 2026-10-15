@@ -4,13 +4,32 @@
 set -eu
 
 current_skills="puretokens-balance puretokens-connection puretokens-models puretokens-image puretokens-video puretokens-audio puretokens-evaluate puretokens-update"
+stage=arguments
+installation_status=not_started
+installed_files_changed=false
+failure_reported=false
+
+report_unexpected_failure() {
+  if [ "$1" -ne 0 ] && [ "$failure_reported" = false ]; then
+    printf '%s\n' "Pure Tokens Skill installer: stage=$stage error_code=local_operation_failed installation_status=$installation_status installed_files_changed=$installed_files_changed next_step=review_local_access; a local operation could not complete. Check current-session command/directory access and available disk space; the exact cause is unconfirmed. No automatic retry." >&2
+  fi
+}
+trap 'report_unexpected_failure $?' EXIT
 
 usage() {
   printf '%s\n' "Usage: puretokens-skill-install.sh <check|verify-installed|init|sync|repair|locate> (--host <claude-code|codex|workbuddy|gemini-cli|grok-build|opencode|trae|claude-desktop|dsh-desktop|deepseek-harness|minimax-code|zcode|kimi-code|qoder|pi|hermes|evox|vscode|octop> | --target <absolute-skill-directory>) [--source <absolute-official-source-directory>]"
 }
 
 fail() {
-  printf '%s\n' "Pure Tokens Skill installer: $*" >&2
+  failure_reported=true
+  printf '%s\n' "Pure Tokens Skill installer: stage=$stage error_code=validation_failed installation_status=$installation_status installed_files_changed=$installed_files_changed next_step=review_installation_failure; $*" >&2
+  exit 1
+}
+
+local_io() {
+  if "$@" 2>/dev/null; then return 0; fi
+  failure_reported=true
+  printf '%s\n' "Pure Tokens Skill installer: stage=$stage error_code=local_io_failure installation_status=$installation_status installed_files_changed=$installed_files_changed next_step=review_install_directory_access; the local file operation failed. Check current-session directory permissions, file locks and available disk space; the exact cause is unconfirmed. No automatic retry." >&2
   exit 1
 }
 
@@ -207,7 +226,7 @@ validate_source() {
 
 validate_target() {
   target_root=$1
-  [ -d "$target_root" ] || fail "target Skill directory does not exist: $target_root"
+  [ -d "$target_root" ] || fail "target Skill directory does not exist or is inaccessible"
   for name in $current_skills; do
     managed_skill "$target_root/$name" "$name" || fail "target is missing the managed Skill: $name"
   done
@@ -284,25 +303,37 @@ init_json_number() {
 init_target() {
   target_root=$1
   host_id=$2
-  validate_target "$target_root"
-  if [ -n "$host_id" ]; then
+  if ! (validate_target "$target_root") >/dev/null 2>&1; then
+    printf '%s\n' "Pure Tokens Skill init: installed files could not be checked in this host session."
+    printf '%s\n' "init_status=unverified stage=init error_code=installed_files_unreadable next_step=review_install_directory_access"
+  elif [ -n "$host_id" ]; then
     printf '%s\n' "Installation host: $host_id"
     executor="$target_root/.puretokens-executor/puretokens-api"
     init_output=
     init_status=0
     init_output=$("$executor" init --host "$host_id" 2>/dev/null) || init_status=$?
-    if printf '%s' "$init_output" | grep -Fq '"configuration_status":"verified"'; then
+    if [ "$init_status" -eq 0 ] &&
+      printf '%s' "$init_output" | grep -Fq '"configuration_status":"verified"' &&
+      printf '%s' "$init_output" | grep -Fq '"api_identity_confirmed":true' &&
+      printf '%s' "$init_output" | grep -Fq '"credential_verified":true'; then
       printf '%s\n' "Pure Tokens Skill init: fixed API identity verified for the current host."
+      printf '%s\n' "init_status=verified"
     elif [ "$init_status" -ne 0 ] && [ -z "$init_output" ]; then
       printf '%s\n' "Pure Tokens Skill init: configuration could not be checked in this host session."
+      printf '%s\n' "init_status=unverified stage=init error_code=executor_unavailable next_step=review_host_execution_permissions; check whether this session permits the installed native executor to run. The exact cause is unconfirmed; Full Access is not a default requirement."
     else
       init_state=$(init_json_string "configuration_status" "$init_output")
       init_message=$(init_json_string "message" "$init_output")
       init_next=$(init_json_string "next_action" "$init_output")
       init_http_status=$(init_json_number "http_status" "$init_output")
       [ -n "$init_state" ] || init_state="unverified"
+      if [ "$init_state" = verified ]; then
+        init_state=unverified
+        init_message="The verification receipt did not confirm both API identity and credential authentication."
+      fi
       [ -n "$init_message" ] || init_message="The fixed API identity is not verified in this host session."
       printf '%s\n' "Pure Tokens Skill init: $init_message [$init_state]"
+      printf '%s\n' "init_status=unverified"
       if [ -n "$init_http_status" ]; then
         printf '%s\n' "HTTP status: $init_http_status"
       fi
@@ -312,6 +343,7 @@ init_target() {
     fi
   else
     printf '%s\n' "Pure Tokens Skill init: host ID was not supplied, so the connection check was deferred."
+    printf '%s\n' "init_status=deferred next_step=confirm_current_client"
   fi
   printf '%s\n' ""
   installation_summary "$host_id"
@@ -353,14 +385,19 @@ finish_transaction() {
   code=$?
   trap - EXIT HUP INT TERM
   if [ -n "${stage_root:-}" ] && [ -d "$stage_root" ]; then
-    if [ -f "$stage_root/committed" ] || restore_transaction "$target_root" "$stage_root"; then
+    if [ -f "$stage_root/committed" ] || restore_transaction "$target_root" "$stage_root" >/dev/null 2>&1; then
+      if [ "$installation_status" != completed ] && [ "$installed_files_changed" != false ]; then
+        installed_files_changed=false
+        printf '%s\n' "recovery_status=restored installation_status=not_completed installed_files_changed=false; the previous managed files were restored."
+      fi
       remove_completed_stage "$stage_root" || code=1
     else
-      printf '%s\n' "Update recovery is incomplete; retained the managed recovery stage. Run sync again after resolving file access." >&2
+      printf '%s\n' "recovery_status=incomplete installation_status=$installation_status installed_files_changed=$installed_files_changed next_step=inspect_installation; retained the managed recovery stage. Installation state needs explicit local diagnosis; do not reinstall or retry automatically." >&2
       code=1
     fi
   fi
   release_update_lock
+  report_unexpected_failure "$code"
   exit "$code"
 }
 
@@ -412,8 +449,8 @@ acquire_update_lock() {
       *) fail "unrecognized update lock contents; left untouched" ;;
     esac
   done
-  lock_candidate=$(mktemp "$lock_root/owner.$$.XXXXXX") || fail "cannot prepare the update lock"
-  printf '%s %s\n' "$$" "${lock_candidate##*/}" > "$lock_candidate"
+  lock_candidate=$(mktemp "$lock_root/owner.$$.XXXXXX" 2>/dev/null) || fail "cannot prepare the update lock; check directory write permission and available disk space"
+  { printf '%s %s\n' "$$" "${lock_candidate##*/}" > "$lock_candidate"; } 2>/dev/null || fail "cannot write the update lock; check directory write permission and available disk space"
   lock_slot="$lock_root/pid"
   lock_seen=" "
   # Publish complete, immutable owner records with an atomic hard link. A dead
@@ -458,7 +495,8 @@ acquire_update_lock() {
   done
   for previous_stage in "$target_root"/.puretokens-skill-stage.*; do
     [ -d "$previous_stage" ] || continue
-    if [ -f "$previous_stage/committed" ] || restore_transaction "$target_root" "$previous_stage"; then
+    installed_files_changed=unknown
+    if [ -f "$previous_stage/committed" ] || restore_transaction "$target_root" "$previous_stage" >/dev/null 2>&1; then
       rm -rf -- "$previous_stage" 2>/dev/null || fail "previous transaction cleanup is pending; resolve host file access before continuing"
     else
       fail "previous update recovery failed; retained its backup"
@@ -470,11 +508,15 @@ sync_target() {
   source_root=$1
   target_root=$2
   release_version=$(source_release_version "$source_root") || fail "official source has an invalid Skill version"
-  [ -d "$target_root" ] || mkdir -p "$target_root"
-  target_root=$(cd "$target_root" && pwd -P)
+  installation_status=not_completed
+  stage=prepare_target
+  [ -d "$target_root" ] || local_io mkdir -p "$target_root"
+  target_root=$(cd "$target_root" 2>/dev/null && pwd -P) || fail "target directory could not be accessed; check current-session directory permissions"
   check_gemini_duplicates
   ownership_guard=$(executor_artifact "$source_root")
+  stage=acquire_lock
   acquire_update_lock
+  stage=verify_installed
   verify_owned() {
     verification_command=install-verify
     [ "$command_name" != repair ] || verification_command=install-repair-verify
@@ -500,42 +542,50 @@ sync_target() {
   executor_destination="$target_root/.puretokens-executor"
   if [ -e "$executor_destination" ] || [ -L "$executor_destination" ]; then verify_owned "$executor_destination" .puretokens-executor; fi
 
-  stage_root=$(mktemp -d "$target_root/.puretokens-skill-stage.XXXXXX") || fail "could not create a private update staging directory"
-  touch "$stage_root/transaction-v1"
-  [ "$command_name" != repair ] || touch "$stage_root/repair-v1"
-  mkdir -p "$stage_root/backup"
-  for name in $current_skills; do cp -R "$source_root/skills/$name" "$stage_root/$name"; done
+  stage=stage_files
+  stage_root=$(mktemp -d "$target_root/.puretokens-skill-stage.XXXXXX" 2>/dev/null) || fail "could not create a private update staging directory; check directory write permission and available disk space"
+  local_io touch "$stage_root/transaction-v1"
+  [ "$command_name" != repair ] || local_io touch "$stage_root/repair-v1"
+  local_io mkdir -p "$stage_root/backup"
+  for name in $current_skills; do local_io cp -R "$source_root/skills/$name" "$stage_root/$name"; done
   executor_source=$(executor_artifact "$source_root")
-  mkdir -p "$stage_root/.puretokens-executor"
-  cp "$executor_source" "$stage_root/.puretokens-executor/puretokens-api"
-  cp "$source_root/runtime/puretokens-skill-install.sh" "$source_root/runtime/puretokens-skill-fetch.sh" "$stage_root/.puretokens-executor/"
-  chmod 700 "$stage_root/.puretokens-executor/puretokens-api"
-  printf '{\n  "schemaVersion": 1,\n  "name": "puretokens-api-executor",\n  "version": "%s",\n  "platform": "%s"\n}\n' "$release_version" "$(executor_platform)" > "$stage_root/.puretokens-executor/runtime.json"
+  local_io mkdir -p "$stage_root/.puretokens-executor"
+  local_io cp "$executor_source" "$stage_root/.puretokens-executor/puretokens-api"
+  local_io cp "$source_root/runtime/puretokens-skill-install.sh" "$source_root/runtime/puretokens-skill-fetch.sh" "$stage_root/.puretokens-executor/"
+  local_io chmod 700 "$stage_root/.puretokens-executor/puretokens-api"
+  { printf '{\n  "schemaVersion": 1,\n  "name": "puretokens-api-executor",\n  "version": "%s",\n  "platform": "%s"\n}\n' "$release_version" "$(executor_platform)" > "$stage_root/.puretokens-executor/runtime.json"; } 2>/dev/null || fail "cannot write the staged executor metadata; check directory permissions and available disk space"
   for entry in $current_skills .puretokens-executor; do
-    "$ownership_guard" install-inventory --directory "$stage_root/$entry" --name "$entry" > "$stage_root/$entry/.puretokens-managed.json" ||
+    { "$ownership_guard" install-inventory --directory "$stage_root/$entry" --name "$entry" > "$stage_root/$entry/.puretokens-managed.json"; } 2>/dev/null ||
       fail "could not record managed files for $entry"
   done
 
 
-  : > "$stage_root/plan"
+  { : > "$stage_root/plan"; } 2>/dev/null || fail "cannot create the transaction plan; check directory write permission and available disk space"
   for entry in $current_skills .puretokens-executor; do
     if [ -e "$target_root/$entry" ]; then action=replace; else action=create; fi
-    printf '%s %s\n' "$action" "$entry" >> "$stage_root/plan"
+    { printf '%s %s\n' "$action" "$entry" >> "$stage_root/plan"; } 2>/dev/null || fail "cannot write the transaction plan; check directory write permission and available disk space"
   done
+  stage=replace_files
   while read -r action entry; do
     if [ "$action" = replace ]; then
       verify_owned "$target_root/$entry" "$entry" "$source_root/skills/$entry"
-      mv "$target_root/$entry" "$stage_root/backup/$entry"
+      installed_files_changed=unknown
+      local_io mv "$target_root/$entry" "$stage_root/backup/$entry"
     elif [ -e "$target_root/$entry" ] || [ -L "$target_root/$entry" ]; then
       fail "a destination appeared during installation; existing files were preserved"
     fi
-    mv "$stage_root/$entry" "$target_root/$entry"
+    installed_files_changed=unknown
+    local_io mv "$stage_root/$entry" "$target_root/$entry"
   done < "$stage_root/plan"
+  stage=verify_synced
   for entry in $current_skills .puretokens-executor; do
     "$ownership_guard" install-verify --directory "$target_root/$entry" --name "$entry" || fail "installed managed files could not be verified"
   done
-  touch "$stage_root/committed"
+  local_io touch "$stage_root/committed"
+  installation_status=completed
+  installed_files_changed=true
   printf '%s\n' "Pure Tokens Skills $release_version synchronized with the native API executor at $target_root"
+  printf '%s\n' "installation_status=completed installed_files_changed=true"
   remove_completed_stage "$stage_root"
   stage_root=
   release_update_lock
@@ -545,6 +595,7 @@ sync_target() {
   if [ "${PTP_OPERATIONS_RECEIPTS:-}" = "1" ]; then
     "$target_root/.puretokens-executor/puretokens-api" operations-receipt installed >/dev/null 2>&1 || :
   fi
+  stage=init
   init_target "$target_root" "$host"
 }
 
@@ -574,7 +625,8 @@ if [ "$host" = octop ] && [ -n "$target" ]; then
   validate_client_root "$target"
   case "$target" in */.octop/skills|*/skills) ;; *) fail "Octop target must be the current local workspace's .octop/skills or skills directory" ;; esac
 fi
-[ -n "$target" ] || target=$(target_for_host "$host")
+stage=select_target
+[ -n "$target" ] || target=$(target_for_host "$host") || { failure_reported=true; exit 1; }
 [ "${target#/}" != "$target" ] || fail "--target must be an absolute Skill directory"
 [ -z "$source" ] || [ "${source#/}" != "$source" ] || fail "--source must be an absolute official source directory"
 case "$command_name" in check|verify-installed|init|sync|repair|locate) ;; *) usage; exit 2 ;; esac
@@ -586,11 +638,13 @@ if [ "$command_name" = locate ]; then
 fi
 
 if [ "$command_name" = "verify-installed" ]; then
+  stage=verify_installed
   verify_installed "$target"
   exit 0
 fi
 
 if [ "$command_name" = "init" ]; then
+  stage=init
   [ -n "$target" ] || fail "--target or --host is required for init"
   [ "${target#/}" != "$target" ] || fail "--target must be an absolute Skill directory"
   target_root=$(cd "$target" 2>/dev/null && pwd -P) || fail "could not resolve --target"
@@ -598,9 +652,10 @@ if [ "$command_name" = "init" ]; then
   exit 0
 fi
 
+stage=verify_source
 if [ -n "$source" ]; then
-  [ -d "$source" ] || fail "--source does not exist: $source"
-  source_root=$(cd "$source" && pwd -P) || fail "could not resolve --source"
+  [ -d "$source" ] || fail "--source does not exist"
+  source_root=$(cd "$source" 2>/dev/null && pwd -P) || fail "could not resolve --source"
   validate_source "$source_root"
 elif bundled_source_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." 2>/dev/null && pwd -P) && [ -f "$bundled_source_root/README.md" ] && [ -f "$bundled_source_root/package.json" ] && [ -d "$bundled_source_root/skills" ]; then
   source_root=$bundled_source_root

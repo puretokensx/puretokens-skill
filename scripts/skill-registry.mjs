@@ -625,7 +625,7 @@ function validateUpdateContract(errors, label, contract) {
   const selection = sync?.hostSelection;
   if (!selection || selection.whenNoHostOrTarget !== "bounded_direct_launcher_detection" ||
     selection.maxProcessQueries !== 8 || !sameArray(selection.readProcessFields, ["name", "parentId"]) ||
-    !sameArray(selection.automaticHosts, ["codex", "opencode"]) ||
+    !sameArray(selection.automaticHosts, ["codex", "opencode", "grok-build", "qoder"]) ||
     selection.unknownLauncher !== "stop_before_release_download_or_installation_writes_then_confirm_missing_client" ||
     selection.explicitHostOrTarget !== "preserve_without_detection" ||
     selection.doesNotReadConfigurationOrCommandLines !== true ||

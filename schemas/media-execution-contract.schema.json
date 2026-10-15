@@ -1062,6 +1062,8 @@
         "directorySelector",
         "sameVersion",
         "completedCleanupFailure",
+        "initOnlyFailure",
+        "localFailureReceipt",
         "hostSelection",
         "targetSelection"
       ],
@@ -1087,6 +1089,12 @@
         "completedCleanupFailure": {
           "const": "report_cleanup_pending_preserve_committed_files_attempt_lock_release_and_continue_single_init_without_retrying_denied_deletion"
         },
+        "initOnlyFailure": {
+          "const": "preserve_committed_install_report_init_unverified_without_recovery_reinstall_or_retry"
+        },
+        "localFailureReceipt": {
+          "const": ["stage", "error_code", "installation_status", "installed_files_changed", "next_step"]
+        },
         "hostSelection": {
           "const": {
             "whenNoHostOrTarget": "bounded_direct_launcher_detection",
@@ -1097,7 +1105,9 @@
             ],
             "automaticHosts": [
               "codex",
-              "opencode"
+              "opencode",
+              "grok-build",
+              "qoder"
             ],
             "unknownLauncher": "stop_before_release_download_or_installation_writes_then_confirm_missing_client",
             "explicitHostOrTarget": "preserve_without_detection",
