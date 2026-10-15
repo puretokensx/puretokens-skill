@@ -4,6 +4,13 @@
 
 # Changelog
 
+## 0.19.1 - 2026-10-15
+
+- Shorten both installation prompts and download the official stable fetch directly, without first fetching README.
+- Let fetch attempt current-client detection through at most eight direct launcher names and parent IDs. Explicit native Codex/OpenCode launchers are recognized; unknown interpreters/editors stop for client confirmation before release downloads or installation writes.
+- Preserve explicit host/custom-target selection, platform checksum verification, safe updates and the separate connection-verification result.
+- Use a new distribution version without overwriting 0.19.0.
+
 ## 0.19.0 - 2026-10-14
 
 - Restore stable installation and update downloads from `puretokensx/puretokens-skill`, including upgrades from the previous repository, with verified packages for macOS, Windows and Linux.

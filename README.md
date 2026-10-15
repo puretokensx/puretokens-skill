@@ -8,11 +8,13 @@ Official Skills for checking a Pure Tokens connection, balance and model catalog
 
 Version 0.19.0 restores stable downloads from `puretokensx/puretokens-skill` and adds local installation recovery, model alternatives, live group guidance and product help.
 
+Source version 0.19.1 shortens the installation prompts and adds bounded current-client detection to fetch. Installation uses the version selected by the published stable manifest.
+
 Version 0.18.7 adds MiniMax Code Desktop for local macOS/Windows default connections. Standalone installation with Desktop preferences requires a confirmed target or the client runtime data-directory environment. See `references/switch-skill-compatibility.md` for the connection and session requirements.
 
 ## Agent-assisted installation
 
-The one-line compatibility entry is preserved below and requires access to the repository instructions. Prefer the complete [Chinese](#chinese-installation-prompt) or [English](#english-installation-prompt) prompt: each includes the host IDs and execution steps, so the first download is the stable-release fetch script, without a README or `raw.githubusercontent.com` prerequisite.
+The one-line compatibility entry is preserved below and requires access to the repository instructions. Prefer the complete [Chinese](#chinese-installation-prompt) or [English](#english-installation-prompt) prompt: each supplies the stable fetch address and commands, without a README or `raw.githubusercontent.com` prerequisite. The installer selects the OS, architecture and default directory; fetch 0.19.1 also attempts current-client detection.
 
 Before installation, the current client session needs permission to run local commands, download over HTTPS, and write the temporary download and target Skill directories. Use the client's supported approval controls; a network-only grant does not establish command or filesystem access. Do not require Full Access by default or change permissions automatically. Use permissions already reported by the host; do not add diagnostic probes to a normal installation.
 
@@ -27,58 +29,40 @@ Install or update the official Pure Tokens Skills from https://github.com/pureto
 ### Chinese installation prompt
 
 ```text
-请为我当前使用的客户端安装或更新 Pure Tokens 官方 Skills，仓库：https://github.com/puretokensx/puretokens-skill。
+请为当前客户端安装或更新 Pure Tokens 官方 Skills，不先读取仓库网页或 README。
 
-1. 本提示词已包含安装步骤和宿主映射，不先下载仓库网页、README、raw.githubusercontent.com 或其他远程安装说明。依据当前客户端已报告的信息确认客户端及本地执行环境，按下列映射选择宿主 ID；不要从模型名称或共享 Skill 目录猜客户端，无法确定时只问必要信息：
-   Claude Code=claude-code；Codex（桌面／CLI）=codex；WorkBuddy=workbuddy；Gemini CLI=gemini-cli；Grok Build=grok-build；OpenCode=opencode；Trae／TraeWork=trae；Claude Desktop（本地 Code 会话）=claude-desktop；社区 DSH Desktop=dsh-desktop；官方 DeepSeek Harness=deepseek-harness；MiniMax Code Desktop=minimax-code；ZCode=zcode；Kimi Code=kimi-code；Qoder=qoder；Pi=pi；Hermes=hermes；EvoX=evox；VS Code=vscode；Octop=octop。
-   当前会话需能执行本地命令、HTTPS 下载并写入下载临时目录及目标 Skill 目录。未报告的权限记为未知，不等于拒绝；按正常流程执行，不增加探测命令或读取配置。需要授权时使用客户端实际提供的审批，遵守其当前有效范围；网络授权不代表全部执行权限，不默认要求完全访问或自动修改权限。不支持、审批被拒或没有执行能力时说明并停止。
+从 https://github.com/puretokensx/puretokens-skill/releases/latest/download/ 下载 puretokens-skill-fetch.sh（Windows 用 puretokens-skill-fetch.ps1），保存为唯一临时本地文件后执行：
+macOS/Linux：sh "<脚本绝对路径>" install
+Windows：powershell.exe -NoProfile -ExecutionPolicy Bypass -File "<脚本绝对路径>" install
 
-2. 安装或更新时，将以下当前官方稳定版入口下载为唯一临时本地文件：
-   macOS/Linux：https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh
-   Windows：https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.ps1
-   已安装时沿用该客户端已确认的宿主和目标目录，执行 update；旧版本的本地 fetch 可能指向旧仓库，因此本次使用刚下载的入口，不改写旧受管脚本。不要将远程内容直接管道进 shell。
+由官方脚本选择系统、架构和稳定包，并尝试识别当前客户端。若脚本不支持自动识别或要求确认，只问缺失的客户端／目标目录，再按脚本参数执行一次；不根据模型名、目录或其他已装客户端猜测。沿用已确认的自定义目标；Octop 须指定当前工作区的 .octop/skills。
 
-3. 替换下面的绝对路径、操作和宿主 ID 后执行一次；首次安装用 install，已有安装用 update：
-   macOS/Linux：sh "<fetch脚本绝对路径>" <操作> --host <当前宿主ID>
-   Windows：powershell.exe -NoProfile -ExecutionPolicy Bypass -File "<fetch脚本绝对路径>" <操作> -Host <当前宿主ID>
-   默认目标目录由官方脚本解析；已确认的自定义 Skill 目录附加 --target / -Target 绝对路径；Octop 必须指定当前工作区的 .octop/skills。MiniMax Desktop 若要求确认运行目录，先取得该客户端的明确目标，不猜路径。由官方脚本选择当前系统和架构的稳定版包，校验并同步完整 Skills 与原生执行器。不要复制单个 SKILL.md、使用通用安装器或回退 main、源码包、镜像；不要为此安装 Node、npm、Python、Go、Git 或服务。
+由脚本完成版本固定、校验、同步和自动 init；始终使用刚下载的入口，不执行旧 fetch，不使用通用安装器、main 源码或镜像，不安装额外运行环境。保留现有连接与用户文件，不读取、索取或展示认证配置。遵守当前会话审批；失败或输出不确定时报告阶段并停止，不自动重试、修复或重装。
 
-4. 保留现有连接和用户文件。不要自行读取、展示或修改认证配置，也不要索取或转述凭据；由原生执行器按当前宿主规则完成只读验证。下载、校验、执行权限或文件冲突失败时，报告已完成阶段与脱敏原因并停止；不自动删除、修复、重装、换宿主或改用其他执行方式。下载入口脚本或启动失败时明确“安装尚未开始”，按实际错误和宿主已报告的权限处理，不仅凭 TLS 错误断定 Key、证书、客户端或权限有问题。用户处理阻塞并明确要求继续后，尚未同步才在原宿主执行一次官方流程；已同步且仅连接验证失败时，只在用户要求继续验证后执行一次 init，不重装。超时、同步中断或输出不确定时不得猜测成功或直接重跑，先另行诊断。
-
-5. 复用脚本的同步与自动 init 结果，不另跑 init、doctor、余额或模型查询。自动 init 最多两次只读请求，共用 20 秒预算；安装成功而 init 失败应报告“安装已完成，连接验证未完成”。同版完整性校验通过的快速返回表示“已是当前稳定版且文件完整”，无需再下载、写入或初始化。
-
-6. 完成后简要汇报实际客户端、实际安装版本、安装状态和连接验证状态（已验证／未验证／未执行）。复用安装回执中当前宿主适用的能力摘要与最多两条可复制示例，仅展示、不执行；完整使用指南仅在用户询问时读取。复用脚本给出的当前宿主加载步骤和简短示例；ZCode 需刷新并启用 Skills。没有 API 适配器的宿主不展示生成示例。不要声称当前会话已经加载，不自动开始生成或付费体验。
+简要汇报客户端、实际版本、安装状态及连接验证状态，复用脚本的加载指引和示例，不重复 init／doctor，不自动生成内容。同步成功但 init 失败应说明“安装已完成，连接未验证”；同版已校验则无需重复安装或 init。
 ```
 
 ### English installation prompt
 
 ```text
-Install or update the official Pure Tokens Skills for the client I am currently using. Repository: https://github.com/puretokensx/puretokens-skill.
+Install or update the official Pure Tokens Skills for this client without first fetching repository pages or README.
 
-1. This prompt includes the installation steps and host mapping. Do not first download repository pages, README, raw.githubusercontent.com or other remote installation instructions. Identify the current client and local execution environment from host-reported information, then select its host ID below. Do not infer the client from a model name or shared Skill directory; ask only for missing essential information:
-   Claude Code=claude-code; Codex (Desktop/CLI)=codex; WorkBuddy=workbuddy; Gemini CLI=gemini-cli; Grok Build=grok-build; OpenCode=opencode; Trae/TraeWork=trae; Claude Desktop (local Code session)=claude-desktop; community DSH Desktop=dsh-desktop; official DeepSeek Harness=deepseek-harness; MiniMax Code Desktop=minimax-code; ZCode=zcode; Kimi Code=kimi-code; Qoder=qoder; Pi=pi; Hermes=hermes; EvoX=evox; VS Code=vscode; Octop=octop.
-   This session needs local command, HTTPS download, temporary-directory and target Skill-directory access. Unreported permissions remain unknown, not denied; proceed normally without extra probes or configuration reads. Use the client's actual approval controls when needed, respecting their current scope. Network approval does not establish all execution permissions; do not require Full Access by default or change permissions automatically. Explain and stop if the environment is unsupported, approval is denied or commands cannot execute.
+Download puretokens-skill-fetch.sh (puretokens-skill-fetch.ps1 on Windows) from https://github.com/puretokensx/puretokens-skill/releases/latest/download/ to a unique temporary local file, then run:
+macOS/Linux: sh "<absolute-script-path>" install
+Windows: powershell.exe -NoProfile -ExecutionPolicy Bypass -File "<absolute-script-path>" install
 
-2. For installation or update, save the current official stable-release entry point as a unique temporary local file:
-   macOS/Linux: https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh
-   Windows: https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.ps1
-   For an existing installation, keep its confirmed host and target directory and run update with the newly downloaded entry; an older local fetch may still point to the previous repository. Do not modify the old managed script. Never pipe remote content directly into a shell.
+Let the official script select the OS, architecture and stable package and attempt current-client detection. If detection is unsupported or confirmation is required, ask only for the missing client/target, then run once with the script's parameters. Do not infer the client from models, directories or other installed apps. Keep a confirmed custom target; Octop requires the current workspace's .octop/skills.
 
-3. Substitute the absolute path, operation and host ID below, then run once. Use install for a first installation or update for an existing installation:
-   macOS/Linux: sh "<absolute-fetch-path>" <operation> --host <current-host-id>
-   Windows: powershell.exe -NoProfile -ExecutionPolicy Bypass -File "<absolute-fetch-path>" <operation> -Host <current-host-id>
-   Let the official script resolve the default target. For a confirmed custom Skill directory, add --target / -Target with its absolute path; Octop requires the current workspace's .octop/skills. If MiniMax Desktop requires its runtime directory to be confirmed, obtain that client's explicit target instead of guessing. Let the official script select, verify and synchronize the stable package for this OS and architecture, including the complete Skills and native executor. Do not copy only SKILL.md, use a generic installer, or fall back to main, source archives or mirrors. Do not install Node, npm, Python, Go, Git or services for this task.
+Let the script pin, verify, synchronize and automatically initialize. Always use the newly downloaded entry, never an old fetch, generic installer, main source or mirror; install no extra runtime. Preserve connections and user files; do not read, request or display authentication configuration. Respect current-session approvals. On failure or uncertain output, report the stage and stop without automatic retries, repair or reinstallation.
 
-4. Preserve existing connections and user files. Do not independently read, display or modify authentication configuration, or request or relay credentials; let the native executor perform the documented read-only verification for this host. On download, checksum, execution-permission or file-conflict failure, report the completed stage and sanitized cause, then stop. Do not automatically delete, repair, reinstall, switch hosts or use another execution path. If downloading or launching the entry script fails, say "Installation has not started" and use the actual error and host-reported permissions; TLS errors alone do not establish a key, certificate, client or permission defect. After the user resolves the blocker and explicitly continues, run the official workflow once on the same host only if synchronization has not begun. After successful sync with failed connection verification, run init alone only when further verification is requested; do not reinstall. A timeout, interrupted sync or uncertain output requires separate diagnosis, not assumed success or an automatic rerun.
-
-5. Reuse the script's synchronization and automatic init results. Do not add init, doctor, balance or model queries. Automatic init allows at most two read-only requests within one 20-second budget. Successful synchronization followed by failed init means “Installed; connection not verified.” A same-version verified fast return means “Already on the current stable version; files verified,” with no further download, writes or initialization.
-
-6. Briefly report the actual client, installed version, installation status and connection verification status (verified / unverified / not run). Reuse the receipt's host-appropriate capability summary and at most two copyable examples without executing them; read the full usage guide only when requested. Reuse the script's host-specific loading steps and short examples; ZCode requires refreshing and enabling Skills. Do not show generation examples for a host without an API adapter. Do not claim the current session has loaded the Skills or start a paid demo.
+Briefly report the client, actual version, installation and connection-verification status. Reuse the script's loading guidance and examples without extra init/doctor or generation. Successful sync with failed init means installed, connection unverified; a verified same-version result needs no repeated install or init.
 ```
 
-The agent saves the latest official stable release's `puretokens-skill-fetch.sh` (Windows: `.ps1`) locally and runs install with the current host ID. The fixed bootstrap URL is `https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh`; Windows uses the `.ps1` suffix. Installed copies in `.puretokens-executor` provide check-update and update. Never pipe remote content into a shell or fall back to main, source archives or mirrors when stable assets are absent.
+The agent saves the latest official stable release's `puretokens-skill-fetch.sh` (Windows: `.ps1`) locally and runs install. The fixed bootstrap URL is `https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh`; Windows uses the `.ps1` suffix. Installed copies in `.puretokens-executor` provide check-update and update. Never pipe remote content into a shell or fall back to main, source archives or mirrors when stable assets are absent.
 
-Installation boundary: after identifying the host, save the official fetch script locally and run it once. Let it pin the commit, download, verify, sync and initialize. Do not add full-script audits, PowerShell capability probes, duplicate inventory checks or doctor to ordinary installation. Respect required host approvals. On launch denial, unavailable output, timeout, download or verification failure, report the completed stage and sanitized failure, then stop. Do not create probes, shims or Python patches, modify official scripts, switch launch paths or retry automatically. Debugging requires a separate user request.
+With fetch 0.19.1, omit host/target when neither is already confirmed. Fetch examines at most eight direct launcher processes, reading names and parent IDs only; a direct native `codex` or `opencode` can select its registered host. Unknown interpreters/editors stop detection, including Node, Electron/VS Code and ambiguous Claude launchers. `detect-host` is an offline, read-only diagnostic, not a generation preflight. Unconfirmed detection stops before release downloads or installation writes with `current_host_unconfirmed`; ask only for the missing client and run once with `--host` / `-Host`. Older fetch versions may also require that explicit selection. Preserve any confirmed host and custom target; Octop requires an explicit workspace target. Detection does not verify credentials, API support, a selected chat model or attachment delivery.
+
+Installation boundary: save the official fetch script locally and run it once. Let it resolve the client where possible, pin the commit, download, verify, sync and initialize. Do not add full-script audits, PowerShell capability probes, duplicate inventory checks or doctor to ordinary installation. Respect required host approvals. On launch denial, unavailable output, timeout, download or verification failure, report the completed stage and sanitized failure, then stop. Do not create probes, shims or Python patches, modify official scripts, switch launch paths or retry automatically. Debugging requires a separate user request.
 
 After the user resolves a permission issue and explicitly asks to continue, resume according to the last confirmed phase. Before synchronization, use the same official fetch workflow once; it resolves and verifies the stable release again, without reusing partial downloads. If synchronization succeeded and only init failed, perform one init only when the user asks to continue connection verification; do not reinstall. Unknown output or interrupted synchronization needs a separately authorized local installation diagnosis, not an automatic rerun. Never use this installation recovery to resubmit a media task.
 

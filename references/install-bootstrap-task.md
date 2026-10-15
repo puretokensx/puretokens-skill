@@ -1,0 +1,11 @@
+# Installation bootstrap, 2026-10-15
+
+- Goal: shorten the copyable prompts and move OS/architecture/current-client selection into the installer where evidence permits.
+- Scope: official stable bootstrap only; no README prerequisite, credential/configuration search, new user runtime, paid calls or publication.
+- Decision: OS/architecture already resolve in fetch. Automatic client detection must use a bounded direct launcher chain; generic interpreters/editors and ambiguous hosts stop for one explicit client selection. Explicit host/target options remain available.
+- Known baseline: commit 09fbdfc passed engineering checks but failed the release version gate because distribution content changed at 0.19.0. Any distributable candidate needs a new version; existing v0.19.0 assets must remain intact.
+- Completed: Shell/PowerShell fetch now detect direct native Codex/OpenCode launchers, stop at unknown interpreters/editors, expose offline detect-host and preserve explicit host/target selection. Unconfirmed detection stops before release downloads or installation writes. Both READMEs retain the protected one-line entry; Chinese complete prompt is 717 characters instead of 2260, English 1638 instead of 5289. Update instructions, scenarios and machine contracts are synchronized.
+- Candidate: 0.19.1 across the package, eight Skills and six rebuilt executors. Removed the 0.19.0-only publication exception from the new candidate; real-host acceptance remains pending. Source changes are not pushed or published.
+- Validation: npm run check passed 157/157 tests without skips; npm run release:validate passed, including catalog freshness and reproducible six-platform builds. Real local macOS detect-host returned codex. PowerShell detection and download-diagnostic fixtures ran offline using checksum-verified portable PowerShell in a temporary development directory; this is not Windows real-client acceptance or a user dependency.
+- Evidence: /tmp/puretokens-install-bootstrap-check-20261015.log and /tmp/puretokens-install-bootstrap-release-20261015.log. No credentials read by host detection; no paid requests or changes to the user's installed Skills.
+- Next: publication requires a separate instruction; real Windows/client acceptance remains separate from the completed local engineering checks.

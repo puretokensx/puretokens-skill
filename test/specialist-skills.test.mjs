@@ -258,10 +258,12 @@ test("the public install prompt remains extractable in both README files", async
       readme.match(/### (?:English installation prompt|英文安装提示词)\n\n```text\n([\s\S]*?)\n```/)?.[1]
     ];
     assert.ok(complete.every(Boolean), "both complete prompts must remain copyable");
-    assert.match(complete[0], /安装或更新时[\s\S]*唯一临时本地文件/);
-    assert.match(complete[1], /For installation or update[\s\S]*unique temporary local file/);
-    assert.match(complete[0], /旧版本的本地 fetch 可能指向旧仓库/);
-    assert.match(complete[1], /an older local fetch may still point to the previous repository/);
+    for (const prompt of complete) {
+      assert.ok(prompt.includes("https://github.com/puretokensx/puretokens-skill/releases/latest/download/"));
+      assert.ok(prompt.includes('sh "<') && prompt.includes("powershell.exe -NoProfile -ExecutionPolicy Bypass -File"));
+      assert.ok(prompt.includes("puretokens-skill-fetch.sh") && prompt.includes("puretokens-skill-fetch.ps1"));
+      assert.doesNotMatch(prompt, /--host codex|-Host codex/);
+    }
     if (prompts) assert.deepEqual(complete, prompts, "permission/continuation instructions must not drift between READMEs");
     prompts = complete;
   }

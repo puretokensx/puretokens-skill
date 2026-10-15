@@ -121,6 +121,39 @@ test("check-update reads stable metadata and its verified selector only", async 
   assert.deepEqual(await readdir(path.join(f.root, "tmp")), []);
 });
 
+for (const [options, detected, relativeTarget] of [
+  [[], "codex", ".agents/skills"],
+  [[], "opencode", ".config/opencode/skills"],
+  [["--host", "opencode"], "node", ".config/opencode/skills"],
+  [["--target"], "node", null]
+]) {
+  test(`fetch resolves the correct target through its verified selector (${options.join(" ") || detected})`, async t => {
+    const f = await fixture(t);
+    const env = await mockDownloads(f);
+    const calls = path.join(f.root, "process-queries");
+    env.PT_PROCESS_QUERIES = calls;
+    const ps = path.join(f.root, "tools/ps");
+    await writeFile(ps, `#!/bin/sh
+printf '%s\\n' "$2" >> "$PT_PROCESS_QUERIES"
+printf '1 /opt/${detected}\\n'
+`);
+    await chmod(ps, 0o700);
+    const target = relativeTarget ? path.join(f.env.HOME, relativeTarget) : f.target;
+    await mkdir(path.join(target, ".puretokens-executor"), { recursive: true });
+    const runtime = path.join(target, ".puretokens-executor/runtime.json");
+    const before = JSON.stringify({ name: "puretokens-api-executor", version: "0.16.0" });
+    await writeFile(runtime, before);
+    const args = options[0] === "--target" ? ["--target", target] : options;
+    const { stdout } = await execFile("sh", [path.join(f.source, "runtime/puretokens-skill-fetch.sh"), "check-update", ...args], { env });
+    assert.match(stdout, /installed=0.16.0 available=0.17.0/);
+    assert.equal(await readFile(runtime, "utf8"), before);
+    if (options.length) await assert.rejects(readFile(calls), { code: "ENOENT" });
+    else assert.equal((await readFile(calls, "utf8")).trim().split("\n").length, 1);
+    assert.equal((await readFile(path.join(f.root, "requests"), "utf8")).trim().split("\n").length, 2);
+    assert.deepEqual(await readdir(path.join(f.root, "tmp")), []);
+  });
+}
+
 test("download failures identify the stage and safe category without retries or target changes", async t => {
   const f = await fixture(t);
   const base = await mockDownloads(f);

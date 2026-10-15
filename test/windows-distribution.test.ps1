@@ -16,6 +16,7 @@ if (-not $Child) {
 }
 $repository = Split-Path -Parent $PSScriptRoot
 & (Join-Path $PSScriptRoot 'support/windows-download-diagnostics.ps1')
+& (Join-Path $PSScriptRoot 'support/windows-host-detection.ps1')
 $root = Join-Path ([IO.Path]::GetTempPath()) ("pt-download-test-" + [Guid]::NewGuid().ToString("N"))
 $savedEnvironment = @{}
 foreach ($name in @("USERPROFILE", "HOME", "CODEX_HOME", "TMP", "TEMP")) { $savedEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, "Process") }

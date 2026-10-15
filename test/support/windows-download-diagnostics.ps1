@@ -3,10 +3,16 @@ $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Net.Http
 $repository = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $source = Get-Content -LiteralPath (Join-Path $repository 'runtime/puretokens-skill-fetch.ps1') -Raw -Encoding UTF8
-$start = $source.IndexOf('function Fail(')
-$end = $source.IndexOf('$locationOptions =')
-if ($start -lt 0 -or $end -le $start) { throw 'Download fixture could not load production functions' }
-. ([ScriptBlock]::Create($source.Substring($start, $end - $start)))
+$tokens = $null
+$parseErrors = $null
+$ast = [System.Management.Automation.Language.Parser]::ParseInput($source, [ref]$tokens, [ref]$parseErrors)
+$functions = @($ast.FindAll({
+  param($node)
+  $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+    $node.Name -in @('Fail', 'Get-OfficialFile')
+}, $true))
+if ($parseErrors.Count -ne 0 -or $functions.Count -ne 2) { throw 'Download fixture could not load production functions' }
+. ([ScriptBlock]::Create(($functions | ForEach-Object { $_.Extent.Text }) -join "`n"))
 
 if (-not ('PureTokensDownloadFixtureException' -as [type])) {
   Add-Type -TypeDefinition @'

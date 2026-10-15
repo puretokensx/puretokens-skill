@@ -622,6 +622,17 @@ function validateUpdateContract(errors, label, contract) {
     sync.sameVersion !== "verify_release_executor_checksum_and_all_managed_inventories_then_no_download_sync_or_init") {
     errors.push(`${label} must define stable platform-only sync and the verified same-version shortcut`);
   }
+  const selection = sync?.hostSelection;
+  if (!selection || selection.whenNoHostOrTarget !== "bounded_direct_launcher_detection" ||
+    selection.maxProcessQueries !== 8 || !sameArray(selection.readProcessFields, ["name", "parentId"]) ||
+    !sameArray(selection.automaticHosts, ["codex", "opencode"]) ||
+    selection.unknownLauncher !== "stop_before_release_download_or_installation_writes_then_confirm_missing_client" ||
+    selection.explicitHostOrTarget !== "preserve_without_detection" ||
+    selection.doesNotReadConfigurationOrCommandLines !== true ||
+    selection.doesNotIdentifyChatModelOrVerifyAPI !== true ||
+    selection.diagnosticCommand !== "native_fetch detect-host") {
+    errors.push(`${label} must bound launcher-only detection, preserve explicit choices and stop before download on uncertain host evidence`);
+  }
   const init = contract.operations?.init;
   if (!init || init.commandTemplate !== "native_executor init --host <current-supported-host>" ||
     init.checks !== "public_identity_then_one_authenticated_catalog_check_without_displaying_configuration" ||

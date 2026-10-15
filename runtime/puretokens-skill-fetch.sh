@@ -4,8 +4,32 @@ set -eu
 umask 077
 
 fail() { printf '%s\n' "Pure Tokens Skill download: $*" >&2; exit 1; }
+detect_current_host() {
+  # Inspect only the direct launcher chain, never arguments, configuration,
+  # directory presence or inherited session markers. An unknown launcher is
+  # a boundary: a nested client must not borrow an outer client's identity.
+  process_id=$$
+  depth=0
+  while [ "$depth" -lt 8 ]; do
+    depth=$((depth + 1))
+    process_row=$(LC_ALL=C ps -p "$process_id" -o ppid= -o comm= 2>/dev/null) || break
+    read -r parent_id executable <<EOF
+$process_row
+EOF
+    case "$parent_id" in ''|*[!0-9]*) break ;; esac
+    case "${executable##*/}" in
+      codex) printf '%s\n' codex; return 0 ;;
+      opencode) printf '%s\n' opencode; return 0 ;;
+      sh|bash|zsh|dash|ksh|fish|pwsh) ;;
+      *) break ;;
+    esac
+    [ "$parent_id" -gt 1 ] && [ "$parent_id" != "$process_id" ] || break
+    process_id=$parent_id
+  done
+  fail "stage=detect_host error_code=current_host_unconfirmed installation_status=not_started installed_files_changed=false next_step=confirm_current_client; confirm this client's host ID and run once with --host <id>. Supported IDs: claude-code, codex, workbuddy, gemini-cli, grok-build, opencode, trae, claude-desktop, dsh-desktop, deepseek-harness, minimax-code, zcode, kimi-code, qoder, pi, hermes, evox, vscode, octop. No network request or installation write was made."
+}
 command_name=${1:-}
-case "$command_name" in check-update|install|update|repair) ;; *) fail "use check-update, install, update or explicitly requested repair with --host or --target" ;; esac
+case "$command_name" in detect-host|check-update|install|update|repair) ;; *) fail "use detect-host, check-update, install, update or explicitly requested repair; --host and --target are optional when the current launcher can be identified" ;; esac
 shift
 host=
 target=
@@ -16,7 +40,15 @@ while [ "$#" -gt 0 ]; do
     *) fail "unsupported option" ;;
   esac
 done
-[ -n "$host" ] || [ -n "$target" ] || fail "--host or --target is required"
+if [ "$command_name" = detect-host ]; then
+  [ -z "$host$target" ] || fail "detect-host takes no host or target options"
+  detect_current_host
+  exit 0
+fi
+if [ -z "$host" ] && [ -z "$target" ]; then
+  host=$(detect_current_host) || exit 1
+  printf '%s\n' "Pure Tokens Skills current client: $host (detected)."
+fi
 command -v curl >/dev/null 2>&1 || fail "curl is unavailable; use a host session with native HTTPS download support"
 download_root=$(mktemp -d "${TMPDIR:-/tmp}/puretokens-download.XXXXXX") || fail "cannot create a private download directory"
 trap 'rm -rf -- "$download_root"' EXIT

@@ -3,7 +3,7 @@
 [CmdletBinding()]
 param(
   [Parameter(Position = 0, Mandatory = $true)]
-  [ValidateSet("check-update", "install", "update", "repair")]
+  [ValidateSet("detect-host", "check-update", "install", "update", "repair")]
   [string]$Command,
   [Alias("Host")]
   [ValidateSet("claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop")]
@@ -14,6 +14,37 @@ $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 function Fail([string]$Message) { throw "Pure Tokens Skill download: $Message" }
 function Read-Json([string]$File) { return (Get-Content -LiteralPath $File -Raw -Encoding UTF8 | ConvertFrom-Json) }
+function Get-CurrentHost {
+  # Query only the direct launcher chain's names and parent IDs. Never read
+  # command lines, credentials, configuration or the complete process list.
+  $candidatePid = $PID
+  for ($depth = 0; $depth -lt 8; $depth++) {
+    try {
+      $process = Get-CimInstance -ClassName Win32_Process -Filter "ProcessId=$candidatePid" -Property Name, ParentProcessId -ErrorAction Stop
+    } catch { break }
+    if ($null -eq $process -or @($process).Count -ne 1 -or
+        $process.Name -isnot [string] -or [string]::IsNullOrWhiteSpace($process.Name) -or
+        [string]$process.ParentProcessId -notmatch '^\d+$') { break }
+    switch ($process.Name.ToLowerInvariant()) {
+      "codex.exe" { return "codex" }
+      "opencode.exe" { return "opencode" }
+      { $_ -in @("powershell.exe", "pwsh.exe", "cmd.exe", "bash.exe", "sh.exe") } {}
+      default { $candidatePid = 0 }
+    }
+    if ($candidatePid -eq 0 -or $process.ParentProcessId -le 1 -or $process.ParentProcessId -eq $candidatePid) { break }
+    $candidatePid = $process.ParentProcessId
+  }
+  Fail "stage=detect_host error_code=current_host_unconfirmed installation_status=not_started installed_files_changed=false next_step=confirm_current_client; confirm this client's host ID and run once with -Host <id>. Supported IDs: claude-code, codex, workbuddy, gemini-cli, grok-build, opencode, trae, claude-desktop, dsh-desktop, deepseek-harness, minimax-code, zcode, kimi-code, qoder, pi, hermes, evox, vscode, octop. No network request or installation write was made."
+}
+if ($Command -eq "detect-host") {
+  if ($HostId -or $Target) { Fail "detect-host takes no host or target options" }
+  Get-CurrentHost
+  return
+}
+if (-not $HostId -and -not $Target) {
+  $HostId = Get-CurrentHost
+  Write-Output "Pure Tokens Skills current client: $HostId (detected)."
+}
 function Get-OfficialFile([string]$Url, [string]$Destination, [string]$Stage) {
   $status = 0
   $category = "transport_failure"
@@ -80,7 +111,6 @@ function Get-OfficialFile([string]$Url, [string]$Destination, [string]$Stage) {
 $locationOptions = @{}
 if ($HostId) { $locationOptions.HostId = $HostId }
 if ($Target) { $locationOptions.Target = $Target }
-if ($locationOptions.Count -eq 0) { Fail "-Host or -Target is required" }
 $downloadRoot = Join-Path ([IO.Path]::GetTempPath()) ("puretokens-download-" + [Guid]::NewGuid().ToString("N"))
 try {
   New-Item -ItemType Directory -Path $downloadRoot | Out-Null

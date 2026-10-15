@@ -13,7 +13,9 @@ description: 用户询问 Pure Tokens 是什么、有什么用、怎么开始、
 
 ## 检查、安装和更新
 
-确认宿主后直接使用官方 fetch 入口，不先下载在线 README、raw.githubusercontent.com 或其他远程说明。当前完整官方安装提示词自带宿主映射和执行步骤，默认目录由官方脚本解析；不把文档可达性当安装前置条件。不委托通用 skill-installer 复制目录，不调用 CUA／浏览器自动化兜底，不反复检查环境或只重复说明计划。下载脚本已取得时直接运行一次；宿主阻止执行或下载失败就保留脱敏结果并停止，不绕过权限。
+直接使用官方 fetch 入口，不先下载在线 README、raw.githubusercontent.com 或其他远程说明。安装提示词只提供稳定入口和执行步骤，系统、架构、默认目录及稳定版本由脚本解析。不委托通用 skill-installer 复制目录，不调用 CUA／浏览器自动化兜底，不反复检查环境或只重复说明计划。下载脚本已取得时直接运行一次；宿主阻止执行或下载失败就保留脱敏结果并停止，不绕过权限。
+
+安装入口尚无已确认的 host／target 时，执行 fetch install，由脚本先离线识别客户端；已有确认值则显式沿用。它最多检查八层直接启动进程的名称和父 PID，仅明确的原生 Codex／OpenCode 启动器可自动识别，不越过 Node、Electron 或模糊的 Claude 进程借用外层身份。`current_host_unconfirmed` 或旧入口要求 host 时，只询问缺失的客户端，再带参数执行一次；不是下载失败后的自动重试。不根据模型名、目录存在或继承的会话标记猜宿主。`detect-host` 只读、无网络，不是普通生成预检；识别不证明当前聊天模型、凭据或 API／交付能力。任何 API 命令仍须绑定已确认的 host。
 
 安装需当前会话允许命令执行、HTTPS 下载及临时／目标目录写入；优先使用宿主已报告的权限与审批能力，不额外探测或读取宿主配置。未知权限不等于拒绝，按正常流程及原生审批执行；审批须覆盖当前动作，遵守宿主实际有效范围。网络授权不证明完整执行权限，不默认要求“完全访问”或自动扩大权限。fetch 下载或启动失败应报告“安装尚未开始”。旧提示词若停在读取说明，仅在用户明确继续且宿主已确认时，使用完整官方提示词直接请求稳定 fetch 一次，不重试文档；历史文档失败不能证明发布附件不可达，也不允许绕过宿主拒绝或重试失败的发布下载。权限错误、Windows 安全上下文错误及用户明确要求继续安装时，按需读 `references/install-permissions.md`，不要一律归因于 Key、证书、客户端损坏或权限问题。
 
@@ -25,14 +27,14 @@ description: 用户询问 Pure Tokens 是什么、有什么用、怎么开始、
 
 ```text
 macOS/Linux: sh <fetch脚本绝对路径> check-update --host <当前宿主ID>
-macOS/Linux: sh <fetch脚本绝对路径> install --host <当前宿主ID>
+macOS/Linux: sh <fetch脚本绝对路径> install
 macOS/Linux: sh <fetch脚本绝对路径> update --host <当前宿主ID>
 Windows: powershell.exe -NoProfile -ExecutionPolicy Bypass -File <fetch脚本绝对路径> check-update -Host <当前宿主ID>
 ```
 
 Windows 的 install／update 使用相同参数形式替换子命令。ExecutionPolicy 只作用于该进程，不修改系统策略；宿主明确阻止执行时停止，不绕过审批。
 
-宿主 ID 为 claude-code、codex、workbuddy、gemini-cli、grok-build、opencode、trae、claude-desktop、dsh-desktop、deepseek-harness、minimax-code、zcode、kimi-code、qoder、pi、hermes、evox、vscode、octop；识别不了先询问。自定义路径同时传 --target／-Target 绝对目录并保留 host。fetch 固定最新稳定发布清单中的版本、源码提交和 SHA-256，先下载并校验该发布的目录选择器，不复用旧版同目录选择器。普通安装只下载当前系统／架构平台包，不回退 main、源码归档或镜像。维护者明确指定本地官方检出时仍可执行其 sync。
+宿主 ID 为 claude-code、codex、workbuddy、gemini-cli、grok-build、opencode、trae、claude-desktop、dsh-desktop、deepseek-harness、minimax-code、zcode、kimi-code、qoder、pi、hermes、evox、vscode、octop；自动识别不了时才询问。显式选择使用 --host／-Host；自定义路径同时传 --target／-Target 绝对目录并保留 host，Octop 必须指定工作区目标。fetch 固定最新稳定发布清单中的版本、源码提交和 SHA-256，先下载并校验该发布的目录选择器，不复用旧版同目录选择器。普通安装只下载当前系统／架构平台包，不回退 main、源码归档或镜像。维护者明确指定本地官方检出时仍可执行其 sync。
 
 check-update 只比较版本，不证明文件完整，也不修改安装或执行 init。同版 install／update 只有在发布执行器校验和与九份受管清单全部通过、无未完成事务时，才返回 `already current and verified`：不下载 ZIP、不写入、不 init。缺失、修改或未完成事务必须停止并保留现场，不自动修复。
 
@@ -64,7 +66,7 @@ Windows 安装只运行一次官方 fetch／sync 流程并汇总同步、清理�
 
 宿主目录、会话选择限制或特定客户端故障才按需读 `references/desktop-hosts.md`；普通请求不增加诊断前置步骤。
 
-安装前依据当前应用或用户明确指定绑定宿主 ID；不从模型名称、Skill 来源目录或共享 `.agents/skills` 推断为 Codex。Qoder 使用 `--host qoder`，默认目标由官方 locate 解析，不照抄 Codex 示例。普通安装只使用当前官方 fetch，不直接下载旧迁移载荷或复制 Skill 文件。
+安装时由官方入口识别或沿用当前应用／用户已确认的宿主 ID；不从模型名称、Skill 来源目录或共享 `.agents/skills` 推断为 Codex。Qoder 使用 `--host qoder`，默认目标由官方 locate 解析，不照抄 Codex 示例。普通安装只使用当前官方 fetch，不直接下载旧迁移载荷或复制 Skill 文件。
 
 安装汇报保留实际宿主、同步版本、init 已验证／失败／未执行的结果，下一步只指向该宿主。仅复制文件不代表原生安装完成。只有原生同步已确认成功且 init 明确未执行时，补一次同宿主 init；同版快速返回不属于此情形。输出不确定先说明未确认，不重装或猜成功。
 

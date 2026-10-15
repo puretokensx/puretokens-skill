@@ -20,13 +20,18 @@
     },
     {
       "id": "update-host-unknown",
-      "when": "the user explicitly requests an installation or connection operation that requires a host, and the active host cannot be identified as one of the registered supported hosts",
-      "then": "Ask which supported host the user is using; do not guess the host or its configuration/Skill directory."
+      "when": "the official fetch cannot confirm the client from its bounded direct launcher chain, or a connection operation lacks a confirmed supported host",
+      "then": "Ask only for the missing supported client and preserve any confirmed custom target. For installation, invoke once with the explicit host after selection; unconfirmed detection made no release download or installation write. Do not infer the host from models, installed directories, inherited session markers or an outer client. API operations still require a bound host."
     },
     {
       "id": "update-terminal-unavailable",
       "when": "no local terminal, PowerShell, exec, or shell execution is available",
       "then": "state that local synchronization cannot run in this session and direct the user to give the official repository installation prompt to a terminal-capable local Agent; do not invent a manual copy command or claim success"
+    },
+    {
+      "id": "update-automatic-host-detection",
+      "when": "the user requests installation without an already confirmed client or custom target",
+      "then": "Run the official fetch install without host/target parameters. The script chooses the OS and architecture and inspects at most eight direct launcher names and parent IDs, accepting only native codex/opencode launchers and stopping at unknown interpreters or editors. Preserve explicit choices instead of detecting again. detect-host is offline and read-only, never a routine generation preflight; it proves neither credentials, the selected chat model, API acceptance nor attachment delivery."
     },
     {
       "id": "update-fresh-source-checkout",
@@ -35,8 +40,8 @@
     },
     {
       "id": "update-self-contained-bootstrap",
-      "when": "a complete official install prompt supplies execution steps and host IDs, or the user explicitly continues an older attempt that stopped only at documentation before fetch was requested",
-      "then": "For a confirmed current host, make the first required download the official stable-release fetch script saved to a unique local file. Do not request repository pages, README or raw.githubusercontent.com as a prerequisite. Let the official selector resolve the default target, retaining explicit Octop and MiniMax target requirements. A historical documentation failure does not establish release-asset failure. Respect host approvals and stop on actual fetch, release-download, checksum or execution failure; no documentation retry, mirror, source archive, alternate transport or automatic rerun."
+      "when": "a complete official install prompt supplies the stable fetch address and commands, or the user explicitly continues an older attempt that stopped only at documentation before fetch was requested",
+      "then": "Make the first required download the official stable-release fetch script saved to a unique local file. Do not request repository pages, README or raw.githubusercontent.com as a prerequisite. Preserve confirmed host/target options; otherwise let fetch attempt offline current-client detection and ask only for a missing selection if requested. Let the verified selector resolve the default target, retaining explicit Octop and MiniMax target requirements. A historical documentation failure does not establish release-asset failure. Respect host approvals and stop on actual fetch, release-download, checksum or execution failure; no documentation retry, mirror, source archive, alternate transport or automatic rerun."
     },
     {
       "id": "update-source-acquisition-unavailable",
