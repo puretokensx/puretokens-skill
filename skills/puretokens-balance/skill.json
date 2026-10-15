@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "puretokens-balance",
-  "version": "0.19.3",
+  "version": "0.19.4",
   "entry": "SKILL.md",
   "displayName": "Pure Tokens Balance",
   "description": "Read a balance through the fixed Pure Tokens API.",

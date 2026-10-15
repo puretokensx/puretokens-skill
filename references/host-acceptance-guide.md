@@ -174,6 +174,12 @@ file changes and no init. A changed/missing file or unresolved transaction must
 stop without a repair download. Include absent stable assets, selector/archive
 checksum failures, a newer installed version and simultaneous updates.
 
+Exercise a replacement failure after at least one existing component has moved,
+and verify restoration, file identity, transaction cleanup and no init under both
+Windows PowerShell 5.1 and PowerShell 7. The offline legacy-array fixture also
+reproduces 5.1 JSON output semantics on modern PowerShell; it does not replace
+native Windows execution.
+
 Use only the current platform archive. Validate both Shell and PowerShell entry
 paths and the absence of the other system's scripts in the archive. At least one
 fresh install and repeat invocation must use an actual built ZIP rather than a

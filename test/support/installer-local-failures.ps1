@@ -1,6 +1,18 @@
 # Offline fixture: execute the production PowerShell transaction body with
 # isolated directories and injected local failures. Never call init or a network.
+param([switch]$LegacyJsonArrays)
 $ErrorActionPreference = "Stop"
+if ($LegacyJsonArrays) {
+  # Reproduce Windows PowerShell 5.1's array output on modern PowerShell too.
+  function ConvertFrom-Json {
+    [CmdletBinding()]
+    param([Parameter(ValueFromPipeline = $true)][string]$InputObject)
+    process {
+      $value = Microsoft.PowerShell.Utility\ConvertFrom-Json -InputObject $InputObject -NoEnumerate
+      Write-Output -NoEnumerate $value
+    }
+  }
+}
 $repository = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $installer = Join-Path $repository "runtime/puretokens-skill-install.ps1"
 $sourceText = Get-Content -LiteralPath $installer -Raw -Encoding UTF8

@@ -4,6 +4,14 @@
 
 # Changelog
 
+## 0.19.4 - 2026-10-15
+
+- Keep installation prompts short while the installer handles client/platform selection, checks, initialization and result guidance.
+- Detect supported native client launchers without reading configuration; preserve confirmed clients and stop for one selection when the host is ambiguous.
+- Report sanitized download/write failures and keep completed installation separate from connection verification.
+- Restore interrupted Windows installations correctly with both Windows PowerShell 5.1 and PowerShell 7 transaction-plan parsing.
+- Isolate installer tests from inherited OpenCode directories and cover legacy JSON-array behavior offline.
+
 ## 0.19.3 - 2026-10-15
 
 - Extend bounded host detection to native Grok Build and Qoder CLI launchers. Preserve confirmed clients; ambiguous launchers require one explicit selection.

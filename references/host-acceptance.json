@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "version": "0.19.3",
+  "version": "0.19.4",
   "checkedAt": "2026-10-15",
   "stablePublicationException": {
     "kind": "maintainer-approved-pending-acceptance",
-    "version": "0.19.3",
+    "version": "0.19.4",
     "approved": true,
     "approvedAt": "2026-10-15",
-    "reason": "The maintainer explicitly authorized stable publication of the completed 0.19.3 installation improvements on 2026-10-15, retaining the previously authorized internal recording of real-host acceptance gaps. Pending evidence stays pending; engineering, reproducible-build and uploaded-asset verification remain required."
+    "reason": "The maintainer authorized stable publication of the completed installation improvements on 2026-10-15 while retaining the previously authorized internal recording of real-host acceptance gaps. Version 0.19.4 supersedes the unpublished 0.19.3 candidate with the verified Windows recovery correction. Pending evidence stays pending; engineering, reproducible-build and uploaded-asset verification remain required."
   },
   "method": "isolated fixture coverage and packaged native offline task recovery; nineteen real-host cases now include audio, music, evaluation, workflows and local help, all remain pending; historical 0.18.3 evidence remains in references/acceptance/0.18.3-host-acceptance.json",
   "guide": "references/host-acceptance-guide.md",

@@ -8,7 +8,7 @@ Official Skills for checking a Pure Tokens connection, balance and model catalog
 
 Version 0.19.0 restores stable downloads from `puretokensx/puretokens-skill` and adds local installation recovery, model alternatives, live group guidance and product help.
 
-Source version 0.19.3 keeps the installation prompt to the task and official entry; client/platform selection, verification and initialization belong to the installer. Installation uses the version selected by the published stable manifest.
+Source version 0.19.4 keeps the installation prompt to the task and official entry; client/platform selection, verification and initialization belong to the installer. Installation uses the version selected by the published stable manifest.
 
 Version 0.18.7 adds MiniMax Code Desktop for local macOS/Windows default connections. Standalone installation with Desktop preferences requires a confirmed target or the client runtime data-directory environment. See `references/switch-skill-compatibility.md` for the connection and session requirements.
 

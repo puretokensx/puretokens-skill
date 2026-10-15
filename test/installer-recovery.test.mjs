@@ -13,8 +13,10 @@ const installer = path.join(repositoryRoot, "runtime/puretokens-skill-install.sh
 test("PowerShell local failures preserve file and init outcomes without exposing private errors", async t => {
  try { await execFile("pwsh", ["-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"]); }
  catch (error) { if (error.code === "ENOENT") { t.skip("PowerShell is unavailable; local failure fixtures remain unverified"); return; } throw error; }
- const { stdout } = await execFile("pwsh", ["-NoProfile", "-File", path.join(repositoryRoot, "test/support/installer-local-failures.ps1")]);
- assert.match(stdout, /verification evidence passed \(offline\)/);
+ for (const options of [[], ["-LegacyJsonArrays"]]) {
+  const { stdout } = await execFile("pwsh", ["-NoProfile", "-File", path.join(repositoryRoot, "test/support/installer-local-failures.ps1"), ...options]);
+  assert.match(stdout, /verification evidence passed \(offline\)/);
+ }
 });
 async function fixture(t) {
  const root = await mkdtemp(path.join(os.tmpdir(), "pt-installer-test-"));

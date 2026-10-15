@@ -386,7 +386,10 @@ function Restore-Transaction([string]$TargetRoot, [string]$StageRoot) {
   $verified = Invoke-NativeExecutor $script:ownershipGuard @("install-transaction-verify", "--directory", $StageRoot, "--target-directory", $TargetRoot, "--source-directory", $sourceRoot)
   if ($verified.ExitCode -ne 0) { Fail "transaction recovery failed verification; all remaining files were preserved" }
   $planFile = Join-Path $StageRoot "plan.json"
-  foreach ($entry in @(Get-Content -LiteralPath $planFile -Raw -Encoding UTF8 | ConvertFrom-Json)) {
+  # Assign first: PowerShell 5.1 emits the JSON array as one pipeline object,
+  # while newer versions enumerate it. foreach must visit entries in both.
+  $recoveryPlan = Get-Content -LiteralPath $planFile -Raw -Encoding UTF8 | ConvertFrom-Json
+  foreach ($entry in $recoveryPlan) {
     if ($entry.name -notin ($currentSkills + @(".puretokens-executor"))) { Fail "unknown recovery entry; retained backup" }
     $destination = Join-Path $TargetRoot $entry.name
     $backup = Join-Path (Join-Path $StageRoot "backup") $entry.name
