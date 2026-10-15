@@ -72,7 +72,10 @@ try {
   if ($baseline.Failed -or $baseline.Output -notmatch 'installation_status=completed' -or $baseline.InitCalls -ne 0) { throw "Offline baseline sync failed" }
   $original = [Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $target "puretokens-balance/SKILL.md")))
   $replace = Invoke-Fixture $target "replace-denied"
-  if (-not $replace.Failed -or $replace.Message -notmatch 'stage=replace_files error_code=local_io_failure' -or $replace.Message -notmatch 'installed_files_changed=unknown' -or $replace.Output -notmatch 'recovery_status=restored' -or $replace.InitCalls -ne 0) { throw "Replacement failure lost recovery/state evidence" }
+  if (-not $replace.Failed -or $replace.Message -notmatch 'stage=replace_files error_code=local_io_failure' -or $replace.Message -notmatch 'installed_files_changed=unknown' -or $replace.Output -notmatch 'recovery_status=restored' -or $replace.InitCalls -ne 0) {
+    $receiptFields = [regex]::Matches(($replace.Message + "`n" + $replace.Output), '(?:stage|error_code|installation_status|installed_files_changed|recovery_status)=[a-z_]+') | ForEach-Object { $_.Value }
+    throw ("Replacement failure lost recovery/state evidence: failed={0}; injected={1}; init_calls={2}; {3}" -f $replace.Failed, $script:fixtureState.Injected, $replace.InitCalls, ($receiptFields -join "; "))
+  }
   if ([Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $target "puretokens-balance/SKILL.md"))) -cne $original) { throw "Original managed file was not restored" }
   if (@(Get-ChildItem -LiteralPath $target -Force -Filter ".puretokens-skill-stage-*").Count -ne 0) { throw "Restored transaction was not cleaned up" }
   $stage = Invoke-Fixture $target "stage-denied"

@@ -42,7 +42,9 @@ async function fixture(t) {
     schemaVersion: 1, name: "puretokens-api-executor", version,
     artifacts: { [platform]: { path: binaryPath, sha256: createHash("sha256").update(binary).digest("hex") } }
   }, null, 2));
-  const env = { ...process.env, HOME: path.join(root, "home"), CODEX_HOME: path.join(root, "home/.codex"), TMPDIR: path.join(root, "tmp"), GITHUB_SHA: commit };
+  const env = { ...process.env, HOME: path.join(root, "home"), CODEX_HOME: path.join(root, "home/.codex"),
+    XDG_CONFIG_HOME: path.join(root, "home/.config"), OPENCODE_CONFIG_DIR: "",
+    TMPDIR: path.join(root, "tmp"), GITHUB_SHA: commit };
   return { root, source, platform, env, target: path.join(root, "target") };
 }
 
