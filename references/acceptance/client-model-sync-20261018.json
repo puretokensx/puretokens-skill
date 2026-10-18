@@ -120,15 +120,15 @@
         "aspect_ratio=21:9",
         "aspect_ratio=5:2"
       ],
-      "status": "resolved in anonymous production schema at 2026-10-18T12:14:13.773Z; synchronized into unpublished Skills candidate",
-      "nextStep": "Publish Skills separately; authenticated permission, dedicated execution and native host delivery remain pending."
+      "status": "resolved in anonymous production schema at 2026-10-18T12:14:13.773Z; synchronized into published stable Skills 0.19.5",
+      "nextStep": "Publication completed. Authenticated permission, dedicated execution and native host delivery remain pending for maintainer online verification."
     }
   ],
   "authenticatedPermissionVerified": false,
   "realHostAcceptance": "pending",
   "billableRequests": 0,
   "productionWrites": 0,
-  "publication": "not performed",
+  "publication": "published-stable-and-latest; see stablePublication for exact source, CI and downloaded-asset evidence",
   "validation": {
     "engineering": "passed: npm run check; Go tests and vet; Node 168 passed, 0 failed, 3 PowerShell unavailable skips",
     "releaseFreshness": "passed: npm run release:validate; version-bumped 0.19.5 candidate, current catalog freshness and six platform executors rebuilt with byte-identical results",
