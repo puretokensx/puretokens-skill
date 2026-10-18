@@ -4,6 +4,15 @@
 
 # Changelog
 
+## 0.19.5 - 2026-10-18
+
+- Add text embedding and reranking Skills that save vectors as JSONL and relevance rankings as JSON.
+- Install all ten Skills together and include the new capabilities in the installation completion summary.
+- Add both Wan 3.0 video models and Grok generation ratios `21:9` and `5:2`, keeping the current image and video defaults.
+- Remove `grok-imagine-image-2.0` from new model selection while preserving recovery and delivery of existing tasks.
+- Correct Grok video editing options so unsupported models and parameters stop before submission.
+- Update client compatibility and Switch setup guidance for dedicated models.
+
 ## 0.19.4 - 2026-10-15
 
 - Keep installation prompts short while the installer handles client/platform selection, checks, initialization and result guidance.

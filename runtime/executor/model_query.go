@@ -32,6 +32,9 @@ func executeModelQuery(output io.Writer, svc service, input io.Reader) error {
 	if query.Kind == "audio" {
 		return executeAudioModelQuery(output, svc, query)
 	}
+	if isRetrievalCommand(query.Kind) {
+		return executeRetrievalModelQuery(output, svc, query)
+	}
 	body, status, retry, code, message, err := svc.request(context.Background(), http.MethodGet, "/v1/media/models", nil, "")
 	if err != nil || status < 200 || status >= 300 {
 		writeReceipt(output, apiFailure("submission", status, retry, code, message, "The live model catalog could not be read. No media task was submitted."))
@@ -102,11 +105,14 @@ func decodeModelQuery(input io.Reader) (modelQuery, error) {
 			return query, errors.New("model filter fields must not be null")
 		}
 	}
-	if query.Kind != "" && query.Kind != "image" && query.Kind != "video" && query.Kind != "evaluation" && query.Kind != "audio" {
+	if query.Kind != "" && query.Kind != "image" && query.Kind != "video" && query.Kind != "evaluation" && query.Kind != "audio" && !isRetrievalCommand(query.Kind) {
 		return query, errors.New("unknown media kind")
 	}
 	if query.Kind == "evaluation" && (query.Operation != "" || len(query.Parameters) > 0) {
 		return query, errors.New("evaluation catalog cannot filter undeclared operation parameters")
+	}
+	if isRetrievalCommand(query.Kind) && (query.Operation != "" || len(query.Parameters) > 0) {
+		return query, errors.New("retrieval discovery accepts no operation or parameter filters")
 	}
 	if query.Kind == "audio" && (len(query.Parameters) > 0 || (query.Operation != "" && query.Operation != "speech" && query.Operation != "transcribe" && query.Operation != "generate" && query.Operation != "music")) {
 		return query, errors.New("audio discovery accepts only reviewed operations and no parameter filters")
@@ -123,6 +129,36 @@ func decodeModelQuery(input io.Reader) (modelQuery, error) {
 		}
 	}
 	return query, nil
+}
+
+func executeRetrievalModelQuery(output io.Writer, svc service, query modelQuery) error {
+	body, status, retry, code, message, err := svc.request(context.Background(), http.MethodGet, "/v1/models", nil, "")
+	if err != nil || status < 200 || status >= 300 {
+		writeReceipt(output, apiFailure("submission", status, retry, code, message, "Model visibility could not be read. No embedding or rerank request was submitted."))
+		return errors.New("retrieval catalog unavailable")
+	}
+	catalog, err := readAPIObject(body)
+	entries, ok := catalog["data"].([]any)
+	if err != nil || !ok {
+		writeReceipt(output, validationFailure("The API did not return a readable model directory. No inference request was submitted."))
+		return errors.New("invalid retrieval catalog")
+	}
+	matched, seen := []any{}, map[string]bool{}
+	for _, entry := range entries {
+		id, _ := jsonObject(entry)["id"].(string)
+		if retrievalModels[id] != query.Kind || seen[id] || (query.Model != "" && id != query.Model) {
+			continue
+		}
+		seen[id] = true
+		matched = append(matched, map[string]any{"id": id, "capabilities": []string{query.Kind}, "input_schema": map[string]any{}})
+	}
+	writeJSON(output, map[string]any{"ok": true, "command": "models", "result": map[string]any{
+		"data": matched, "matched_count": len(matched),
+		"filter":         map[string]any{"kind": query.Kind, "model": query.Model, "operation": "", "parameter_names": []string{}},
+		"matching_scope": "reviewed_" + query.Kind + "_models_listed_by_api",
+		"note":           "Exact reviewed IDs visible in the authenticated directory. This does not verify route deployment, submission permission, price or result quality.",
+	}})
+	return nil
 }
 
 func executeAudioModelQuery(output io.Writer, svc service, query modelQuery) error {
@@ -210,7 +246,7 @@ func modelQueryMatches(query modelQuery, entry map[string]any) bool {
 	if !exists {
 		return false
 	}
-	body, err := json.Marshal(schemaValue)
+	body, err := json.Marshal(reviewedMediaSchema(id, jsonObject(schemaValue)))
 	var schema parameterSchema
 	if err != nil || json.Unmarshal(body, &schema) != nil {
 		return false

@@ -54,7 +54,7 @@ test("interrupted update recovery preserves user changes and retains its backup"
 });
 test("all managed provenance entries derive from the registry", async () => {
   const entries = await getManagedSkillProvenances();
-  assert.equal(entries.length, 8);
+  assert.equal(entries.length, 10);
   for (const entry of entries) {
     assert.match(entry.name, /^puretokens-/);
     assert.match(entry.sourceSha256, /^[a-f0-9]{64}$/);
@@ -75,6 +75,9 @@ test("six-Skill upgrade adds evaluation and preserves a conflicting user-owned S
   const evaluation = path.join(f.target, "puretokens-evaluate");
   await rm(evaluation, { recursive: true });
   await rm(path.join(f.target, "puretokens-audio"), { recursive: true });
+  for (const name of ["puretokens-embedding", "puretokens-rerank"]) {
+    await rm(path.join(f.target, name), { recursive: true });
+  }
   const executor = path.join(f.target, ".puretokens-executor", "puretokens-api");
   // Model a verified previous release: six Skill inventories plus its executor.
   const entries = (await readdir(f.target)).filter(name => name.startsWith("puretokens-") || name === ".puretokens-executor");
@@ -122,6 +125,9 @@ test("seven-Skill installation adds audio without replacing user-owned audio con
  await f.install();
  const audio=path.join(f.target,"puretokens-audio");
  await rm(audio,{recursive:true});
+ for(const name of ["puretokens-embedding","puretokens-rerank"]){
+  await rm(path.join(f.target,name),{recursive:true});
+ }
  await mkdir(audio);
  await writeFile(path.join(audio,"SKILL.md"),"# User audio instructions");
  await assert.rejects(f.install(),/ownership/);
@@ -132,4 +138,48 @@ test("seven-Skill installation adds audio without replacing user-owned audio con
  assert.equal(JSON.parse(await readFile(path.join(audio,"skill.json"),"utf8")).name,"puretokens-audio");
  await rm(path.join(audio,"SKILL.md"));
  await assert.rejects(execFile("sh",[installer,"verify-installed","--target",f.target]),/missing the managed Skill: puretokens-audio/);
+});
+
+test("eight-Skill upgrade adds embedding and rerank while preserving same-name user content", async t => {
+  const f = await fixture(t);
+  await f.install();
+  const added = ["puretokens-embedding", "puretokens-rerank"];
+  for (const name of added) await rm(path.join(f.target, name), { recursive: true });
+  const previous = (await readdir(f.target)).filter(name => name.startsWith("puretokens-") || name === ".puretokens-executor");
+  assert.equal(previous.length, 9);
+  const executor = path.join(f.target, ".puretokens-executor", "puretokens-api");
+  for (const name of previous) {
+    const directory = path.join(f.target, name);
+    const file = path.join(directory, name === ".puretokens-executor" ? "runtime.json" : "skill.json");
+    const metadata = JSON.parse(await readFile(file, "utf8"));
+    metadata.version = "0.19.4";
+    await writeFile(file, JSON.stringify(metadata, null, 2) + "\n");
+    const { stdout } = await execFile(executor, ["install-inventory", "--directory", directory, "--name", name]);
+    await writeFile(path.join(directory, ".puretokens-managed.json"), stdout);
+  }
+  for (const name of added) {
+    const directory = path.join(f.target, name);
+    await mkdir(directory);
+    await writeFile(path.join(directory, "SKILL.md"), `# My independent ${name} instructions`);
+    await assert.rejects(f.install(), /ownership/);
+    assert.equal(await readFile(path.join(directory, "SKILL.md"), "utf8"), `# My independent ${name} instructions`);
+    await rm(directory, { recursive: true });
+  }
+  await f.install();
+  await execFile("sh", [installer, "verify-installed", "--target", f.target]);
+  const directories = (await readdir(f.target)).filter(name => name.startsWith("puretokens-") || name === ".puretokens-executor");
+  assert.equal(directories.length, 11);
+  for (const name of directories) {
+    const inventory = JSON.parse(await readFile(path.join(f.target, name, ".puretokens-managed.json"), "utf8"));
+    assert.equal(inventory.name, name);
+  }
+  for (const name of added) {
+    const file = path.join(f.target, name, "SKILL.md");
+    const content = await readFile(file);
+    await rm(file);
+    await assert.rejects(execFile("sh", [installer, "verify-installed", "--target", f.target]),
+      new RegExp(`missing the managed Skill: ${name}`));
+    await writeFile(file, content);
+  }
+  await execFile("sh", [installer, "verify-installed", "--target", f.target]);
 });

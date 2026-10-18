@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pure Tokens Rerank"
+  short_description: "Rerank supplied text candidates into a new JSON file."
+  default_prompt: "Use $puretokens-rerank to rank the supplied candidates against the query through the current Pure Tokens connection and save the specified new JSON file."

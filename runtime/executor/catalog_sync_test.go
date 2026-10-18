@@ -1,6 +1,122 @@
 package main
 
-import "testing"
+import (
+	"bytes"
+	"encoding/json"
+	"io"
+	"mime"
+	"mime/multipart"
+	"reflect"
+	"testing"
+)
+
+func TestCurrentCatalogGrokWideRatios(t *testing.T) {
+	for _, model := range []string{"grok-imagine-video", "grok-imagine-video-1.5"} {
+		for _, ratio := range []string{"21:9", "5:2"} {
+			svc, transport := catalogProfileService(t, readInstalledProfileFixture(t, "video", model))
+			request := taskRequest{Kind: "video", Operation: "generate", Model: model, Prompt: "fixture",
+				Parameters: map[string]any{"aspect_ratio": ratio}}
+			if err := prepareProfileRequest(&request, svc); err != nil || transport.calls != 0 {
+				t.Fatalf("%s/%s must use its published installed enum without discovery: %v", model, ratio, err)
+			}
+		}
+	}
+}
+
+func TestCurrentCatalogWanVideoRequests(t *testing.T) {
+	for _, model := range []string{"wan3.0-video", "wan3.0-video-prime"} {
+		profile := readInstalledProfileFixture(t, "video", model)
+		// The reviewed JSON operation explicitly permits all seven nonempty
+		// combinations. Preserve the references without an upload or discovery.
+		fields := []string{"reference_images", "reference_videos", "reference_audios"}
+		for mask := 1; mask < 8; mask++ {
+			parameters := map[string]any{"duration": 5, "aspect_ratio": "adaptive", "resolution": "720p"}
+			for index, field := range fields {
+				if mask&(1<<index) != 0 {
+					parameters[field] = []any{"https://example.com/current-reference"}
+				}
+			}
+			request := taskRequest{Kind: "video", Operation: "generate", MediaOperation: "video_generation",
+				Model: model, Prompt: "fixture", Parameters: parameters}
+			svc, transport := catalogProfileService(t, profile)
+			if err := prepareProfileRequest(&request, svc); err != nil || transport.calls != 0 {
+				t.Fatalf("%s references %d: %v", model, mask, err)
+			}
+			path, contentType, body, err := taskRequestBody(request)
+			if err != nil || path != "/v1/videos" || contentType != "application/json" {
+				t.Fatalf("incorrect public Wan route: %s %s %v", path, contentType, err)
+			}
+			want := map[string]any{"model": model, "prompt": "fixture"}
+			for field, value := range parameters {
+				want[field] = value
+			}
+			wantJSON, _ := json.Marshal(want)
+			gotJSON, err := io.ReadAll(body)
+			if err != nil || !bytes.Equal(wantJSON, gotJSON) {
+				t.Fatal("Wan JSON request changed exact model, controls or reference roles")
+			}
+		}
+		for _, tc := range []struct{ operation, field string }{
+			{"image_to_video", "first_frame_image"},
+			{"reference_image_video", "reference_images"},
+			{"reference_video", "reference_videos"},
+			{"reference_audio", "reference_audios"},
+		} {
+			payload := "current-attachment-fixture"
+			file := writeFixture(t, "reference.bin", payload)
+			request := taskRequest{Kind: "video", Operation: "generate", Model: model, Prompt: "fixture",
+				MediaOperation: tc.operation, Attachments: []attachment{{Field: tc.field, Path: file}}}
+			svc, transport := catalogProfileService(t, profile)
+			if err := validateTaskRequest(request); err != nil {
+				t.Fatal(err)
+			}
+			if err := prepareProfileRequest(&request, svc); err != nil || transport.calls != 0 {
+				t.Fatalf("%s/%s: %v", model, tc.operation, err)
+			}
+			path, contentType, body, err := taskRequestBody(request)
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, params, err := mime.ParseMediaType(contentType)
+			if err != nil || path != "/v1/videos" {
+				t.Fatal("Wan attachment must use its public multipart route")
+			}
+			form, err := multipart.NewReader(body, params["boundary"]).ReadForm(1024)
+			body.(io.Closer).Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(form.File) != 1 || len(form.File[tc.field]) != 1 ||
+				!reflect.DeepEqual(form.Value["model"], []string{model}) {
+				t.Fatal("Wan multipart changed the exact model or attachment role")
+			}
+			part, err := form.File[tc.field][0].Open()
+			if err != nil {
+				t.Fatal(err)
+			}
+			actual, err := io.ReadAll(part)
+			part.Close()
+			form.RemoveAll()
+			if err != nil || string(actual) != payload {
+				t.Fatal("Wan multipart changed attachment bytes")
+			}
+		}
+		for _, parameters := range []map[string]any{
+			{"duration": -1}, {"duration": 1}, {"duration": 31},
+			{"aspect_ratio": "auto"}, {"resolution": "4K"},
+			{"last_frame_image": "https://example.com/last.png"},
+			{"reference_videos": []any{"https://127.0.0.1/reference.mp4"}},
+			{"reference_audios": []any{"https://example.com/a.wav", "https://example.com/b.wav", "https://example.com/c.wav",
+				"https://example.com/d.wav", "https://example.com/e.wav", "https://example.com/f.wav"}},
+		} {
+			svc, transport := catalogProfileService(t, profile)
+			request := taskRequest{Kind: "video", Operation: "generate", Model: model, Prompt: "fixture", Parameters: parameters}
+			if prepareProfileRequest(&request, svc) == nil || transport.calls != 0 {
+				t.Fatalf("%s accepted invalid controls or attempted discovery: %v", model, parameters)
+			}
+		}
+	}
+}
 
 func TestCurrentCatalogImageTiersAndExactIDs(t *testing.T) {
 	for _, model := range []string{"gpt-image-2", "gpt-image-2(Sub)", "gpt-image-2.5", "gpt-image-2.5-flare", "gpt-image-2.5-sunburst"} {

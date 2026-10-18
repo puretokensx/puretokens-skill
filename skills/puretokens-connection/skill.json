@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "puretokens-connection",
-  "version": "0.19.4",
+  "version": "0.19.5",
   "entry": "SKILL.md",
   "displayName": "Pure Tokens Connection",
   "description": "Check the fixed Pure Tokens API public identity only when explicitly requested.",

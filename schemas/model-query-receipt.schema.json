@@ -9,7 +9,9 @@
     "result"
   ],
   "properties": {
-    "timings_ms": {"$ref": "timings.schema.json"},
+    "timings_ms": {
+      "$ref": "timings.schema.json"
+    },
     "support": {
       "$ref": "support-summary.schema.json"
     },
@@ -51,7 +53,9 @@
                     "image",
                     "video",
                     "evaluation",
-                    "audio"
+                    "audio",
+                    "embedding",
+                    "rerank"
                   ]
                 }
               },
@@ -89,7 +93,9 @@
                 "image",
                 "video",
                 "evaluation",
-                "audio"
+                "audio",
+                "embedding",
+                "rerank"
               ]
             },
             "model": {
@@ -113,7 +119,9 @@
           "enum": [
             "declared_schema_only",
             "reviewed_evaluation_models_listed_by_api",
-            "reviewed_audio_models_listed_by_api"
+            "reviewed_audio_models_listed_by_api",
+            "reviewed_embedding_models_listed_by_api",
+            "reviewed_rerank_models_listed_by_api"
           ]
         },
         "note": {

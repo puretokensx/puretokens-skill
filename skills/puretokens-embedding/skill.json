@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "name": "puretokens-embedding",
+  "version": "0.19.5",
+  "entry": "SKILL.md",
+  "displayName": "Pure Tokens Embedding",
+  "description": "Embed explicitly supplied texts into a new JSONL file through the current Pure Tokens connection.",
+  "executionContract": "references/execution-contract.json",
+  "behaviorScenarios": "references/behavior-scenarios.json",
+  "distribution": {
+    "codex": {
+      "manualInstallationSupported": true,
+      "requiresPluginFeature": false,
+      "globalSkillDirectory": "~/.agents/skills"
+    },
+    "claudeCode": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.claude/skills"
+    },
+    "workbuddy": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.workbuddy/skills"
+    },
+    "geminiCli": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.gemini/skills"
+    },
+    "grokBuild": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.grok/skills"
+    },
+    "opencode": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.config/opencode/skills"
+    },
+    "trae": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.trae/skills"
+    },
+    "claudeDesktop": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.claude/skills"
+    },
+    "dshDesktop": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/Library/Application Support/dsh-desktop/harness/skills"
+    },
+    "deepseekHarness": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.dsh/skills"
+    },
+    "minimaxCode": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.minimax/skills"
+    },
+    "zcode": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.zcode/skills"
+    },
+    "kimiCode": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.kimi-code/skills"
+    },
+    "qoder": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.qoder/skills"
+    },
+    "pi": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.pi/agent/skills"
+    },
+    "hermes": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.hermes/skills"
+    },
+    "evox": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.evox/agent/skills"
+    },
+    "vscode": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.copilot/skills"
+    },
+    "octop": {
+      "manualInstallationSupported": true,
+      "workspaceSkillDirectory": ".octop/skills"
+    }
+  },
+  "supportedClients": [
+    "claude-code",
+    "codex",
+    "workbuddy",
+    "gemini-cli",
+    "grok-build",
+    "opencode",
+    "trae",
+    "claude-desktop",
+    "dsh-desktop",
+    "deepseek-harness",
+    "minimax-code",
+    "zcode",
+    "kimi-code",
+    "qoder",
+    "pi",
+    "hermes",
+    "evox",
+    "vscode",
+    "octop"
+  ],
+  "rules": {
+    "usesFixedPureTokensApiOrigin": true,
+    "usesFullApiUrls": true,
+    "usesManagedNativeExecutor": true,
+    "usesCurrentHostConfiguredCredential": true,
+    "resolvesCurrentHostConnectionCredentialInMemoryForFixedRequest": true,
+    "doesNotUseNodeRuntime": true,
+    "doesNotUseMcp": true,
+    "doesNotUseComputerUseOrUiAutomation": true,
+    "doesNotInvokeOtherMediaSkillsAsApiFallback": true,
+    "neverExposesCredentialsOrHostConfiguration": true,
+    "doesNotUseMcpOrFallbackTransport": true,
+    "neverAutomaticallyRetries": true
+  },
+  "sourceSha256": "14019523f4cbd9edc30a9a91f8894d297eaf63c7129587b4237193b5f1442b0a"
+}

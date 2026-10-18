@@ -15,7 +15,7 @@ const skillNames = [
   "puretokens-models",
   "puretokens-image",
   "puretokens-video",
-  "puretokens-audio", "puretokens-evaluate", "puretokens-update"
+  "puretokens-audio", "puretokens-evaluate", "puretokens-embedding", "puretokens-rerank", "puretokens-update"
 ];
 const apiSkillNames = skillNames.filter((name) => name !== "puretokens-update");
 const apiOrigin = "https://api.puretokensx.com";

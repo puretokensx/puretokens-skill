@@ -1,0 +1,42 @@
+{
+  "$schema": "https://puretokensx.com/schemas/media-behavior-scenarios.schema.json",
+  "schemaVersion": 1,
+  "kind": "rerank",
+  "scenarios": [
+    {
+      "id": "rerank-query-and-candidates",
+      "when": "The user supplies a query and candidate texts and requests a new JSON ranking file.",
+      "then": "Keep exact input texts, use qwen3.7-text-rerank, validate the request and new path before credentials, and invoke rerank once with only --host and --request. Default top_n to all documents."
+    },
+    {
+      "id": "rerank-original-index-and-score",
+      "when": "A verified ranking is available.",
+      "then": "Keep one-based rank and zero-based original index distinct, preserve raw finite relevance_score and the executor ordering, and save the JSON. A receipt summary may show the same rank/index/score; scores are not probabilities, accuracy or permission for external actions."
+    },
+    {
+      "id": "rerank-help-or-existing-scores",
+      "when": "The user asks about reranking or changes only display order or explicit weights on existing scores.",
+      "then": "Explain locally or calculate only the stated formula; no paid rerank, diagnostic calls, invented missing scores or database."
+    },
+    {
+      "id": "rerank-bounds-and-existing-file",
+      "when": "The query, candidates, request size, top_n or output path violates the bounded contract.",
+      "then": "Stop before credentials and networking. Preserve input and existing files; no automatic truncation, overwriting or expansion into paid batches. Cross-batch scores are not a validated global ranking."
+    },
+    {
+      "id": "rerank-local-connection-failure-stops-host-probing",
+      "when": "The bound host returns a local connection or credential-adapter failure.",
+      "then": "Stop without init, doctor, models, another host, credential or fallback transport. Explicit recheck or new verified evidence permits one relevant check on the same host only."
+    },
+    {
+      "id": "rerank-unknown-or-output-failure",
+      "when": "A request times out, has no valid receipt or cannot be validated, or an accepted result cannot be written and verified.",
+      "then": "Preserve unknown, or accepted with output_verified=false for output failure. Do not poll, retry, use Jev/chat or claim no charge; explain possible billing before an explicitly authorized repeat."
+    },
+    {
+      "id": "rerank-explicit-discovery",
+      "when": "The user asks for currently visible rerank models.",
+      "then": "Run models kind=rerank once against GET /v1/models and intersect with qwen3.7-text-rerank. Visibility does not prove route, permission, billing or real-host acceptance and is not an ordinary rerank preflight."
+    }
+  ]
+}

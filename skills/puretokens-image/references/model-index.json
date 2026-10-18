@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-index.schema.json",
   "schemaVersion": 1,
   "capability": "image",
-  "catalogUpdatedAt": "2026-10-14",
-  "catalogCapturedAt": "2026-10-14T09:21:16.289Z",
+  "catalogUpdatedAt": "2026-10-18",
+  "catalogCapturedAt": "2026-10-18T12:22:09.975Z",
   "defaultModel": "gpt-image-2.5-flare",
   "models": [
     {
@@ -44,13 +44,6 @@
         "grok image"
       ],
       "profile": "profiles/grok-imagine-image.json"
-    },
-    {
-      "id": "grok-imagine-image-2.0",
-      "aliases": [
-        "grok image 2.0"
-      ],
-      "profile": "profiles/grok-imagine-image-2.0.json"
     },
     {
       "id": "grok-imagine-image-quality",

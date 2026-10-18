@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-index.schema.json",
   "schemaVersion": 1,
   "capability": "video",
-  "catalogUpdatedAt": "2026-10-14",
-  "catalogCapturedAt": "2026-10-14T09:21:16.289Z",
+  "catalogUpdatedAt": "2026-10-18",
+  "catalogCapturedAt": "2026-10-18T12:22:09.975Z",
   "defaultModel": "minimax_h3",
   "models": [
     {
@@ -72,6 +72,16 @@
       "id": "veo_quan",
       "aliases": [],
       "profile": "profiles/veo_quan.json"
+    },
+    {
+      "id": "wan3.0-video",
+      "aliases": [],
+      "profile": "profiles/wan3.0-video.json"
+    },
+    {
+      "id": "wan3.0-video-prime",
+      "aliases": [],
+      "profile": "profiles/wan3.0-video-prime.json"
     }
   ]
 }

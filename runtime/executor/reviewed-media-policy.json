@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-18",
+  "sources": [
+    "https://docs.x.ai/developers/model-capabilities/video/editing",
+    "PureTokenPlus_web/docs/architecture/video-provider-adapters.md"
+  ],
+  "models": {
+    "grok-imagine-video": {
+      "unsupportedParametersByOperation": {
+        "video_edit": ["duration", "seconds", "aspect_ratio", "aspectRatio", "resolution"]
+      }
+    },
+    "grok-imagine-video-1.5": {
+      "unsupportedOperations": ["video_edit"]
+    },
+    "grok-imagine-video-1.5-preview": {
+      "unsupportedOperations": ["video_edit"]
+    }
+  }
+}

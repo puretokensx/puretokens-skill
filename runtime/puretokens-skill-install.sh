@@ -3,7 +3,7 @@
 
 set -eu
 
-current_skills="puretokens-balance puretokens-connection puretokens-models puretokens-image puretokens-video puretokens-audio puretokens-evaluate puretokens-update"
+current_skills="puretokens-balance puretokens-connection puretokens-models puretokens-image puretokens-video puretokens-audio puretokens-evaluate puretokens-embedding puretokens-rerank puretokens-update"
 stage=arguments
 installation_status=not_started
 installed_files_changed=false
@@ -276,13 +276,13 @@ verify_installed() {
 installation_summary() {
   case "$1" in
     zcode)
-      printf '%s\n' 'Next: Refresh and enable the installed Skills in ZCode, then start a new conversation. Loading has not been verified in this session.' 'Available instructions: images, video, audio/music, Jev evaluation, models and balance. Connection and task results remain separate checks.' 'Example (not executed): Generate an image of a lake at sunset.' 'Example (not executed): Generate a 5-second video of a paper boat on a river.' 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
+      printf '%s\n' 'Next: Refresh and enable the installed Skills in ZCode, then start a new conversation. Loading has not been verified in this session.' 'Available instructions: images, video, audio/music, Jev evaluation, embeddings, reranking, models and balance. Connection and task results remain separate checks.' 'Example (not executed): Generate an image of a lake at sunset.' 'Example (not executed): Generate a 5-second video of a paper boat on a river.' 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
       ;;
     trae)
       printf '%s\n' 'Next: This is a historical installation directory; Skill discovery in current TraeWork is not confirmed.' 'API tasks: unsupported in this host; no credential adapter is available. Installing instructions does not enable generation.' 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
       ;;
     *)
-      printf '%s\n' 'Next: Follow this client'"'"'s Skill loading controls, then start a new conversation. Loading has not been verified in this session.' 'Available instructions: images, video, audio/music, Jev evaluation, models and balance. Connection and task results remain separate checks.' 'Example (not executed): Generate an image of a lake at sunset.' 'Example (not executed): Generate a 5-second video of a paper boat on a river.' 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
+      printf '%s\n' 'Next: Follow this client'"'"'s Skill loading controls, then start a new conversation. Loading has not been verified in this session.' 'Available instructions: images, video, audio/music, Jev evaluation, embeddings, reranking, models and balance. Connection and task results remain separate checks.' 'Example (not executed): Generate an image of a lake at sunset.' 'Example (not executed): Generate a 5-second video of a paper boat on a river.' 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
       ;;
   esac
 }
@@ -354,7 +354,7 @@ restore_transaction() (
   recovery_stage=$2
   "$ownership_guard" install-transaction-verify --directory "$recovery_stage" --target-directory "$recovery_root" --source-directory "$source_root" || return 1
   while read -r action entry; do
-    case "$entry" in puretokens-balance|puretokens-connection|puretokens-models|puretokens-image|puretokens-video|puretokens-audio|puretokens-evaluate|puretokens-update|.puretokens-executor) ;; *) return 1 ;; esac
+    case "$entry" in puretokens-balance|puretokens-connection|puretokens-models|puretokens-image|puretokens-video|puretokens-audio|puretokens-evaluate|puretokens-embedding|puretokens-rerank|puretokens-update|.puretokens-executor) ;; *) return 1 ;; esac
     case "$entry" in */*|*..*) return 1 ;; esac
     if [ "$action" = replace ] && [ -e "$recovery_stage/backup/$entry" ]; then
       if [ -e "$recovery_root/$entry" ] || [ -L "$recovery_root/$entry" ]; then

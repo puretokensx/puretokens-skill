@@ -1,0 +1,374 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-18",
+  "candidateVersion": "0.19.5",
+  "publishedVersion": "0.19.4",
+  "publishedSourceCommit": "b5fb55b24b6db4835acb2b7d274c5e91f65ae624",
+  "catalog": {
+    "source": "https://console.puretokensx.com/api/product/docs/model-catalog",
+    "capturedAt": "2026-10-18T12:14:13.773Z",
+    "responseDate": "Sun, 18 Oct 2026 12:14:13 GMT",
+    "sha256": "9468e7870f095ba0e7db2840b05bb5af46b7be743fd2efc5697833bd4ccbe519",
+    "bytes": 209822,
+    "total": 114,
+    "media": {
+      "current": 30,
+      "image": 15,
+      "video": 15,
+      "added": [
+        "wan3.0-video",
+        "wan3.0-video-prime"
+      ],
+      "removed": [
+        "grok-imagine-image-2.0"
+      ],
+      "parameterSchemaChanged": [
+        "grok-imagine-video",
+        "grok-imagine-video-1.5"
+      ],
+      "comparison": "2026-10-18T02:05:04.714131Z public capture before the new deployment"
+    },
+    "defaults": [
+      "gpt-image-2.5-flare",
+      "minimax_h3"
+    ]
+  },
+  "sources": {
+    "skills": {
+      "head": "31d4c184d630180249b93a4e4882df981795d5f9",
+      "workingTree": "candidate modifications"
+    },
+    "web": {
+      "head": "12c7618c32b1fa51586f1131623f375152deae97",
+      "catalog": "packages/config/src/desktop-client-catalog.ts",
+      "catalogSha256": "0af106ccfc8eedb75333e42d62120aa0280988e13bab8a87e641c142fcf6d5c9"
+    },
+    "switch": {
+      "head": "1f09da016deff62b290ac3dc3fa6df2fe5e33d86",
+      "workingTree": "pre-existing modifications preserved",
+      "catalog": "tests/compatibility/client-matrix.yaml",
+      "catalogSha256": "ed5d6ba74f57c36b369ac7f31a3762633b7f8d85202cac305bf84a49d8c19372"
+    }
+  },
+  "sourceClientCount": 22,
+  "sourceClientIds": [
+    "codex",
+    "dsh-desktop",
+    "deepseek-harness",
+    "minimax-code",
+    "zcode",
+    "pi",
+    "hermes",
+    "opencode",
+    "grok-build",
+    "gemini-cli",
+    "claude-code",
+    "evox",
+    "vscode",
+    "workbuddy",
+    "claude-desktop",
+    "kimi-code",
+    "qoder",
+    "trae",
+    "octop",
+    "paseo",
+    "rakazo",
+    "openmausbot"
+  ],
+  "installableHostCount": 19,
+  "fixtureAdapterCount": 18,
+  "unsupportedDirectSkillHosts": {
+    "trae": "Install entry only; no verified effective-connection credential adapter or current TraeWork Skill loading proof.",
+    "paseo": "No verified independent Skill discovery and current-session connection contract.",
+    "rakazo": "Host service and encrypted credentials are outside the supported file-only connection contract.",
+    "openmausbot": "Bot/MCP integration is independent; no direct Skill adapter or native delivery acceptance."
+  },
+  "reviewedRestrictions": {
+    "source": "runtime/executor/reviewed-media-policy.json",
+    "models": {
+      "grok-imagine-video": {
+        "unsupportedParametersByOperation": {
+          "video_edit": [
+            "duration",
+            "seconds",
+            "aspect_ratio",
+            "aspectRatio",
+            "resolution"
+          ]
+        }
+      },
+      "grok-imagine-video-1.5": {
+        "unsupportedOperations": [
+          "video_edit"
+        ]
+      },
+      "grok-imagine-video-1.5-preview": {
+        "unsupportedOperations": [
+          "video_edit"
+        ]
+      }
+    },
+    "scope": "Exact IDs only; installed profiles, live projection, filters and new submissions; existing-task recovery unchanged."
+  },
+  "rolloutDependencies": [
+    {
+      "models": [
+        "grok-imagine-video-1.5",
+        "grok-imagine-video"
+      ],
+      "parameters": [
+        "aspect_ratio=21:9",
+        "aspect_ratio=5:2"
+      ],
+      "status": "resolved in anonymous production schema at 2026-10-18T12:14:13.773Z; synchronized into unpublished Skills candidate",
+      "nextStep": "Publish Skills separately; authenticated permission, dedicated execution and native host delivery remain pending."
+    }
+  ],
+  "authenticatedPermissionVerified": false,
+  "realHostAcceptance": "pending",
+  "billableRequests": 0,
+  "productionWrites": 0,
+  "publication": "not performed",
+  "validation": {
+    "engineering": "passed: npm run check; Go tests and vet; Node 168 passed, 0 failed, 3 PowerShell unavailable skips",
+    "releaseFreshness": "passed: npm run release:validate; version-bumped 0.19.5 candidate, current catalog freshness and six platform executors rebuilt with byte-identical results",
+    "packaging": "passed: six platform-only archives and selectors; draft candidates without sourceCommit, not publishable",
+    "isolatedMacOSInstall": "passed: eight Skills and nine managed inventories; installed version/build identity; Grok local rejection with OS-denied network; same-version inventory verification preserves bytes and mtimes with no init",
+    "fixtureTests": [
+      "TestReviewedGrokEditingBoundary",
+      "TestReviewedGrokEditControls",
+      "TestGrokRatiosFollowPublishedSchema",
+      "TestReviewedGrokDispatcherAndExistingTask",
+      "TestReviewedMediaSchemaPreservesEvidenceAndRestrictions"
+    ],
+    "executorSourceSha256": "eca9d410e49894eb68d958b136a612abd61dddedfe7c292154b900fb11a63ec3",
+    "crossRepository": "22 Web/Switch client members match all 22 compatibility matrix rows; three unchanged synthetic writer fixtures checked separately; documentation-only Web/Switch changes",
+    "realHostPendingSummaries": 166,
+    "limits": [
+      "PowerShell runtime unavailable in this environment; three Node tests skipped, not counted as Windows execution proof.",
+      "macOS smoke is an isolated package/fixture check, not real-host loading, API authorization or attachment-delivery acceptance."
+    ]
+  },
+  "validationScope": "Historical checks before the post-deployment refresh; current catalog/profile verification is recorded in postDeploymentSync. capabilityCompletion retains the earlier embedding/rerank implementation proof.",
+  "capabilityCompletion": {
+    "checkedAt": "2026-10-18",
+    "candidateVersion": "0.19.5",
+    "skillCount": 10,
+    "managedInventoryCount": 11,
+    "commands": [
+      "embedding",
+      "rerank"
+    ],
+    "reviewedModels": {
+      "embedding": [
+        "qwen3.7-text-embedding",
+        "qwen3.7-text-embedding-flash"
+      ],
+      "rerank": [
+        "qwen3.7-text-rerank"
+      ]
+    },
+    "executorSourceSha256": "6cb09b567cd69adfd64ca1c7d35be48e8937bf85c1e111cc6088b86b0411ece0",
+    "engineering": {
+      "command": "npm run check",
+      "nodePassed": 170,
+      "nodeFailed": 0,
+      "nodeSkipped": 3,
+      "goTests": "passed",
+      "goVet": "passed",
+      "schemaTests": 19,
+      "note": "Full gate passed before the final two real-host acceptance cases were registered; follow-up validation covers that registry change."
+    },
+    "acceptanceFollowup": {
+      "testsPassed": 18,
+      "distinctRealHostCases": 21,
+      "realHostResultsRecorded": 0,
+      "status": "pending; fixtures and source tests do not establish real-host acceptance"
+    },
+    "releaseValidation": "passed: candidate version, current catalog freshness, source hashes, six byte-identical native rebuilds; not stable publication approval",
+    "packaging": "passed: six platform archives verified, sourceCommit null; draft candidates cannot be selected by stable fetch",
+    "switch": {
+      "unitPassed": 47,
+      "chromiumPassed": 3,
+      "webkitPassed": 3,
+      "typecheck": "passed",
+      "targetedESLint": "passed",
+      "repositoryCheck": "passed: 32 document IDs",
+      "installedAppUpdated": false,
+      "note": "Guidance only; dedicated models remain excluded from client chat configuration. Minimum Skills version is displayed without claiming local installation."
+    },
+    "limitations": [
+      "PowerShell runtime unavailable; three Node cases skipped; native Windows execution remains pending.",
+      "No real host credentials, paid API submission, global Skills installation, deployment, tag or public publication in this completion task."
+    ],
+    "temporaryEvidence": [
+      "/tmp/pts-skills-0195-check-20261018.log",
+      "/tmp/pts-skills-0195-acceptance-followup-20261018.log",
+      "/tmp/pts-skills-0195-final-validate-20261018.log",
+      "/tmp/pts-skills-0195-package-20261018.log",
+      "/tmp/pts-skills-0195-package-smoke-20261018.json",
+      "/tmp/pts-skills-0195-release-validation-20261018.log"
+    ],
+    "isolatedMacOSPackageSmoke": {
+      "installation_synchronized": true,
+      "skill_count": 10,
+      "managed_inventories": 11,
+      "executor_build_info": {
+        "source_sha256": "6cb09b567cd69adfd64ca1c7d35be48e8937bf85c1e111cc6088b86b0411ece0",
+        "version": "0.19.5"
+      },
+      "embedding": {
+        "command_available": true,
+        "unsupported_host_stops_without_request": true,
+        "output_not_created": true
+      },
+      "rerank": {
+        "command_available": true,
+        "unsupported_host_stops_without_request": true,
+        "output_not_created": true
+      },
+      "real_host_acceptance": false,
+      "billable_requests": 0,
+      "real_home_writes": 0
+    }
+  },
+  "earlierCatalogCapture": {
+    "source": "https://console.puretokensx.com/api/product/docs/model-catalog",
+    "capturedAt": "2026-10-18T02:05:04.714131Z",
+    "responseDate": "Sun, 18 Oct 2026 02:05:03 GMT",
+    "sha256": "e80874c78d3b7550926f2be7b10dc5e343e860acc269555d661a9c3faf134f67",
+    "total": 112,
+    "media": {
+      "current": 29,
+      "image": 16,
+      "video": 13,
+      "added": [],
+      "removed": [],
+      "parameterSchemaChangedBeforeNewRestrictions": [],
+      "comparison": "2026-10-14 installed catalog after its separately reviewed Seedance supplement"
+    },
+    "defaults": [
+      "gpt-image-2.5-flare",
+      "minimax_h3"
+    ]
+  },
+  "postDeploymentSync": {
+    "checkedAt": "2026-10-18T12:14:13.773Z",
+    "publishedReleaseVerified": {
+      "tag": "v0.19.4",
+      "publishedAt": "2026-10-15T14:51:07Z",
+      "assetCount": 11
+    },
+    "candidateVersion": "0.19.5",
+    "changes": {
+      "wan": {
+        "models": [
+          "wan3.0-video",
+          "wan3.0-video-prime"
+        ],
+        "endpoint": "/v1/videos",
+        "duration": [
+          2,
+          30
+        ],
+        "resolutions": [
+          "480p",
+          "720p",
+          "1080p"
+        ],
+        "referenceLimits": {
+          "images": 10,
+          "videos": 5,
+          "audios": 5
+        },
+        "mixedJsonReferences": true,
+        "separateMultipartRoles": [
+          "first_frame_image",
+          "reference_images",
+          "reference_videos",
+          "reference_audios"
+        ],
+        "unsupported": [
+          "last_frame_image",
+          "duration=-1",
+          "supplier media[]",
+          "client prompt_extend"
+        ]
+      },
+      "grokGenerationRatios": [
+        "21:9",
+        "5:2"
+      ],
+      "removedFromInstalledSelection": [
+        "grok-imagine-image-2.0"
+      ],
+      "existingTaskIdentityPreserved": true,
+      "installSummary": "Shell and PowerShell now list embeddings and reranking in installation completion guidance; source generator and outputs synchronized."
+    },
+    "specialists": {
+      "reviewedExactIdsStillListed": true,
+      "publicListingIsNotDedicatedRouteAcceptance": true,
+      "audioJevEmbeddingRerank": "No dedicated request-contract expansion in this public comparison; real authenticated execution remains unverified."
+    },
+    "clients": {
+      "web": 22,
+      "switch": 22,
+      "skillInstallable": 19,
+      "credentialAdapters": 18,
+      "delta": [],
+      "newModelPermissions": "Users reapply eligible group selections in Switch; public additions do not update an existing Key or prove permission."
+    },
+    "validation": {
+      "targetedRegression": "Failed against the pre-sync profiles; passed after sync, including the isolated copied candidate. No live API calls.",
+      "engineering": {
+        "command": "npm run check",
+        "goTests": "passed",
+        "goVet": "passed",
+        "nodeTests": 174,
+        "nodePassed": 171,
+        "nodeFailed": 0,
+        "nodeSkipped": 3,
+        "skipReason": "PowerShell unavailable"
+      },
+      "releaseFreshness": "npm run release:validate passed, including six byte-identical native rebuilds; final installer wording changed no embedded build inputs and was followed by validate, version validation and targeted installer checks",
+      "installerFollowup": {
+        "command": "npm run validate; bash -n runtime/puretokens-skill-install.sh; node --test test/installation-ownership.test.mjs test/installer-recovery.test.mjs",
+        "passed": 33,
+        "failed": 0,
+        "skipped": 1,
+        "skipReason": "PowerShell unavailable"
+      },
+      "packaging": "Six isolated platform-only candidates verified against the final working source; sourceCommit null, not publishable. Pre-existing dist outputs were preserved and must be regenerated for release.",
+      "isolatedMacOSPackageSmoke": {
+        "installation": "passed",
+        "skillCount": 10,
+        "managedInventories": 11,
+        "nativeBuild": {
+          "source_sha256": "6cb09b567cd69adfd64ca1c7d35be48e8937bf85c1e111cc6088b86b0411ece0",
+          "version": "0.19.5"
+        },
+        "newProfilesByteMatched": true,
+        "grokRatiosPreserved": true,
+        "removedSelectionAbsent": true,
+        "installSummaryIncludesEmbeddingAndRerank": true,
+        "network": "OS sandbox denied all network",
+        "credentialReads": 0,
+        "billableRequests": 0,
+        "realHomeWrites": 0,
+        "realHostAcceptance": false
+      },
+      "crossRepository": "All 22 Web/Switch client identities match the compatibility inventory; changed Web/Switch documents pass git diff --check.",
+      "logs": [
+        "/tmp/pts-postdeploy-check-20261018.log",
+        "/tmp/pts-postdeploy-release-validate-20261018.log",
+        "/tmp/pts-postdeploy-final-validate-20261018.log",
+        "/tmp/pts-postdeploy-installer-followup-20261018.log",
+        "/tmp/pts-postdeploy-install-smoke-20261018.json"
+      ]
+    },
+    "billableRequests": 0,
+    "credentialReads": 0,
+    "productionWrites": 0,
+    "publication": "not performed"
+  }
+}

@@ -7,10 +7,10 @@
 安装版本支持此命令且本地执行器可以执行时，从 Skill 同级 `.puretokens-executor` 运行：
 
 ```text
-<puretokens-api绝对路径> install-inspect --directory <八个Skill及.puretokens-executor所在根目录的绝对路径>
+<puretokens-api绝对路径> install-inspect --directory <十个Skill及.puretokens-executor所在根目录的绝对路径>
 ```
 
-Windows 执行器名为 `puretokens-api.exe`。这里的目录是整个安装根，不是某一个 Skill，也不是 Home。命令只读九个受管组件、安装根的事务条目，不读取认证、不发网络请求、不修改文件。
+Windows 执行器名为 `puretokens-api.exe`。这里的目录是整个安装根，不是某一个 Skill，也不是 Home。命令只读十一个受管组件、安装根的事务条目，不读取认证、不发网络请求、不修改文件。
 
 回执 `status=clean` 表示本地清单与当前文件一致，不证明来自某个发布版本、宿主已加载、连接可用或媒体交付成功。`attention_required` 的 findings 只含相对受管路径和固定错误码；不展示内容、绝对路径或完整日志。结果最多128项，`truncated=true` 时不能说已列出全部问题。
 

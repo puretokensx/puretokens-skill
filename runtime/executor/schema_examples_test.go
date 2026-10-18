@@ -52,6 +52,106 @@ func TestContractExamples(t *testing.T) {
 		capture(name, schema, data)
 	}
 
+	t.Run("synchronous embeddings and rerank", func(t *testing.T) {
+		for _, kind := range []string{"embedding", "rerank"} {
+			for _, scenario := range []string{"success", "invalid-request", "invalid-response", "rejected", "network", "output-race"} {
+				t.Run(kind+"/"+scenario, func(t *testing.T) {
+					var destination string
+					result, err, raw := retrievalCLI(t, kind, func(r map[string]any) {
+						if scenario == "invalid-request" {
+							r["model"] = "not-reviewed"
+						}
+						destination = r["output_file"].(string)
+						if scenario == "success" {
+							captureValue(kind+"-request", kind+"-request.schema.json", r)
+						}
+					}, func(*http.Request) (*http.Response, error) {
+						switch scenario {
+						case "invalid-response":
+							return evaluationHTTP(200, `{}`), nil
+						case "rejected":
+							return evaluationHTTP(403, `{"error":{"message":"private"}}`), nil
+						case "network":
+							return nil, errors.New("fixture network")
+						case "output-race":
+							os.WriteFile(destination, []byte("user-file"), 0600)
+						}
+						response := embeddingResponseFixture
+						if kind == "rerank" {
+							response = rerankResponseFixture
+						}
+						return evaluationHTTP(200, response), nil
+					})
+					if (err == nil) != (scenario == "success") {
+						t.Fatal("unexpected retrieval fixture result", err)
+					}
+					capture(kind+"-"+scenario, "retrieval-receipt.schema.json", []byte(raw))
+					if scenario == "success" {
+						artifact, err := os.ReadFile(jsonObject(result["artifact"])["path"].(string))
+						if err != nil {
+							t.Fatal(err)
+						}
+						if kind == "embedding" {
+							for index, row := range bytes.Split(bytes.TrimSpace(artifact), []byte("\n")) {
+								capture(fmt.Sprintf("embedding-output-%d", index), "embedding-output.schema.json", row)
+							}
+						} else {
+							capture("rerank-output", "rerank-output.schema.json", artifact)
+						}
+					}
+				})
+			}
+			var out bytes.Buffer
+			svc := service{baseURL: apiOrigin, client: &http.Client{Transport: evaluationTransport(func(*http.Request) (*http.Response, error) {
+				return evaluationHTTP(200, `{"data":[{"id":"qwen3.7-text-embedding"},{"id":"qwen3.7-text-rerank"}]}`), nil
+			})}}
+			query := `{"kind":"` + kind + `"}`
+			if executeModelQuery(&out, svc, strings.NewReader(query)) != nil {
+				t.Fatal("retrieval discovery failed")
+			}
+			capture(kind+"-model-query", "model-query.schema.json", []byte(query))
+			capture(kind+"-model-receipt", "model-query-receipt.schema.json", out.Bytes())
+			text, err := os.ReadFile("../../skills/puretokens-" + kind + "/references/executor-usage.md")
+			if err != nil {
+				t.Fatal(err)
+			}
+			blocks := regexp.MustCompile("(?s)```json\\s*\\n(.*?)\\n```").FindAllSubmatch(text, -1)
+			if len(blocks) == 0 {
+				t.Fatal("missing documented retrieval request")
+			}
+			for index, block := range blocks {
+				if index > 0 {
+					capture(fmt.Sprintf("docs-%s-output-%d", kind, index), kind+"-output.schema.json", block[1])
+					continue
+				}
+				capture("docs-"+kind+"-request", kind+"-request.schema.json", block[1])
+				var input map[string]any
+				if json.Unmarshal(block[1], &input) != nil {
+					t.Fatal("invalid documented request")
+				}
+				_, err, _ := retrievalCLI(t, kind, func(r map[string]any) {
+					destination := r["output_file"]
+					for key := range r {
+						delete(r, key)
+					}
+					for key, value := range input {
+						r[key] = value
+					}
+					r["output_file"] = destination
+				}, func(*http.Request) (*http.Response, error) {
+					response := embeddingResponseFixture
+					if kind == "rerank" {
+						response = rerankResponseFixture
+					}
+					return evaluationHTTP(200, response), nil
+				})
+				if err != nil {
+					t.Fatal("documented retrieval request rejected", err)
+				}
+			}
+		}
+	})
+
 	t.Run("public model groups", func(t *testing.T) {
 		request := `{"model":"nano-banana-2"}`
 		capture("model-groups-request", "model-groups-request.schema.json", []byte(request))

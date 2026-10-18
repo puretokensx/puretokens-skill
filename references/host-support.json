@@ -90,7 +90,7 @@
       "globalSkillDirectory": "~/.dsh/skills",
       "directMediaExecution": "managed-native-executor",
       "credentialAdapter": "fixture-tested",
-      "guidance": "Candidate source adapter for official DeepSeek Harness default local Desktop composition only; distinct from community DSH Desktop. Switch Cordis patch and versioned refs are fixture-tested. Overrides stop. Actual host loading, dedicated API and native delivery acceptance pending.",
+      "guidance": "Distributed adapter for official DeepSeek Harness default local Desktop composition only; distinct from community DSH Desktop. Switch Cordis patch and versioned refs are fixture-tested. Overrides stop. Actual host loading, dedicated API and native delivery acceptance pending.",
       "directorySelection": "Absolute DSH_HOME/skills, otherwise ~/.dsh/skills. Project/custom roots may shadow it. CLI, custom composition, remote and session overrides are unsupported."
     },
     {
@@ -99,7 +99,7 @@
       "globalSkillDirectory": "~/.minimax/skills",
       "directMediaExecution": "managed-native-executor",
       "credentialAdapter": "fixture-tested",
-      "guidance": "Candidate source adapter for MiniMax Code Desktop 3.1.0 local default conversations only. Uses the exact saved default custom provider/model, independent of sibling protocol providers. CLI/profile/session overrides are unsupported; real host loading, API and delivery acceptance pending.",
+      "guidance": "Distributed adapter for MiniMax Code Desktop 3.1.0 local default conversations only. Uses the exact saved default custom provider/model, independent of sibling protocol providers. CLI/profile/session overrides are unsupported; real host loading, API and delivery acceptance pending.",
       "directorySelection": "MINIMAX_DATA_DIR/skills, then MAVIS_DATA_DIR/skills, otherwise ~/.minimax/skills only when no Desktop preferences select another root. A standalone installer with a Desktop preferences store requires a confirmed absolute target; it never guesses the saved data directory. The executor resolves only declared macOS/Windows preference files; legacy migration belongs to MiniMax."
     },
     {
@@ -162,7 +162,7 @@
       "globalSkillDirectory": "~/.copilot/skills",
       "directMediaExecution": "managed-native-executor",
       "credentialAdapter": "fixture-tested",
-      "guidance": "Local VS Code default profile customendpoint file only. Candidate 0.18.7 verifies one matching group whose models share supported service routes and one inline Bearer credential, without identifying chat selection. Different Keys, matching groups and unsupported overrides stop. Released 0.18.6 still rejects multiple matching models. Portable, named and remote profiles are not supported. Real-host acceptance remains pending.",
+      "guidance": "Local VS Code default profile customendpoint file only. The distributed adapter verifies one matching group whose models share supported service routes and one inline Bearer credential, without identifying chat selection. Different Keys, matching groups and unsupported overrides stop. Portable, named and remote profiles are not supported. Real-host acceptance remains pending.",
       "directorySelection": "Use ~/.copilot/skills; doctor also reports documented shared ~/.agents/skills and ~/.claude/skills duplicates without deleting them."
     },
     {

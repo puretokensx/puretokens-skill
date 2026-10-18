@@ -1,6 +1,54 @@
 # Media Parameter Review
 
-## Current review - 2026-10-14
+## Current review - 2026-10-18
+
+Anonymous production catalog capture at 2026-10-18 12:14:13 UTC: 114 models,
+including 15 image and 15 video models. Compared with the earlier 02:05 UTC
+capture, add `wan3.0-video` and `wan3.0-video-prime`, remove
+`grok-imagine-image-2.0` from installed selection, and refresh the two Grok
+generation ratio enums. All other retained media schemas are unchanged.
+Existing tasks retain their exact model IDs. Defaults remain
+`gpt-image-2.5-flare` and `minimax_h3`. Evidence:
+`acceptance/client-model-sync-20261018.json`.
+
+- Web source `b3c481d7` closes `video_edit` for exact
+  `grok-imagine-video-1.5` and `grok-imagine-video-1.5-preview`. The standard
+  Grok edit inherits the source timeline and geometry, caps output at 720p and
+  accepts a source no longer than 8.7 seconds. Its provider body omits
+  `duration`/`seconds`, `aspect_ratio`/`aspectRatio` and `resolution`.
+  Source: `PureTokenPlus_web/docs/architecture/video-provider-adapters.md`
+  and the official xAI video-editing contract.
+- `runtime/executor/reviewed-media-policy.json` is the shared, embedded,
+  exact-model restriction source for installed profiles, catalog projection,
+  filtered discovery and pre-submission validation. These restrictions only
+  narrow capabilities and override stale live declarations. They do not
+  override authentication, add a preflight, or affect existing-task recovery.
+- Reject conflicting user parameters locally before any catalog read or POST;
+  explain the limitation rather than discarding requested controls. Source
+  byte inspection stays in the gateway; Skills do not download or rehost input.
+- The post-deployment public schema now declares Grok generation ratios
+  `21:9` and `5:2` for `grok-imagine-video` and `grok-imagine-video-1.5`.
+  Synchronize these exact enums into the candidate profiles. This resolves
+  the earlier metadata rollout dependency; it does not enable video editing
+  for 1.5 or allow ratio controls on standard Grok edits.
+- Both Wan profiles declare duration 2–30 seconds, `480p`/`720p`/`1080p`,
+  the returned ratios including `adaptive`, and fixed `/v1/videos` operations.
+  JSON `video_generation` permits mixed public HTTPS image/video/audio
+  references, at most 10/5/5. Separate declared multipart operations carry
+  the current first-frame, image, video or audio attachment bytes. Last-frame
+  input, automatic duration `-1`, supplier `media[]` and `prompt_extend`
+  controls are not part of these installed public operations. Supplier routing
+  and prompt expansion stay in the gateway.
+- Reviewed audio, Jev, embedding and rerank IDs remain publicly listed; no
+  dedicated request-contract expansion was found in this comparison. General
+  chat-model changes need no static media profile or chat-model alias here.
+  Web/Switch still list the same 22 client identities. The published Skills
+  release is still 0.19.4; these updates belong to source candidate 0.19.5.
+
+This review records source and synthetic compatibility only. It includes no
+authenticated model-permission check, paid call or real-host attachment proof.
+
+## Historical review - 2026-10-14
 
 The anonymous production catalog returned 111 models, including 16 image and
 13 video models. The refreshed selection contains 29 media profiles; source

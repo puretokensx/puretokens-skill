@@ -29,6 +29,14 @@
       "method": "GET",
       "url": "https://api.puretokensx.com/v1/models"
     },
+    "embeddingCatalog": {
+      "method": "GET",
+      "url": "https://api.puretokensx.com/v1/models"
+    },
+    "rerankCatalog": {
+      "method": "GET",
+      "url": "https://api.puretokensx.com/v1/models"
+    },
     "groupGuidance": {
       "method": "GET",
       "url": "https://console.puretokensx.com/api/product/docs/model-catalog",
@@ -50,6 +58,8 @@
     "filterNeverImpliesPriceAuthorizationOrQuality": true,
     "evaluationDiscovery": "explicit_reviewed_model_visibility_only",
     "audioDiscovery": "explicit_reviewed_model_visibility_only",
+    "embeddingDiscovery": "explicit_reviewed_model_visibility_only",
+    "rerankDiscovery": "explicit_reviewed_model_visibility_only",
     "modelCatalogRequiresAuthentication": true,
     "groupGuidance": {
       "command": "model-groups",

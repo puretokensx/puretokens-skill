@@ -19,7 +19,13 @@ import (
 const inventoryFile = ".puretokens-managed.json"
 const inventoryFormat = "puretokens-managed-files-v1"
 
-var installationNames = []string{"puretokens-balance", "puretokens-connection", "puretokens-models", "puretokens-image", "puretokens-video", "puretokens-audio", "puretokens-evaluate", "puretokens-update", ".puretokens-executor"}
+var currentSkillNames = []string{
+	"puretokens-balance", "puretokens-connection", "puretokens-models",
+	"puretokens-image", "puretokens-video", "puretokens-audio", "puretokens-evaluate",
+	"puretokens-embedding", "puretokens-rerank", "puretokens-update",
+}
+
+var installationNames = append(append([]string{}, currentSkillNames...), ".puretokens-executor")
 
 type installationFinding struct {
 	Category string `json:"category"`
@@ -154,7 +160,7 @@ func inspectInstallation(root string, output io.Writer) error {
 		add("unreadable", ".", "installation_root_unavailable")
 		return json.NewEncoder(output).Encode(report)
 	}
-	// Only enumerate the selected root and inspect the nine managed directories.
+	// Only enumerate the selected root and inspect current managed directories.
 	entries, err := os.ReadDir(root)
 	if err != nil {
 		add("unreadable", ".", "installation_root_unavailable")
@@ -366,9 +372,10 @@ func verifyInstallationTransaction(stage, target, source string) error {
 }
 
 func validInstallationName(name string) bool {
-	switch name {
-	case ".puretokens-executor", "puretokens-balance", "puretokens-connection", "puretokens-image", "puretokens-video", "puretokens-models", "puretokens-audio", "puretokens-evaluate", "puretokens-update":
-		return true
+	for _, managed := range installationNames {
+		if name == managed {
+			return true
+		}
 	}
 	return false
 }

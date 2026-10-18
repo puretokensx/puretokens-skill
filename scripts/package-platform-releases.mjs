@@ -1,4 +1,4 @@
-// Maintainer-only packaging. A platform release includes eight Skills and one
+// Maintainer-only packaging. A platform release includes ten Skills and one
 // executable; no source checkout, other architectures or migration archives.
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";

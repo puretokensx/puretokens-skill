@@ -57,6 +57,14 @@ func validateModelParameter(schema parameterSchema, operation mediaOperation, na
 }
 
 func validateModelConstraints(schema parameterSchema, operation string, parameters map[string]any, counts map[string]int) error {
+	if schema.Constraints["unsupported_operations"][operation] == true {
+		return errors.New("The selected model explicitly excludes this media operation.")
+	}
+	for _, field := range array(schema.Constraints["unsupported_parameters_by_operation"][operation]) {
+		if _, present := parameters[fmt.Sprint(field)]; present {
+			return errors.New("A supplied parameter is excluded for this media operation; preserve the requested requirements and correct them before submitting.")
+		}
+	}
 	if matrix, exists := schema.Constraints["aspect_ratio_by_image_size"]; exists {
 		// Omitted values use the model's declared defaults, not invented tiers.
 		size := parameters["image_size"]

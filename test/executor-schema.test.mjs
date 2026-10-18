@@ -15,7 +15,9 @@ const schemaNames = [
   "balance-receipt.schema.json", "init-receipt.schema.json", "doctor-receipt.schema.json",
   "support-summary.schema.json", "evaluation-request.schema.json", "evaluation-receipt.schema.json",
   "audio-request.schema.json", "audio-receipt.schema.json", "audio-artifact-verify-request.schema.json",
-  "model-groups-request.schema.json", "model-groups-receipt.schema.json", "timings.schema.json"
+  "model-groups-request.schema.json", "model-groups-receipt.schema.json", "timings.schema.json",
+  "embedding-request.schema.json", "rerank-request.schema.json", "retrieval-receipt.schema.json",
+  "embedding-output.schema.json", "rerank-output.schema.json"
 ];
 const documents = await Promise.all(schemaNames.map(async (name) =>
   JSON.parse(await readFile(path.join(repositoryRoot, "schemas", name), "utf8"))));
@@ -107,6 +109,27 @@ test("media receipt schemas reject lost task context and unsafe metadata", () =>
   const retry = example("status-retry");
   rejects("executor-receipt.schema.json", { ...retry, retry_not_before: "2026-02-30T12:00:00Z" }, "format");
   rejects("executor-receipt.schema.json", { ...retry, retry_not_before: "tomorrow" }, "format");
+});
+
+test("retrieval schemas reject claimed success without a verified saved result", () => {
+  for (const kind of ["embedding", "rerank"]) {
+    const success = example(`${kind}-success`);
+    for (const change of [
+      { artifact: undefined }, { output_verified: false }, { submission_outcome: "unknown" },
+      { raw_response: "private" }, { prompt: "private" }
+    ]) {
+      const changed = { ...success, ...change };
+      for (const key of Object.keys(changed)) if (changed[key] === undefined) delete changed[key];
+      rejects("retrieval-receipt.schema.json", changed);
+    }
+    rejects("retrieval-receipt.schema.json", { ...example(`${kind}-output-race`), submission_outcome: "not_submitted" });
+    rejects("retrieval-receipt.schema.json", { ...example(`${kind}-invalid-response`), output_verified: true });
+    rejects(`${kind}-request.schema.json`, { ...example(`${kind}-request`), base_url: "https://private.test" });
+    rejects(`${kind}-request.schema.json`, { ...example(`${kind}-request`), output_file: "relative.json" });
+  }
+  rejects("retrieval-receipt.schema.json", { ...example("embedding-success"), result: { results: [] } });
+  rejects("retrieval-receipt.schema.json", { ...example("rerank-success"), result: undefined });
+  assert.equal(example("rerank-success").result.results[1].relevance_score, -0.3);
 });
 
 test("eight-image continuation schemas retain the last output and reject overflow", () => {

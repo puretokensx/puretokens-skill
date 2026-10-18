@@ -67,7 +67,9 @@ export async function syncSkillGuidance(root, { write = false } = {}) {
     const selected = operations.filter(row => row.skill === skill.name);
     if (selected.length) {
       next = replaceGuidanceBlock(next, "operations", renderOperationGuidance(selected));
-      await output(`skills/${skill.name}/references/receipt-guide.md`, await read("references/skill-fragments/receipt-guide.md"));
+      if (selected.some(row => row.delivery !== "file")) {
+        await output(`skills/${skill.name}/references/receipt-guide.md`, await read("references/skill-fragments/receipt-guide.md"));
+      }
     }
     if (["puretokens-image", "puretokens-video", "puretokens-audio"].includes(skill.name)) {
       await output(`skills/${skill.name}/references/workflows.md`, await read("references/skill-fragments/media-workflows.md"));

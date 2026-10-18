@@ -8,6 +8,34 @@ import (
 	"testing"
 )
 
+func TestRetrievalSkillInventoriesRejectModifiedInstructions(t *testing.T) {
+	for _, name := range []string{"puretokens-embedding", "puretokens-rerank"} {
+		t.Run(name, func(t *testing.T) {
+			directory := t.TempDir()
+			file := filepath.Join(directory, "SKILL.md")
+			if err := os.WriteFile(file, []byte("original"), 0600); err != nil {
+				t.Fatal(err)
+			}
+			var inventory bytes.Buffer
+			if err := runInstallationGuard([]string{"install-inventory", "--directory", directory, "--name", name}, &inventory); err != nil {
+				t.Fatal("new Skill cannot be managed safely", err)
+			}
+			if err := os.WriteFile(filepath.Join(directory, inventoryFile), inventory.Bytes(), 0600); err != nil {
+				t.Fatal(err)
+			}
+			var output bytes.Buffer
+			args := []string{"install-verify", "--directory", directory, "--name", name}
+			if err := runInstallationGuard(args, &output); err != nil {
+				t.Fatal("unchanged new Skill is not verifiable", err)
+			}
+			os.WriteFile(file, []byte("user-customization"), 0600)
+			if err := runInstallationGuard(args, &output); err == nil {
+				t.Fatal("modified new Skill was accepted for overwrite")
+			}
+		})
+	}
+}
+
 func TestInstallationInspectReportsBoundedRelativeDifferences(t *testing.T) {
 	root := t.TempDir()
 	dir := filepath.Join(root, "puretokens-image")

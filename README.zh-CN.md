@@ -4,11 +4,11 @@
 
 # Pure Tokens Skills
 
-用于检查 Pure Tokens 连接、余额与模型目录，生成图片和视频，以及用 Jev 评估文本的官方 Skills。
+用于检查 Pure Tokens 连接、余额与模型目录，生成图片、视频和音频，用 Jev 评估文本，以及生成文本向量和相关性重排的官方 Skills。
 
 0.19.0 恢复 `puretokensx/puretokens-skill` 的稳定版下载，增加本地安装恢复、模型替代建议、线上分组指引和产品帮助。
 
-源码版本 0.19.4 将安装提示词精简为任务和官方入口；客户端／平台选择、校验及初始化均由安装工程承担；实际安装版本以已发布的稳定清单为准。
+0.19.5 新增 `puretokens-embedding`、`puretokens-rerank`，并同步经审查的 Grok 编辑限制和 Switch 客户端兼容范围。安装包含十个 Skill，实际安装版本以已发布的稳定清单为准。客户端／平台选择、校验及初始化仍由安装工程承担。
 
 0.18.7 增加 MiniMax Code Desktop 适配，限 macOS／Windows 本地默认连接。有桌面偏好配置的独立安装须使用已确认的目标目录或客户端运行目录环境。连接和会话要求见 `references/switch-skill-compatibility.md`。
 
@@ -63,6 +63,8 @@ fetch 0.19.1 中，尚无已确认的宿主／目标时可省略这些参数。f
 | `puretokens-video` | 生视频，以及已声明的图片/视频/音频参考和视频编辑。 |
 | `puretokens-audio` | 文字配音、录音转文字、生成音效／声音场景、纯音乐和歌曲。 |
 | `puretokens-evaluate` | 用 Jev 对文本分类、按有序标准评分或判断是否符合条件。 |
+| `puretokens-embedding` | 将明确提供的文本生成向量，保存为新的 JSONL 文件。 |
+| `puretokens-rerank` | 对查询与候选文本做相关性重排，保存带原始编号与分值的新 JSON 文件。 |
 | `puretokens-update` | 本地产品介绍与入门、使用帮助、连接验证和安全同步官方 Skills。 |
 
 ## 直连 API 的工作方式
@@ -103,6 +105,35 @@ Computer Use、浏览器自动化以及打开或点击 Pure Tokens Switch/Deskto
 例如：“用 Jev 把这条工单分为账务、技术或其他”，或“用 Jev 判断是否紧急，并按这三个档位评估影响”。新增的 `puretokens-evaluate` 通过原生执行器同步调用固定 `/typesafe/v1/systemone`，复用当前客户端的 Pure Tokens 连接，不需要 TypeSafe SDK 或第二套 Key。同一文本的独立问题合并为一次请求。
 
 默认模型 `jev-latest`，另支持已审查的精确 ID `jev-1.13.0`、`jev-preview`。Choice、Score、Noul 返回结构化选项／分数和概率；confidence 不等于正确率，也不授权外部操作。首版支持文本／结构化文本，不直接输入图片、音频或视频。超时／响应无法校验就停止，不自动重发、轮询或推断扣费。明确查询 JEV 模型时使用 `/v1/models` 与已审查 ID 的交集，目录可见不证明原生入口可调用。见 [评估契约](references/jev-evaluation-contract.md)；生产及真实客户端评估尚未验收。
+
+## 文本向量与重排
+
+明确提供文本并指定新的绝对 `.jsonl`
+输出文件来生成向量，或提供查询与候选文本并指定新的绝对 `.json` 文件来重排。
+原生命令为 `embedding|rerank --host <当前宿主> --request <绝对JSON文件>`。
+先校验请求与新文件路径，再仅在内存中复用当前宿主已验证的 Pure Tokens 连接；
+同步单次最多90秒，不轮询、不自动重试。
+
+embedding 审核 ID 为 `qwen3.7-text-embedding`、
+`qwen3.7-text-embedding-flash`，固定 `POST /v1/embeddings` 与
+`encoding_format=float`。JSONL 每行为 `index`、`dimensions`、`embedding`，
+按原输入编号排序；聊天只报条数、维度和用户文件路径，不铺满向量。
+rerank 使用 `qwen3.7-text-rerank`，固定 `POST /v1/rerank`、
+`return_documents=false`，top_n 省略时返回全部候选。JSON 的 `results`
+保留从1起的排名、从0起的原始编号及原始有限相关分；可展示同排序摘要，
+分值不是概率或经过校准的正确率。
+
+输入为1–64条文本，每条最多32768个 Unicode 字符；重排另需最多8192字的非空
+query。请求最多1 MiB、响应最多2 MiB；已有文件不覆盖，不隐式读文件或扫描
+目录、不建库、不自动拆批。响应接受但文件交付失败保留 `accepted`、
+`output_verified=false` 和费用不确定性，不自动重发。只有明确查询当前可见
+模型才执行 `models kind=embedding|rerank`，一次 `GET /v1/models` 与审核 ID
+相交；目录可见不证明接口、权限、价格、实机或计费已验收。见
+[执行契约](references/embedding-rerank-execution-contract.md)。
+
+Switch 引导用户选择所需模型分组、应用客户端聊天连接，再单独安装 Skills。
+Jev、音频、向量和重排需要相应 API 权限，不需要将专用模型加入聊天列表；
+配置成功、示例存在或目录可见均不能冒充专用调用成功。
 
 ## 媒体路由
 
@@ -146,7 +177,7 @@ Claude Desktop 请选择本地 Code 会话并使用宿主 ID `claude-desktop`；
 
 [Switch × 专用任务矩阵](references/switch-skill-compatibility.md)分别记录 Skill
 执行、连接读取、模型权限、专用接口和真实交付。0.18.7 包含音频／Jev指令入口；
-向量／重排没有 Skill 入口。配置成功、列出模型或 init 成功不等于专用调用通过。
+0.19.5 新增向量／重排 Skill。配置成功、列出模型或 init 成功不等于专用调用通过。
 
 ## 图片、视频与异步任务
 
@@ -163,7 +194,7 @@ Claude Desktop 请选择本地 Code 会话并使用宿主 ID `claude-desktop`；
 <!-- media-model-catalog:start -->
 ## 媒体模型清单
 
-已与基础模型目录同步：2026-10-14T09:21:16.289Z。
+已与基础模型目录同步：2026-10-18T12:22:09.975Z。
 
 这份清单用于安装后的模型选择，不是每次请求的认证检查。普通生成只读选中 profile；仅明确查询、profile 缺口或拒绝诊断时读取实时目录。经审查的本地兼容补充定义单独注明来源。
 
@@ -180,7 +211,6 @@ README 只从基础目录中带有明确图片/视频能力的模型生成，不
 | `gpt-image-2.5-sunburst` | OpenAI | 仅精确 ID | 图片生成 | `用 gpt-image-2.5-sunburst 生成一张图片。` |
 | `gpt-image-2(Sub)` | OpenAI | 仅精确 ID | 图片生成 | `用 gpt-image-2(Sub) 生成一张图片。` |
 | `grok-imagine-image` | xAI | `grok image` | 图片生成 | `用 grok-imagine-image 生成一张图片。` |
-| `grok-imagine-image-2.0` | xAI | `grok image 2.0` | 图片生成 | `用 grok-imagine-image-2.0 生成一张图片。` |
 | `grok-imagine-image-quality` | xAI | 仅精确 ID | 图片生成 | `用 grok-imagine-image-quality 生成一张图片。` |
 | `nano-banana-2` | Google | `nano banana 2` | 图片生成 | `用 nano-banana-2 生成一张图片。` |
 | `nano-banana-2-lite` | Google | 仅精确 ID | 图片生成 | `用 nano-banana-2-lite 生成一张图片。` |
@@ -207,6 +237,8 @@ README 只从基础目录中带有明确图片/视频能力的模型生成，不
 | `veo_fast` | Google | 仅精确 ID | 视频生成 | `用 veo_fast 生成一条短视频。` |
 | `veo_lite` | Google | 仅精确 ID | 视频生成 | `用 veo_lite 生成一条短视频。` |
 | `veo_quan` | Google | 仅精确 ID | 视频生成 | `用 veo_quan 生成一条短视频。` |
+| `wan3.0-video` | Qwen | 仅精确 ID | 视频生成 | `用 wan3.0-video 生成一条短视频。` |
+| `wan3.0-video-prime` | Qwen | 仅精确 ID | 视频生成 | `用 wan3.0-video-prime 生成一条短视频。` |
 
 <!-- media-model-catalog:end -->
 
@@ -220,7 +252,7 @@ README 只从基础目录中带有明确图片/视频能力的模型生成，不
 
 ## 更新
 
-`puretokens-update` 的原生 fetch 读取最新正式发布清单，固定其中的版本、源码提交、目录选择器和平台包校验和。只下载当前系统／架构的平台包，不回退整库源码；包内仅含八个通用 Skill、一个平台执行器及当前系统脚本。检查更新不写入或执行 init。同版安装／更新先核验执行器与九份受管清单，完整则直接返回，不下载包、不重写、不 init；缺失、改动或未完成事务则停止，保留文件。显式本地源码 sync 仅供维护开发使用。
+`puretokens-update` 的原生 fetch 读取最新正式发布清单，固定其中的版本、源码提交、目录选择器和平台包校验和。只下载当前系统／架构的平台包，不回退整库源码；0.19.5 包含十个通用 Skill、一个平台执行器及当前系统脚本。检查更新不写入或执行 init。同版安装／更新先核验所选发布的执行器与全部十一份受管清单，完整则直接返回，不下载包、不重写、不 init；缺失、改动或未完成事务则停止，保留文件。显式本地源码 sync 仅供维护开发使用。
 
 首次安装或实际更新后仍自动 init，最多两次只读请求共用 20 秒总预算，不自动重试。文件同步成功与连接验证分别报告，验证超时不回滚安装、不重装，也不证明凭据无效。只有带版本的同步成功回执才表示本次安装完成；同版核验回执表示原安装完整，未修改文件。
 
@@ -237,7 +269,7 @@ README 只从基础目录中带有明确图片/视频能力的模型生成，不
 每次发送最多一秒，提交成功与作品交付分别理解，详见
 [回执契约](references/operations-receipts-contract.md)。
 
-共享宿主说明与停止规则由 `references/desktop-hosts.md`、`references/skill-fragments/host-binding.md` 和宿主注册表维护。修改后运行 `npm run docs:sync-guidance`，同步八个独立可安装 Skill 及入口摘要；工程门禁会检查漂移。这不是用户运行依赖。
+共享宿主说明与停止规则由 `references/desktop-hosts.md`、`references/skill-fragments/host-binding.md` 和宿主注册表维护。修改后运行 `npm run docs:sync-guidance`，同步十个独立可安装 Skill 及入口摘要；工程门禁会检查漂移。这不是用户运行依赖。
 
 ```bash
 npm run check

@@ -1,6 +1,6 @@
 ---
 name: puretokens-models
-description: 查询当前 Pure Tokens 连接的图片／视频模型、参数、媒体操作，或明确查询音频／Jev 评估模型是否在认证目录可见、精确型号对应哪个线上分组时使用。
+description: 查询当前 Pure Tokens 连接的图片／视频模型、参数、媒体操作，或明确查询音频／Jev／embedding／rerank 模型在认证目录的可见性、精确型号对应哪个线上分组时使用。
 ---
 
 # Pure Tokens Models
@@ -49,6 +49,28 @@ description: 查询当前 Pure Tokens 连接的图片／视频模型、参数、
 普通评估不先查目录；明确评估任务交给 puretokens-evaluate。
 用户同时要媒体和评估目录时分别执行其明确请求的两个查询，不把一个响应
 冒充另一个；未限定范围的现有 models 命令仍只查询媒体目录。
+
+## 文本向量与重排模型查询
+
+仅用户明确查询当前可见模型时，创建 UTF-8 筛选文件
+`{"kind":"embedding"}` 或 `{"kind":"rerank"}`，可加精确 `model`，
+运行 `<绝对执行器路径> models --host <当前宿主 ID> --request <绝对筛选文件>`。
+每次只发一个 `GET https://api.puretokensx.com/v1/models`：
+embedding 取返回 ID 与 `qwen3.7-text-embedding`、
+`qwen3.7-text-embedding-flash` 的交集；rerank 只与
+`qwen3.7-text-rerank` 相交。去重后展示，不按名称前缀猜能力，
+不接受 operation／parameters，不回退媒体目录或用静态名单冒充实时结果。
+
+`matching_scope=reviewed_embedding_models_listed_by_api` 或
+`reviewed_rerank_models_listed_by_api` 仅代表本次认证目录可见；
+不证明固定 POST、当前权限、价格、真实宿主、实际计费或输出质量。
+没有列出只说明本次未返回，不能断言模型下线。用户同时明确查询两类时
+分别执行各自一次查询，不能把一个响应冒充另一类。
+
+明确生成向量交给 puretokens-embedding，明确重排交给 puretokens-rerank；
+普通任务不先查 models、init 或余额。仅询问概念／用法／安装版本支持范围
+时读对应 Skill 的本地指南，不联网、不提交。向量不是聊天模型，
+重排分值不是概率，不以目录可见为由修改聊天模型列表或发付费探测。
 
 ## 图片／视频查询规则
 

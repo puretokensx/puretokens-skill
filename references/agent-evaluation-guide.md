@@ -8,7 +8,7 @@
 
 - `agent-evaluation-scenarios.json` 提供自然语言请求、当前宿主上下文和模拟服务条件，每题有两个自然语言版本。
 - `agent-evaluation-criteria.json` 是维护者判定规则，不交给受测 Agent。
-- `prepare` 为每次评测创建唯一临时目录，把当前八个 Skill 复制到 `public/skills`，冻结本轮说明；入口 SHA-256 存入维护者快照。
+- `prepare` 为每次评测创建唯一临时目录，把当前十个 Skill 复制到 `public/skills`，冻结本轮说明；入口 SHA-256 存入维护者快照。
 - 受测 Agent 只拿 `public/task.json` 和动作调用方式。它自主选 Skill、读必要资料、运行模拟命令并回应；不预先给出期望工具顺序。
 - `private/trace.jsonl` 逐动作保存选中的 Skill、读取路径、命令及参数、提问、模拟 API 计数和附件交接。读取日志只记路径／摘要，不重复保存整份说明。
 - `evaluate` 最后读取私有规则判定轨迹。公开任务与隐藏规则分开是评测隔离约定；它不是对拥有任意文件系统权限的恶意 Agent 的安全沙箱。

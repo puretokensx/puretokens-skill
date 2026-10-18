@@ -1,9 +1,32 @@
 // Local compatibility metadata, not an authenticated/live availability claim.
 // Evidence and scope: references/media-parameter-review.md.
+import { readFileSync } from "node:fs";
+
+const policy = JSON.parse(readFileSync(new URL("../runtime/executor/reviewed-media-policy.json", import.meta.url), "utf8"));
+if (policy.schemaVersion !== 1 || !policy.models) throw new Error("Invalid reviewed media policy.");
 const seedanceModels = new Set(["seedance-2.0", "seedance-2.0-fast", "seedance-2.0-mini", "seedance-2.5"]);
 
 export function supplementReviewedParameters(model) {
   const schema = structuredClone(model.parameterSchema);
+  const boundary = policy.models[model.id];
+  if (schema && boundary) {
+    schema.constraints ??= {};
+    if (boundary.unsupportedOperations?.length) {
+      schema.constraints.unsupported_operations ??= {};
+      for (const operation of boundary.unsupportedOperations) {
+        if (schema.operations) delete schema.operations[operation];
+        schema.constraints.unsupported_operations[operation] = true;
+      }
+    }
+    if (boundary.unsupportedParametersByOperation) {
+      schema.constraints.unsupported_parameters_by_operation ??= {};
+      for (const [operation, fields] of Object.entries(boundary.unsupportedParametersByOperation)) {
+        schema.constraints.unsupported_parameters_by_operation[operation] = [
+          ...new Set([...(schema.constraints.unsupported_parameters_by_operation[operation] || []), ...fields])
+        ];
+      }
+    }
+  }
   if (!seedanceModels.has(model.id) || !schema ||
       schema.properties?.first_frame_image?.type !== "string" ||
       schema.properties?.last_frame_image?.type !== "string") return schema;

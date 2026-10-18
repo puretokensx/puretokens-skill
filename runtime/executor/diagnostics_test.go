@@ -50,6 +50,25 @@ func doctorFixtureInstallation(t *testing.T, root, version string) {
 
 func doctorNoEnvironment(string) string { return "" }
 
+func TestDoctorFindsMissingRetrievalSkillInCurrentInstallation(t *testing.T) {
+	home := t.TempDir()
+	root := filepath.Join(home, ".agents", "skills")
+	doctorFixtureInstallation(t, root, executorVersion)
+	os.RemoveAll(filepath.Join(root, "puretokens-embedding"))
+	result := collectDoctorAt(root, "codex", home, doctorNoEnvironment)
+	found := false
+	for _, installation := range result.Local.Installations {
+		for _, skill := range installation.Skills {
+			if skill.Name == "puretokens-embedding" && skill.Status == "missing" {
+				found = true
+			}
+		}
+	}
+	if !found || result.Local.Status != "attention_required" {
+		t.Fatal("doctor ignored a missing newly managed Skill", result.Local)
+	}
+}
+
 func TestOpenCodeDoctorFindsDeclaredCustomAndSharedRoots(t *testing.T) {
 	home := t.TempDir()
 	xdg := filepath.Join(home, "xdg config")
@@ -63,7 +82,7 @@ func TestOpenCodeDoctorFindsDeclaredCustomAndSharedRoots(t *testing.T) {
 		doctorFixtureInstallation(t, root, "0.1.0")
 	}
 	result := collectDoctorAt(loaded, "opencode", home, env)
-	if result.OK || len(result.Local.Installations) != 4 || len(result.Local.DuplicateSkills) != 8 {
+	if result.OK || len(result.Local.Installations) != 4 || len(result.Local.DuplicateSkills) != 10 {
 		t.Fatalf("OpenCode custom/shared copies missing: %+v", result)
 	}
 	if !reflect.DeepEqual(result.Local.Installations[0].Locations, []string{"loaded_skills", "host_skills"}) {
@@ -91,7 +110,7 @@ func TestDesktopDoctorUsesOnlyDeclaredSkillRoots(t *testing.T) {
 	doctorFixtureInstallation(t, root, executorVersion)
 	doctorFixtureInstallation(t, filepath.Join(shared, "skills"), "0.1.0")
 	result := collectDoctorAt(root, "dsh-desktop", home, env)
-	if result.Host != "dsh-desktop" || len(result.Local.Installations) != 2 || len(result.Local.DuplicateSkills) != 8 {
+	if result.Host != "dsh-desktop" || len(result.Local.Installations) != 2 || len(result.Local.DuplicateSkills) != 10 {
 		t.Fatal("DSH duplicate user/shared skills not reported")
 	}
 	claudeRoot := filepath.Join(home, ".claude", "skills")
@@ -137,7 +156,7 @@ func TestDoctorGeminiDetectsSeparateManagedAliases(t *testing.T) {
 	doctorFixtureInstallation(t, shared, executorVersion)
 	doctorFixtureInstallation(t, host, "0.1.0")
 	result := collectDoctorAt(shared, "gemini-cli", home, doctorNoEnvironment)
-	if result.OK || result.Local.Status != "attention_required" || len(result.Local.Installations) != 2 || len(result.Local.DuplicateSkills) != 8 {
+	if result.OK || result.Local.Status != "attention_required" || len(result.Local.Installations) != 2 || len(result.Local.DuplicateSkills) != 10 {
 		t.Fatalf("duplicate installations not reported: %+v", result)
 	}
 	for _, skill := range result.Local.Installations[1].Skills {
@@ -299,7 +318,7 @@ func TestDoctorRetainsLocalInventoryWithoutCredentials(t *testing.T) {
 	var output bytes.Buffer
 	err := executeDoctorCredentialFailure(&output, service{baseURL: server.URL, client: server.Client(), profilesRoot: root}, "codex", errors.New("synthetic private credential failure"))
 	var result doctorReceipt
-	if json.Unmarshal(output.Bytes(), &result) != nil || err == nil || result.OK || result.Local.Status != "consistent" || len(result.Local.Installations[0].Skills) != 8 || result.Connection == nil || result.Connection.APIRequestExecuted || calls != 0 {
+	if json.Unmarshal(output.Bytes(), &result) != nil || err == nil || result.OK || result.Local.Status != "consistent" || len(result.Local.Installations[0].Skills) != 10 || result.Connection == nil || result.Connection.APIRequestExecuted || calls != 0 {
 		t.Fatalf("credential failure discarded inventory or executed a request: %s", output.String())
 	}
 	if strings.Contains(output.String(), "synthetic private credential failure") {

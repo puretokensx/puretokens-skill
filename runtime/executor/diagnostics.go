@@ -11,10 +11,7 @@ import (
 	"runtime"
 )
 
-var doctorSkillNames = []string{
-	"puretokens-balance", "puretokens-connection", "puretokens-models",
-	"puretokens-image", "puretokens-video", "puretokens-audio", "puretokens-evaluate", "puretokens-update",
-}
+var doctorSkillNames = currentSkillNames
 
 var doctorVersionPattern = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+([+-][A-Za-z0-9.-]+)?$`)
 

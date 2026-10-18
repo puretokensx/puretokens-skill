@@ -22,8 +22,8 @@ test("shared guidance is generated, detects drift and synchronizes self-containe
   const next = (await readFile(fragment, "utf8")).replace("首次调用前", "开始调用前");
   await writeFile(fragment, next);
   const drift = await syncSkillGuidance(root);
-  assert.equal(drift.filter(file => file.endsWith("/SKILL.md")).length, 8);
-  assert.equal(drift.filter(file => file.endsWith("/desktop-hosts.md")).length, 8);
+  assert.equal(drift.filter(file => file.endsWith("/SKILL.md")).length, 10);
+  assert.equal(drift.filter(file => file.endsWith("/desktop-hosts.md")).length, 10);
   assert.deepEqual(await syncSkillGuidance(root, { write: true }), drift);
   assert.deepEqual(await syncSkillGuidance(root), []);
   const registry = JSON.parse(await readFile(path.join(root, "skills/index.json"), "utf8"));

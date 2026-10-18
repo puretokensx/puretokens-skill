@@ -27,7 +27,9 @@ test("operation summaries reject incorrect lifecycle, recovery, command and deli
     ["music", "lifecycle", "sync"], ["music", "command", "audio"],
     ["music", "recovery", "local-artifact"], ["speech", "recovery", "task-record"],
     ["transcribe", "delivery", "attachment"], ["evaluate", "command", "submit"],
-    ["sound", "operations", ["music"]]
+    ["sound", "operations", ["music"]], ["embedding", "delivery", "text"],
+    ["embedding", "command", "submit"], ["rerank", "recovery", "task-record"],
+    ["rerank", "lifecycle", "async"]
   ]) {
     const changed = structuredClone(source);
     changed.operations.find(row => row.id === id)[key] = value;

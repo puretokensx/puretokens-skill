@@ -7,6 +7,8 @@
     {"id":"transcribe","skill":"puretokens-audio","label":"录音转写","command":"audio","operations":["transcribe"],"lifecycle":"sync","delivery":"text","recovery":"none"},
     {"id":"sound","skill":"puretokens-audio","label":"音效／声音场景","command":"audio","operations":["generate"],"lifecycle":"sync","delivery":"attachment","recovery":"local-artifact"},
     {"id":"music","skill":"puretokens-audio","label":"纯音乐／歌曲","command":"submit","kind":"music","operations":["generate"],"lifecycle":"async","delivery":"attachment","recovery":"task-record"},
-    {"id":"evaluate","skill":"puretokens-evaluate","label":"Jev 文本评估","command":"evaluate","operations":[],"lifecycle":"sync","delivery":"text","recovery":"none"}
+    {"id":"evaluate","skill":"puretokens-evaluate","label":"Jev 文本评估","command":"evaluate","operations":[],"lifecycle":"sync","delivery":"text","recovery":"none"},
+    {"id":"embedding","skill":"puretokens-embedding","label":"文本向量","command":"embedding","operations":[],"lifecycle":"sync","delivery":"file","recovery":"none"},
+    {"id":"rerank","skill":"puretokens-rerank","label":"文本相关性重排","command":"rerank","operations":[],"lifecycle":"sync","delivery":"file","recovery":"none"}
   ]
 }

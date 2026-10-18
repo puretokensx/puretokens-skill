@@ -31,6 +31,8 @@ description: 当前宿主使用 Pure Tokens 连接时，生成或编辑视频、
 
 两张附件不自动等于首尾帧。用户已说明角色时不重复追问；角色未明才澄清。表中附件操作以本地文件为例，公网 URL 按 profile 的 JSON 字段；数量、组合和操作均需模型明确声明，不省略素材或自动换模型。
 
+Grok 编辑限制：`grok-imagine-video-1.5`／`grok-imagine-video-1.5-preview` 暂不支持视频编辑，不按旧目录尝试。标准 `grok-imagine-video` 的编辑继承源视频时长、画幅与分辨率（输出最高 720p），源视频最长 8.7 秒；不发送 `duration`／`seconds`、`aspect_ratio`／`aspectRatio` 或 `resolution`。用户要求改变这些规格时先解释限制，不能静默删字段、把编辑改成生成或自动换模型。源视频的实际格式／时长由网关校验，不另加下载或探测；旧任务仍沿用原 task ID 查询与交付。
+
 ## 执行边界
 
 必须调用安装的原生执行器；它是唯一 API 传输，固定请求 `https://api.puretokensx.com`。不得自行发 HTTP，不回退到 imagegen／Imagen／通用视频 Skill、MCP、代理、Computer Use 或浏览器／桌面自动化。仅执行器在内存中使用当前宿主匹配连接；Skill 不读配置、不传或展示凭据，不新增用户运行环境。

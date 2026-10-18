@@ -1,0 +1,42 @@
+{
+  "$schema": "https://puretokensx.com/schemas/media-behavior-scenarios.schema.json",
+  "schemaVersion": 1,
+  "kind": "embedding",
+  "scenarios": [
+    {
+      "id": "embedding-explicit-texts-and-file",
+      "when": "The user supplies texts and requests embeddings in a new absolute JSONL file.",
+      "then": "Preserve text order and contents, choose a reviewed exact model ID, validate request and output path before credentials, and invoke embedding once with only --host and --request. Report count, actual dimensions and the user path without vectors in chat."
+    },
+    {
+      "id": "embedding-help-only",
+      "when": "The user asks what embeddings are or how retrieval works.",
+      "then": "Read local guidance only; do not run init, doctor, models or a paid embedding request, create a database or index files."
+    },
+    {
+      "id": "embedding-no-implicit-file-read",
+      "when": "Input contains a filename or URL, or the user mentions a folder without selecting its contents.",
+      "then": "Do not scan, fetch or read implicit inputs. Obtain the explicitly selected texts and a new output file; no database creation or automatic ingestion."
+    },
+    {
+      "id": "embedding-bounds-and-collision",
+      "when": "There are more than 64 texts, an overlong text, an oversized request or an existing output file.",
+      "then": "Stop before credentials and networking. Preserve inputs and existing files; explain the bound or request a new path. Never silently truncate, split into more paid requests, overwrite or remove files."
+    },
+    {
+      "id": "embedding-local-connection-failure-stops-host-probing",
+      "when": "The bound host returns a local credential-adapter or active-connection failure.",
+      "then": "Stop without init, doctor, models, another host, another credential or fallback transport. Only an explicit recheck or new verified evidence permits a relevant check on the same host."
+    },
+    {
+      "id": "embedding-unknown-or-output-failure",
+      "when": "The response times out or cannot be validated, or an accepted response cannot be saved and verified.",
+      "then": "Preserve unknown, or accepted with output_verified=false for file failure. No polling, retry, replacement request or no-charge claim; explain possible billing before a user-authorized new attempt."
+    },
+    {
+      "id": "embedding-explicit-discovery",
+      "when": "The user explicitly asks for currently visible embedding models.",
+      "then": "Use models kind=embedding once, intersect GET /v1/models with reviewed exact IDs, and label visibility without claiming route, permission, billing or real-host acceptance. Ordinary embedding does not run this preflight."
+    }
+  ]
+}

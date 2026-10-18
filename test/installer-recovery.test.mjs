@@ -8,7 +8,7 @@ import path from "node:path";
 import os from "node:os";
 import { repositoryRoot } from "../scripts/skill-registry.mjs";
 const execFile = promisify(execFileCallback);
-const names = ["puretokens-balance", "puretokens-connection", "puretokens-models", "puretokens-image", "puretokens-video", "puretokens-audio", "puretokens-evaluate", "puretokens-update"];
+const names = ["puretokens-balance", "puretokens-connection", "puretokens-models", "puretokens-image", "puretokens-video", "puretokens-audio", "puretokens-evaluate", "puretokens-embedding", "puretokens-rerank", "puretokens-update"];
 const installer = path.join(repositoryRoot, "runtime/puretokens-skill-install.sh");
 test("PowerShell local failures preserve file and init outcomes without exposing private errors", async t => {
  try { await execFile("pwsh", ["-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"]); }

@@ -4,11 +4,11 @@
 
 # Pure Tokens Skills
 
-Official Skills for checking a Pure Tokens connection, balance and model catalog, generating images or videos, and evaluating text with Jev.
+Official Skills for checking a Pure Tokens connection, balance and model catalog, generating images, videos or audio, evaluating text with Jev, and producing text embeddings or relevance rankings.
 
 Version 0.19.0 restores stable downloads from `puretokensx/puretokens-skill` and adds local installation recovery, model alternatives, live group guidance and product help.
 
-Source version 0.19.4 keeps the installation prompt to the task and official entry; client/platform selection, verification and initialization belong to the installer. Installation uses the version selected by the published stable manifest.
+Version 0.19.5 adds `puretokens-embedding` and `puretokens-rerank`, and synchronizes reviewed Grok editing restrictions and the Switch client compatibility inventory. Installation uses the version selected by the published stable manifest and includes ten Skills. Client/platform selection, verification and initialization remain installer responsibilities.
 
 Version 0.18.7 adds MiniMax Code Desktop for local macOS/Windows default connections. Standalone installation with Desktop preferences requires a confirmed target or the client runtime data-directory environment. See `references/switch-skill-compatibility.md` for the connection and session requirements.
 
@@ -63,6 +63,8 @@ For missing files, local changes or interrupted installation, request a read-onl
 | `puretokens-video` | Generate videos and use declared image/video/audio references or video edits. |
 | `puretokens-audio` | Turn text into speech, transcribe recordings, generate sound scenes, or create music and songs. |
 | `puretokens-evaluate` | Classify text, score against ordered criteria, or make yes/no judgments with Jev. |
+| `puretokens-embedding` | Save embeddings for explicitly supplied texts into a new JSONL file. |
+| `puretokens-rerank` | Save query-to-candidate relevance rankings into a new JSON file with original indexes and scores. |
 | `puretokens-update` | Local product introduction, getting-started and usage help, connection verification, and safe Skill synchronization. |
 
 ## How direct API generation works
@@ -113,6 +115,43 @@ Ask “Use Jev to classify this ticket as billing, technical, or other” or “
 
 The default is `jev-latest`; reviewed exact alternatives are `jev-1.13.0` and `jev-preview`. Choice, Score and Noul return typed options/numbers and probabilities. Confidence is not validated accuracy or authorization for external actions. Inputs are text/structured text, not images/audio/video. Timeouts or invalid responses stop without automatic retries, polling or claims about charges. Explicit evaluation model discovery lists only reviewed IDs returned by `/v1/models`; listing does not prove the native endpoint is callable. See [evaluation contract](references/jev-evaluation-contract.md). Production and real-host evaluation acceptance remains unverified.
 
+## Text Embeddings And Reranking
+
+Ask to embed the supplied texts into an
+explicit new absolute `.jsonl` file, or rerank supplied candidates against a
+query into a new absolute `.json` file. The native commands are
+`embedding|rerank --host <current-host> --request <absolute-json-file>`.
+They validate the request and new output path before reading credentials, reuse
+the current host's verified Pure Tokens connection in memory, and make one
+synchronous 90-second request without polling or automatic retry.
+
+Embedding uses reviewed exact IDs `qwen3.7-text-embedding` and
+`qwen3.7-text-embedding-flash` at fixed `POST /v1/embeddings`, with
+`encoding_format=float`. JSONL rows contain `index`, `dimensions`, `embedding`
+in original input order; chat reports only count, dimensions and the user path.
+Rerank uses `qwen3.7-text-rerank` at fixed `POST /v1/rerank`, with
+`return_documents=false` and `top_n` defaulting to all candidates. JSON contains
+`results` with one-based rank, zero-based original index and the raw finite
+relevance score. A matching receipt summary may be displayed; the score is not
+a probability or calibrated accuracy.
+
+Both accept 1–64 texts with at most 32768 Unicode characters each, with a
+nonempty rerank query of at most 8192 characters. Requests are limited to 1 MiB,
+responses to 2 MiB. Existing files are preserved; there is no implicit file or
+directory ingestion, database creation, automatic batching or overwrite.
+`accepted` with `output_verified=false` means output delivery failed after
+acceptance and does not prove no charge. Unknown or accepted failures never
+trigger another request. Explicit `models` queries for `kind=embedding` or
+`kind=rerank` intersect one `GET /v1/models` with reviewed exact IDs; they are
+not ordinary preflights or evidence of route, permission, billing or real-host
+acceptance. See the [execution contract](references/embedding-rerank-execution-contract.md).
+
+Switch guides the user to select the required model groups, apply the client
+chat connection, and separately install the Skills. Dedicated models need API
+permission, not a place in the chat model list. Jev, audio, embedding and rerank
+guidance uses the same connection boundary; configuration, a visible model or
+an example does not establish a successful dedicated call.
+
 ## Media routing
 
 Image understanding, OCR, video analysis, screenshot troubleshooting, and prompt-only writing do not create media tasks. Model capability questions use model discovery; progress checks and result retrieval continue the existing task. The image and video entries include intent-to-operation tables, with scene prompt guides read only when needed. Verbatim prompts remain separate from actual output parameters, and attachment count alone does not imply first/last frames.
@@ -148,8 +187,9 @@ The priority is carried by the installed Skill metadata and the host's current c
 Connection adapters have fixture coverage; real-host acceptance is recorded separately.
 The [Switch × dedicated-task matrix](references/switch-skill-compatibility.md)
 separates Skill execution, connection resolution, model permissions, API routing
-and actual delivery. Audio/Jev command entries are included in 0.18.7; embedding/rerank have
-no Skill entry. Configuring a client or listing a model does not verify a task.
+and actual delivery. Audio/Jev command entries are included in 0.18.7;
+embedding/rerank have dedicated Skill entries starting with 0.19.5.
+Configuring a client or listing a model does not verify a task.
 Hermes and EvoX honor their documented absolute data-root overrides. Octop
 requires `--host octop --target <absolute-workspace>/.octop/skills` (PowerShell:
 `-HostId octop -Target <absolute-workspace>/.octop/skills`); do not enumerate
@@ -176,7 +216,7 @@ The selected installed profile governs ordinary requests. An explicit authentica
 <!-- media-model-catalog:start -->
 ## Media model catalog
 
-Synchronized with the base model catalog: 2026-10-14T09:21:16.289Z.
+Synchronized with the base model catalog: 2026-10-18T12:22:09.975Z.
 
 This list is an installed selection aid, not a per-request authorization check. Ordinary generation reads only the selected profile; live discovery is limited to explicit requests, profile gaps or rejection diagnosis. Reviewed local compatibility supplements are separately sourced.
 
@@ -193,7 +233,6 @@ README is generated only from base-catalog models with explicit image/video capa
 | `gpt-image-2.5-sunburst` | OpenAI | Exact ID only | Image generation | `Use gpt-image-2.5-sunburst to generate an image.` |
 | `gpt-image-2(Sub)` | OpenAI | Exact ID only | Image generation | `Use gpt-image-2(Sub) to generate an image.` |
 | `grok-imagine-image` | xAI | `grok image` | Image generation | `Use grok-imagine-image to generate an image.` |
-| `grok-imagine-image-2.0` | xAI | `grok image 2.0` | Image generation | `Use grok-imagine-image-2.0 to generate an image.` |
 | `grok-imagine-image-quality` | xAI | Exact ID only | Image generation | `Use grok-imagine-image-quality to generate an image.` |
 | `nano-banana-2` | Google | `nano banana 2` | Image generation | `Use nano-banana-2 to generate an image.` |
 | `nano-banana-2-lite` | Google | Exact ID only | Image generation | `Use nano-banana-2-lite to generate an image.` |
@@ -220,6 +259,8 @@ README is generated only from base-catalog models with explicit image/video capa
 | `veo_fast` | Google | Exact ID only | Video generation | `Use veo_fast to generate a short video.` |
 | `veo_lite` | Google | Exact ID only | Video generation | `Use veo_lite to generate a short video.` |
 | `veo_quan` | Google | Exact ID only | Video generation | `Use veo_quan to generate a short video.` |
+| `wan3.0-video` | Qwen | Exact ID only | Video generation | `Use wan3.0-video to generate a short video.` |
+| `wan3.0-video-prime` | Qwen | Exact ID only | Video generation | `Use wan3.0-video-prime to generate a short video.` |
 
 <!-- media-model-catalog:end -->
 
@@ -239,7 +280,7 @@ the newly confirmed status.
 
 ## Updating
 
-`puretokens-update` resolves the latest published stable manifest and pins its version, source commit, selector and platform archive checksums. It downloads only the current OS/architecture archive, containing eight shared Skills, one executor and only the current system's scripts. Missing assets never fall back to main or a source archive. Check-update does not write files or run init. Same-version install/update verifies the release executor checksum and all nine managed inventories, then returns without archive download, writes or init. Missing/modified files or unresolved transactions stop without automatic repair. Explicit local source sync remains available for maintainers.
+`puretokens-update` resolves the latest published stable manifest and pins its version, source commit, selector and platform archive checksums. It downloads only the current OS/architecture archive; version 0.19.5 contains ten shared Skills, one executor and only the current system's scripts. Missing assets never fall back to main or a source archive. Check-update does not write files or run init. Same-version install/update verifies the selected release's executor checksum and all eleven managed inventories, then returns without archive download, writes or init. Missing/modified files or unresolved transactions stop without automatic repair. Explicit local source sync remains available for maintainers.
 
 A fresh installation or actual update still runs init automatically, with at most two read-only requests sharing one 20-second deadline and no automatic retry. File synchronization and connection verification are reported separately; an init timeout does not roll back installation, trigger reinstallation or prove an invalid credential. A versioned synchronization receipt confirms a completed installation; a same-version verification receipt confirms the existing installation without changing files.
 
@@ -271,7 +312,7 @@ npm run release:validate
 
 Maintain shared guidance in `references/desktop-hosts.md`,
 `references/skill-fragments/host-binding.md` and the host registry, then run
-`npm run docs:sync-guidance`. It produces eight self-contained installed copies
+`npm run docs:sync-guidance`. It produces ten self-contained installed copies
 and entrypoint hashes; the engineering gate rejects drift. No user runtime is added.
 
 PNG/JPEG download and reuse validate pixel data with a 33,554,432-pixel decode

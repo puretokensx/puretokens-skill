@@ -219,6 +219,13 @@ func prepareProfileRequest(request *taskRequest, svc service) error {
 	if request.Kind == "music" {
 		return prepareMusicRequest(request)
 	}
+	opName, err := requestedMediaOperation(*request)
+	if err != nil {
+		return err
+	}
+	if err := validateReviewedMediaOperation(request.Model, opName, request.Parameters); err != nil {
+		return err
+	}
 	if request.Parameters == nil {
 		request.Parameters = make(map[string]any)
 	}
@@ -230,10 +237,6 @@ func prepareProfileRequest(request *taskRequest, svc service) error {
 		if err = validateProperty("prompt", request.Prompt, rule); err != nil {
 			return err
 		}
-	}
-	opName, err := requestedMediaOperation(*request)
-	if err != nil {
-		return err
 	}
 	var operation mediaOperation
 	if opName != "" {

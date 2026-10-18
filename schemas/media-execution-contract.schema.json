@@ -25,7 +25,9 @@
         "video",
         "update",
         "evaluate",
-        "audio"
+        "audio",
+        "embedding",
+        "rerank"
       ]
     },
     "transport": {
@@ -167,6 +169,12 @@
             }
           },
           "additionalProperties": false
+        },
+        "embeddingCatalog": {
+          "$ref": "#/$defs/request"
+        },
+        "rerankCatalog": {
+          "$ref": "#/$defs/request"
         }
       },
       "additionalProperties": false
@@ -819,6 +827,170 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "embedding"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "operations",
+          "parameterValidation"
+        ],
+        "properties": {
+          "transport": {
+            "properties": {
+              "fixedApiOrigin": {
+                "const": "https://api.puretokensx.com"
+              }
+            }
+          },
+          "operations": {
+            "required": [
+              "submit"
+            ],
+            "properties": {
+              "submit": {
+                "properties": {
+                  "method": {
+                    "const": "POST"
+                  },
+                  "url": {
+                    "const": "https://api.puretokensx.com/v1/embeddings"
+                  }
+                }
+              }
+            }
+          },
+          "result": {
+            "required": [
+              "synchronous",
+              "deadlineSeconds",
+              "neverAutomaticallyRetries",
+              "onePostPerInvocation",
+              "neverPoll",
+              "unknownSubmissionStops",
+              "supportExcludesInputsAndResults",
+              "validatesRequestAndNewOutputBeforeCredentials"
+            ],
+            "properties": {
+              "synchronous": {
+                "const": true
+              },
+              "neverAutomaticallyRetries": {
+                "const": true
+              },
+              "onePostPerInvocation": {
+                "const": true
+              },
+              "neverPoll": {
+                "const": true
+              },
+              "unknownSubmissionStops": {
+                "const": true
+              },
+              "supportExcludesInputsAndResults": {
+                "const": true
+              },
+              "validatesRequestAndNewOutputBeforeCredentials": {
+                "const": true
+              },
+              "deadlineSeconds": {
+                "const": 90
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "rerank"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "operations",
+          "parameterValidation"
+        ],
+        "properties": {
+          "transport": {
+            "properties": {
+              "fixedApiOrigin": {
+                "const": "https://api.puretokensx.com"
+              }
+            }
+          },
+          "operations": {
+            "required": [
+              "submit"
+            ],
+            "properties": {
+              "submit": {
+                "properties": {
+                  "method": {
+                    "const": "POST"
+                  },
+                  "url": {
+                    "const": "https://api.puretokensx.com/v1/rerank"
+                  }
+                }
+              }
+            }
+          },
+          "result": {
+            "required": [
+              "synchronous",
+              "deadlineSeconds",
+              "neverAutomaticallyRetries",
+              "onePostPerInvocation",
+              "neverPoll",
+              "unknownSubmissionStops",
+              "supportExcludesInputsAndResults",
+              "validatesRequestAndNewOutputBeforeCredentials"
+            ],
+            "properties": {
+              "synchronous": {
+                "const": true
+              },
+              "neverAutomaticallyRetries": {
+                "const": true
+              },
+              "onePostPerInvocation": {
+                "const": true
+              },
+              "neverPoll": {
+                "const": true
+              },
+              "unknownSubmissionStops": {
+                "const": true
+              },
+              "supportExcludesInputsAndResults": {
+                "const": true
+              },
+              "validatesRequestAndNewOutputBeforeCredentials": {
+                "const": true
+              },
+              "deadlineSeconds": {
+                "const": 90
+              }
+            }
+          }
+        }
+      }
     }
   ],
   "$defs": {
@@ -1093,7 +1265,13 @@
           "const": "preserve_committed_install_report_init_unverified_without_recovery_reinstall_or_retry"
         },
         "localFailureReceipt": {
-          "const": ["stage", "error_code", "installation_status", "installed_files_changed", "next_step"]
+          "const": [
+            "stage",
+            "error_code",
+            "installation_status",
+            "installed_files_changed",
+            "next_step"
+          ]
         },
         "hostSelection": {
           "const": {

@@ -127,7 +127,7 @@ function Remove-Item {
     if ($LASTEXITCODE -ne 0) { throw "$engine cleanup denial failed the completed sync" }
     $guardText = $guardOutput -join "`n"
     if ($guardText -notmatch 'synchronized with the native API executor' -or $guardText -notmatch 'cleanup_status: pending' -or $guardText -notmatch 'connection check was deferred') { throw "$engine lost sync, cleanup or init status" }
-    foreach ($name in @('puretokens-balance','puretokens-connection','puretokens-models','puretokens-image','puretokens-video','puretokens-audio','puretokens-evaluate','puretokens-update','.puretokens-executor')) {
+    foreach ($name in @('puretokens-balance','puretokens-connection','puretokens-models','puretokens-image','puretokens-video','puretokens-audio','puretokens-evaluate','puretokens-embedding','puretokens-rerank','puretokens-update','.puretokens-executor')) {
       if (-not (Test-Path (Join-Path (Join-Path $guardTarget $name) '.puretokens-managed.json'))) { throw "$engine missing installed inventory" }
     }
     if (@(Get-ChildItem $guardTarget -Directory -Force -Filter '.puretokens-skill-stage-*').Count -ne 1) { throw "$engine did not retain denied cleanup stage" }

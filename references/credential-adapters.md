@@ -92,7 +92,7 @@ and the canonical Switch adapter, not a claim of complete runtime acceptance.
 - VS Code: default local `Code/User/chatLanguageModels.json` under macOS
   Application Support or Windows APPDATA; parse native JSONC with unique keys.
   Recognize the exact full Chat/Responses/Messages URL before using a model's
-  inline `requestHeaders.Authorization`. In candidate 0.18.7, require one
+  inline `requestHeaders.Authorization`. The distributed adapter requires one
   matching `customendpoint` group whose models all use supported Pure Tokens
   routes and the same inline Bearer credential. Compare only in executor
   memory; never expose values, fingerprints or comparison results. Distinct
@@ -101,8 +101,8 @@ and the canonical Switch adapter, not a claim of complete runtime acceptance.
   stop without choosing a model or changing configuration. Names and ownership
   markers are not service identity evidence. No SecretStorage, extension,
   process control, named/portable profile, conversation history or inferred
-  chat selection. The released 0.18.6 still rejects multiple matching models.
-  Switch's real writer and the candidate adapter share a synthetic three-route
+  chat selection. This multi-model implementation has been distributed since 0.18.7.
+  Switch's real writer and the adapter share a synthetic three-route
   fixture; this is not real-host or current-session verification. See
   `switch-skill-compatibility.md` for all five acceptance stages.
 - Octop: absolute `OCTOP_HOME` or `~/.octop`; only `config.json` (storage
@@ -130,9 +130,9 @@ Resolve absolute DSH_HOME without dot/parent traversal, otherwise ~/.dsh. Read o
 
 Only then read .credentials.yaml version 1 and the exact apiKeyEnv reference under refs. A nonempty inherited value for that exact reference shadows the store in the official host, so this adapter refuses it without comparing or using either value. No .env, OAuth records, community settings.yaml, arbitrary environment fallback or conversation database is read. Unknown credential-store fields stop. CLI launch overlays, custom bundles and session overrides cannot be inferred from saved defaults and remain outside support.
 
-Shared synthetic sample: test/fixtures/switch-deepseek-harness-connection.json; Switch validates it against actual writer output on macOS/Windows layouts. This is source/fixture support only, not a real-host loading, current-session identity, API or attachment-delivery pass.
+Shared synthetic sample: test/fixtures/switch-deepseek-harness-connection.json; Switch validates it against actual writer output on macOS/Windows layouts. The adapter has been distributed since 0.18.7. Fixtures are not a real-host loading, current-session identity, API or attachment-delivery pass.
 
-## MiniMax Code Desktop — candidate 0.18.7
+## MiniMax Code Desktop — distributed since 0.18.7
 
 Independent `minimax-code` adapter, reviewed against installed Desktop 3.1.0 application code (not a running client or user configuration): `@mavis/config/dist/{config,byok-config,credential-reference}.js`, `@mavis/local-runtime-v2/dist/service/skill/registry/roots.js`, `service/model-system/resolution/model-resolver-byok.js`, and `service/turn-system/agent-host/preparation/config/session-model-selection.js`. Static file digests are recorded in `acceptance/client-model-sync-20261004.json`. CLI documentation alone is not Desktop evidence.
 

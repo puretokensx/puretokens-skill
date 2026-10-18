@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
   "schemaVersion": 1,
   "capability": "video",
-  "catalogUpdatedAt": "2026-10-14",
-  "catalogCapturedAt": "2026-10-14T09:21:16.289Z",
+  "catalogUpdatedAt": "2026-10-18",
+  "catalogCapturedAt": "2026-10-18T12:22:09.975Z",
   "id": "seedance-2.5",
   "parameterSchema": {
     "properties": {

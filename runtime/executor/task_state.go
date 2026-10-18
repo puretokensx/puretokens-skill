@@ -259,7 +259,7 @@ func projectCatalog(value any) any {
 			}
 		}
 		result["capabilities"] = caps
-		schema := jsonObject(model["input_schema"])
+		schema := reviewedMediaSchema(id, jsonObject(model["input_schema"]))
 		selected := map[string]any{}
 		for _, field := range []string{"properties", "constraints", "operations", "lifecycle", "outputSizes"} {
 			if v, ok := schema[field]; ok {

@@ -3,7 +3,7 @@
   "skills": [
     {
       "name": "puretokens-balance",
-      "version": "0.19.4",
+      "version": "0.19.5",
       "entry": "skills/puretokens-balance/SKILL.md",
       "manifest": "skills/puretokens-balance/skill.json",
       "summary": "Read a balance from the fixed Pure Tokens API.",
@@ -11,7 +11,7 @@
     },
     {
       "name": "puretokens-connection",
-      "version": "0.19.4",
+      "version": "0.19.5",
       "entry": "skills/puretokens-connection/SKILL.md",
       "manifest": "skills/puretokens-connection/skill.json",
       "summary": "Check the fixed Pure Tokens API public identity only when explicitly requested.",
@@ -19,15 +19,15 @@
     },
     {
       "name": "puretokens-models",
-      "version": "0.19.4",
+      "version": "0.19.5",
       "entry": "skills/puretokens-models/SKILL.md",
       "manifest": "skills/puretokens-models/skill.json",
-      "summary": "Inspect declared media capabilities or explicitly discover reviewed audio and Jev IDs in the authenticated directory.",
+      "summary": "Inspect declared media capabilities or explicitly discover reviewed audio, Jev, embedding and rerank IDs in the authenticated directory.",
       "distribution": "cross-client-source"
     },
     {
       "name": "puretokens-image",
-      "version": "0.19.4",
+      "version": "0.19.5",
       "entry": "skills/puretokens-image/SKILL.md",
       "manifest": "skills/puretokens-image/skill.json",
       "summary": "Primary image Skill for the current Pure Tokens connection; runs before generic imagegen or Imagen.",
@@ -35,7 +35,7 @@
     },
     {
       "name": "puretokens-video",
-      "version": "0.19.4",
+      "version": "0.19.5",
       "entry": "skills/puretokens-video/SKILL.md",
       "manifest": "skills/puretokens-video/skill.json",
       "summary": "Primary video Skill for the current Pure Tokens connection; runs before generic video Skills.",
@@ -43,7 +43,7 @@
     },
     {
       "name": "puretokens-audio",
-      "version": "0.19.4",
+      "version": "0.19.5",
       "entry": "skills/puretokens-audio/SKILL.md",
       "manifest": "skills/puretokens-audio/skill.json",
       "summary": "Synthesize speech, transcribe recordings and generate sound scenes using reviewed native audio protocols.",
@@ -51,15 +51,31 @@
     },
     {
       "name": "puretokens-evaluate",
-      "version": "0.19.4",
+      "version": "0.19.5",
       "entry": "skills/puretokens-evaluate/SKILL.md",
       "manifest": "skills/puretokens-evaluate/skill.json",
       "summary": "Evaluate text using Jev typed synchronous judgments through the fixed API.",
       "distribution": "cross-client-source"
     },
     {
+      "name": "puretokens-embedding",
+      "version": "0.19.5",
+      "entry": "skills/puretokens-embedding/SKILL.md",
+      "manifest": "skills/puretokens-embedding/skill.json",
+      "summary": "Embed explicitly supplied texts into a new JSONL file using the current Pure Tokens connection.",
+      "distribution": "cross-client-source"
+    },
+    {
+      "name": "puretokens-rerank",
+      "version": "0.19.5",
+      "entry": "skills/puretokens-rerank/SKILL.md",
+      "manifest": "skills/puretokens-rerank/skill.json",
+      "summary": "Rerank supplied candidates for a query into a new JSON file while preserving original indexes and scores.",
+      "distribution": "cross-client-source"
+    },
+    {
       "name": "puretokens-update",
-      "version": "0.19.4",
+      "version": "0.19.5",
       "entry": "skills/puretokens-update/SKILL.md",
       "manifest": "skills/puretokens-update/skill.json",
       "summary": "Explain Pure Tokens and getting started locally, or explicitly install, upgrade and verify Skills.",

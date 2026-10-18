@@ -1,0 +1,59 @@
+{
+  "$schema": "https://puretokensx.com/schemas/media-execution-contract.schema.json",
+  "schemaVersion": 1,
+  "kind": "rerank",
+  "transport": {
+    "fixedApiOrigin": "https://api.puretokensx.com",
+    "usesFullApiUrls": true,
+    "usesManagedNativeExecutor": true,
+    "usesCurrentHostConfiguredCredential": true,
+    "credentialSourceNeverBecomesRequestTarget": true,
+    "neverExposesCredentialsOrHostConfiguration": true,
+    "doesNotUseNodeRuntime": true,
+    "doesNotUseMcpOrFallbackTransport": true,
+    "doesNotUseComputerUseOrUiAutomation": true,
+    "doesNotInvokeOtherMediaSkillsAsApiFallback": true,
+    "executionStart": "invoke_the_checksum_verified_managed_native_executor_with_the_current_host_id_and_fixed_request",
+    "whenManagedNativeExecutorUnavailable": "report_only_an_actual_executor_network_credential_adapter_or_attachment_byte_failure_and_never_open_a_browser_desktop_ui_or_computer_use"
+  },
+  "operations": {
+    "submit": {
+      "method": "POST",
+      "url": "https://api.puretokensx.com/v1/rerank",
+      "requiredBodyFields": ["model", "query", "documents", "top_n", "return_documents"],
+      "fixedBody": {
+        "return_documents": false
+      }
+    }
+  },
+  "result": {
+    "synchronous": true,
+    "deadlineSeconds": 90,
+    "neverAutomaticallyRetries": true,
+    "onePostPerInvocation": true,
+    "neverPoll": true,
+    "unknownSubmissionStops": true,
+    "supportExcludesInputsAndResults": true,
+    "validatesRequestAndNewOutputBeforeCredentials": true,
+    "outputFormat": "json",
+    "outputFields": ["rank", "index", "relevance_score"],
+    "rankBase": 1,
+    "indexBase": 0,
+    "scoreIsNotProbability": true,
+    "preservesOriginalFiniteScore": true,
+    "receiptSummaryMatchesFile": true
+  },
+  "parameterValidation": {
+    "requestFields": ["model", "query", "documents", "top_n", "output_file"],
+    "reviewedModelIds": ["qwen3.7-text-rerank"],
+    "maxRequestBytes": 1048576,
+    "maxResponseBytes": 2097152,
+    "minItems": 1,
+    "maxItems": 64,
+    "maxTextRunes": 32768,
+    "maxQueryRunes": 8192,
+    "topNDefault": "document_count",
+    "topNRange": "1..document_count",
+    "outputFile": "explicit_absolute_new_json_file_existing_writable_parent"
+  }
+}

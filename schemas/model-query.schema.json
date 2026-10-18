@@ -9,7 +9,9 @@
         "image",
         "video",
         "evaluation",
-        "audio"
+        "audio",
+        "embedding",
+        "rerank"
       ]
     },
     "model": {
@@ -70,6 +72,32 @@
               "generate",
               "music"
             ]
+          },
+          "parameters": {
+            "type": "object",
+            "maxProperties": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "embedding",
+              "rerank"
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "properties": {
+          "operation": {
+            "const": ""
           },
           "parameters": {
             "type": "object",

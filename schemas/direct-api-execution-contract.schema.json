@@ -21,7 +21,9 @@
     "evaluation",
     "audio",
     "music",
-    "operationsReceipts"
+    "operationsReceipts",
+    "embedding",
+    "rerank"
   ],
   "properties": {
     "$schema": {
@@ -509,6 +511,40 @@
         }
       },
       "additionalProperties": false
+    },
+    "embedding": {
+      "const": {
+        "method": "POST",
+        "url": "https://api.puretokensx.com/v1/embeddings",
+        "command": "embedding",
+        "deadlineSeconds": 90,
+        "maxRequests": 1,
+        "requestSchema": "schemas/embedding-request.schema.json",
+        "responseSchema": "schemas/retrieval-receipt.schema.json",
+        "modelDiscoveryUrl": "https://api.puretokensx.com/v1/models",
+        "modelDiscoveryScope": "explicit_reviewed_model_visibility_only",
+        "synchronous": true,
+        "neverAutomaticallyRetries": true,
+        "onePostPerInvocation": true,
+        "neverPoll": true
+      }
+    },
+    "rerank": {
+      "const": {
+        "method": "POST",
+        "url": "https://api.puretokensx.com/v1/rerank",
+        "command": "rerank",
+        "deadlineSeconds": 90,
+        "maxRequests": 1,
+        "requestSchema": "schemas/rerank-request.schema.json",
+        "responseSchema": "schemas/retrieval-receipt.schema.json",
+        "modelDiscoveryUrl": "https://api.puretokensx.com/v1/models",
+        "modelDiscoveryScope": "explicit_reviewed_model_visibility_only",
+        "synchronous": true,
+        "neverAutomaticallyRetries": true,
+        "onePostPerInvocation": true,
+        "neverPoll": true
+      }
     }
   },
   "additionalProperties": false

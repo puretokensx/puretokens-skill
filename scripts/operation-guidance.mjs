@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 const fields = ["id", "skill", "label", "command", "kind", "operations", "lifecycle", "delivery", "recovery"];
-const ids = ["image", "video", "speech", "transcribe", "sound", "music", "evaluate"];
+const ids = ["image", "video", "speech", "transcribe", "sound", "music", "evaluate", "embedding", "rerank"];
 const recoveries = {
   "task-record": "原任务 `resume`；仅实际附件交付后 `delivered`",
   "local-artifact": "仅已有文件 `audio-verify` 后重新附加；无任务查询",
@@ -25,7 +25,7 @@ export async function loadOperationGuidance(root) {
     throw new Error("Operation guidance must declare each reviewed operation once");
   }
   const contracts = new Map();
-  for (const skill of ["image", "video", "audio", "evaluate"]) {
+  for (const skill of ["image", "video", "audio", "evaluate", "embedding", "rerank"]) {
     contracts.set(`puretokens-${skill}`, await read(`skills/puretokens-${skill}/references/execution-contract.json`));
   }
   for (const row of source.operations) {
@@ -46,6 +46,12 @@ export async function loadOperationGuidance(root) {
     } else if (row.id === "evaluate") {
       if (contract.kind !== "evaluate" || !contract.result.synchronous || !contract.result.neverPoll ||
           !contract.result.neverAutomaticallyRetries || row.operations.length !== 0) throw new Error("evaluate: sync contract differs");
+    } else if (row.id === "embedding" || row.id === "rerank") {
+      if (contract.kind !== row.id || !contract.result.synchronous || !contract.result.neverPoll ||
+          !contract.result.neverAutomaticallyRetries || !contract.result.onePostPerInvocation ||
+          contract.result.deadlineSeconds !== 90 || !contract.result.validatesRequestAndNewOutputBeforeCredentials ||
+          contract.result.outputFormat !== (row.id === "embedding" ? "jsonl" : "json") ||
+          row.operations.length !== 0) throw new Error(`${row.id}: sync file contract differs`);
     } else {
       const operation = row.id === "sound" ? "generate" : row.id;
       if (contract.kind !== "audio" || row.operations.join() !== operation ||
@@ -54,11 +60,13 @@ export async function loadOperationGuidance(root) {
     }
     const async = ["image", "video", "music"].includes(row.id);
     const text = ["transcribe", "evaluate"].includes(row.id);
+    const file = ["embedding", "rerank"].includes(row.id);
+    const command = async ? "submit" : row.id === "evaluate" || file ? row.id : "audio";
     if (row.lifecycle !== (async ? "async" : "sync") ||
-        row.command !== (async ? "submit" : row.id === "evaluate" ? "evaluate" : "audio") ||
+        row.command !== command ||
         row.kind !== (async ? row.id : undefined) ||
-        row.delivery !== (text ? "text" : "attachment") ||
-        row.recovery !== (async ? "task-record" : text ? "none" : "local-artifact")) {
+        row.delivery !== (file ? "file" : text ? "text" : "attachment") ||
+        row.recovery !== (async ? "task-record" : text || file ? "none" : "local-artifact")) {
       throw new Error(`${row.id}: command, lifecycle, recovery or delivery mismatch`);
     }
   }
@@ -71,11 +79,15 @@ export function renderOperationGuidance(rows) {
     "| --- | --- | --- | --- |"
   ];
   for (const row of rows) {
-    const request = row.kind ? `kind=${row.kind}` : row.operations.length ? `operation=${row.operations.join(" / ")}` : "model / state / questions";
+    const fileRequest = { embedding: "model / input / output_file", rerank: "model / query / documents / top_n? / output_file" };
+    const request = row.kind ? `kind=${row.kind}` : row.operations.length ? `operation=${row.operations.join(" / ")}` : fileRequest[row.id] ?? "model / state / questions";
     const mode = row.lifecycle === "async" ? "异步；先回执，再独立等待／下载" : "同步；一次请求最多90秒";
     lines.push(`| ${row.label} | \`${row.command}\`；\`${request}\` | ${mode} | ${recoveries[row.recovery]} |`);
   }
   lines.push("", "文件路径／下载回执不等于交付；附件须实际附加，文本须展示校验后的结果。未知提交不证明未处理或未扣费，均不自动重发。");
+  if (rows.some(row => row.delivery === "file")) {
+    lines.push("向量／重排按明确请求保存新的 JSONL／JSON 文件；仅验证成功后报告产物。向量不铺进聊天，重排摘要与文件排序一致；accepted 但 output_verified=false 仍停止，不自动重发。");
+  }
   return lines.join("\n");
 }
 

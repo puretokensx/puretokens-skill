@@ -19,7 +19,7 @@ test("parallel preparations are isolated, snapshot current instructions and keep
   assert.notEqual(first.session, second.session);
   const [a, b] = await Promise.all([readFile(first.publicTask, "utf8").then(JSON.parse), readFile(second.publicTask, "utf8").then(JSON.parse)]);
   assert.notEqual(a.request, b.request);
-  assert.equal(a.availableSkills.length, 8);
+  assert.equal(a.availableSkills.length, 10);
   assert.equal(a.criteria, undefined);
   assert.equal(a.stub, undefined);
   assert.equal(a.scenarioID, undefined);

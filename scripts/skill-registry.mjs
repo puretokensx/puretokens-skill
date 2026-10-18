@@ -119,9 +119,9 @@ export async function validateRepository() {
     }
   }
 
-  const expected = ["puretokens-balance", "puretokens-connection", "puretokens-models", "puretokens-image", "puretokens-video", "puretokens-audio", "puretokens-evaluate", "puretokens-update"];
+  const expected = ["puretokens-balance", "puretokens-connection", "puretokens-models", "puretokens-image", "puretokens-video", "puretokens-audio", "puretokens-evaluate", "puretokens-embedding", "puretokens-rerank", "puretokens-update"];
   if (registry.skills.length !== expected.length || expected.some((name, index) => registry.skills[index]?.name !== name)) {
-    errors.push("skills/index.json must list the eight specialist Skills in order");
+    errors.push("skills/index.json must list the ten specialist Skills in order");
   }
 
   for (const entry of registry.skills) {
@@ -272,6 +272,19 @@ function validateDirectApiExecutionContract(errors, contract, hostSupport) {
     audio.responseSchema !== "schemas/audio-receipt.schema.json" ||
     audio.verifySchema !== "schemas/audio-artifact-verify-request.schema.json") {
     errors.push(`${label} must define bounded synchronous audio and local artifact verification`);
+  }
+  for (const kind of ["embedding", "rerank"]) {
+    const retrieval = contract[kind];
+    if (!retrieval || retrieval.method !== "POST" ||
+      retrieval.url !== `${directApiOrigin}/v1/${kind === "embedding" ? "embeddings" : kind}` ||
+      retrieval.command !== kind || retrieval.deadlineSeconds !== 90 || retrieval.maxRequests !== 1 ||
+      retrieval.requestSchema !== `schemas/${kind}-request.schema.json` ||
+      retrieval.responseSchema !== "schemas/retrieval-receipt.schema.json" ||
+      retrieval.modelDiscoveryUrl !== `${directApiOrigin}/v1/models` ||
+      retrieval.modelDiscoveryScope !== "explicit_reviewed_model_visibility_only" ||
+      ["synchronous", "neverAutomaticallyRetries", "onePostPerInvocation", "neverPoll"].some(key => retrieval[key] !== true)) {
+      errors.push(`${label} must define one bounded synchronous ${kind} request and explicit reviewed visibility lookup`);
+    }
   }
   const music = contract.music;
   if (!music || music.kind !== "music" || music.model !== "stepaudio-3-music-preview" ||
@@ -442,6 +455,43 @@ function validateExecutionContract(errors, directory, contract) {
     }
     return;
   }
+  if (kind === "embedding" || kind === "rerank") {
+    const embedding = kind === "embedding";
+    validateRequest(errors, `${label} submit`, operations.submit, "POST", `${directApiOrigin}/v1/${embedding ? "embeddings" : "rerank"}`);
+    validateRequiredBodyFields(errors, `${label} submit`, operations.submit, embedding
+      ? ["model", "input", "encoding_format"]
+      : ["model", "query", "documents", "top_n", "return_documents"]);
+    for (const rule of ["synchronous", "neverAutomaticallyRetries", "onePostPerInvocation", "neverPoll",
+      "unknownSubmissionStops", "supportExcludesInputsAndResults", "validatesRequestAndNewOutputBeforeCredentials"]) {
+      if (contract.result?.[rule] !== true) errors.push(`${label} must require ${rule}`);
+    }
+    const limits = contract.parameterValidation;
+    const reviewed = embedding ? ["qwen3.7-text-embedding", "qwen3.7-text-embedding-flash"] : ["qwen3.7-text-rerank"];
+    const requestFields = embedding ? ["model", "input", "output_file"] : ["model", "query", "documents", "top_n", "output_file"];
+    if (contract.result?.deadlineSeconds !== 90 || contract.result?.outputFormat !== (embedding ? "jsonl" : "json") ||
+      limits?.maxRequestBytes !== 1048576 || limits?.maxResponseBytes !== 2097152 ||
+      limits?.minItems !== 1 || limits?.maxItems !== 64 || limits?.maxTextRunes !== 32768 ||
+      !sameArray(limits?.reviewedModelIds, reviewed) || !sameArray(limits?.requestFields, requestFields) ||
+      limits?.outputFile !== `explicit_absolute_new_${embedding ? "jsonl" : "json"}_file_existing_writable_parent`) {
+      errors.push(`${label} must retain bounded reviewed text inputs and an explicit new output file`);
+    }
+    if (embedding) {
+      if (operations.submit?.fixedBody?.encoding_format !== "float" ||
+        !sameArray(contract.result?.outputFields, ["index", "dimensions", "embedding"]) ||
+        contract.result?.outputOrder !== "original_zero_based_input_index" ||
+        !sameArray(contract.result?.chatSummaryFields, ["item_count", "dimensions", "path"])) {
+        errors.push(`${label} must save ordered float embeddings and keep vectors out of chat`);
+      }
+    } else if (operations.submit?.fixedBody?.return_documents !== false || limits?.maxQueryRunes !== 8192 ||
+      limits?.topNDefault !== "document_count" || limits?.topNRange !== "1..document_count" ||
+      !sameArray(contract.result?.outputFields, ["rank", "index", "relevance_score"]) ||
+      contract.result?.rankBase !== 1 || contract.result?.indexBase !== 0 ||
+      contract.result?.scoreIsNotProbability !== true || contract.result?.preservesOriginalFiniteScore !== true ||
+      contract.result?.receiptSummaryMatchesFile !== true) {
+      errors.push(`${label} must preserve original candidate indexes and finite relevance scores`);
+    }
+    return;
+  }
   if (kind === "audio") {
     for (const [op, suffix] of [["speech", "speech"], ["transcribe", "transcriptions"], ["generate", "generate"]]) {
       validateRequest(errors, `${label} ${op}`, operations[op], "POST", `${directApiOrigin}/v1/audio/${suffix}`);
@@ -490,6 +540,8 @@ function validateExecutionContract(errors, directory, contract) {
     validateRequest(errors, `${label} catalog`, operations.catalog, "GET", `${directApiOrigin}/v1/media/models`);
     validateRequest(errors, `${label} evaluation catalog`, operations.evaluationCatalog, "GET", `${directApiOrigin}/v1/models`);
     validateRequest(errors, `${label} audio catalog`, operations.audioCatalog, "GET", `${directApiOrigin}/v1/models`);
+    validateRequest(errors, `${label} embedding catalog`, operations.embeddingCatalog, "GET", `${directApiOrigin}/v1/models`);
+    validateRequest(errors, `${label} rerank catalog`, operations.rerankCatalog, "GET", `${directApiOrigin}/v1/models`);
     validateRequest(errors, `${label} public group guidance`, operations.groupGuidance, "GET", "https://console.puretokensx.com/api/product/docs/model-catalog");
     if (operations.groupGuidance?.requiresConfiguredApiKey !== false ||
       contract.result?.groupGuidance?.requiresConfiguredApiKey !== false ||
@@ -501,7 +553,9 @@ function validateExecutionContract(errors, directory, contract) {
       contract.result?.mediaCompatibilityShortlistsRequireDeclaredCapabilityAndInputSchema !== true ||
       contract.result?.mediaFilterMatchesDeclaredSchemaOnly !== true ||
       contract.result?.evaluationDiscovery !== "explicit_reviewed_model_visibility_only" ||
-      contract.result?.audioDiscovery !== "explicit_reviewed_model_visibility_only") {
+      contract.result?.audioDiscovery !== "explicit_reviewed_model_visibility_only" ||
+      contract.result?.embeddingDiscovery !== "explicit_reviewed_model_visibility_only" ||
+      contract.result?.rerankDiscovery !== "explicit_reviewed_model_visibility_only") {
       errors.push(`${label} must separate anonymous group guidance from authenticated model visibility, never submit media work or retry, and derive compatibility only from declared profile data`);
     }
     return;
@@ -876,7 +930,12 @@ async function validateSchemaDocuments(errors) {
     "schemas/evaluation-receipt.schema.json",
     "schemas/audio-request.schema.json",
     "schemas/audio-receipt.schema.json",
-    "schemas/audio-artifact-verify-request.schema.json"
+    "schemas/audio-artifact-verify-request.schema.json",
+    "schemas/embedding-request.schema.json",
+    "schemas/rerank-request.schema.json",
+    "schemas/retrieval-receipt.schema.json",
+    "schemas/embedding-output.schema.json",
+    "schemas/rerank-output.schema.json"
   ];
   for (const schema of schemas) await verifyJsonFile(errors, schema, `schema ${schema}`);
 }

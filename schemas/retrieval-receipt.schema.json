@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://puretokensx.com/schemas/retrieval-receipt.schema.json",
+  "title": "Safe synchronous embedding or rerank receipt",
+  "type": "object",
+  "required": ["ok", "command", "submission_outcome", "next_step", "output_verified"],
+  "properties": {
+    "ok": { "type": "boolean" },
+    "command": { "enum": ["embedding", "rerank"] },
+    "submission_outcome": { "enum": ["accepted", "rejected", "unknown", "not_submitted"] },
+    "next_step": { "enum": ["done", "await_user"] },
+    "output_verified": { "type": "boolean" },
+    "artifact": {
+      "type": "object",
+      "required": ["path", "format", "item_count", "sha256", "bytes"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "format": { "enum": ["jsonl", "json"] },
+        "item_count": { "type": "integer", "minimum": 1, "maximum": 64 },
+        "dimensions": { "type": "integer", "minimum": 1, "maximum": 65536 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$(?![\\s\\S])" },
+        "bytes": { "type": "integer", "minimum": 1, "maximum": 2162688 }
+      },
+      "additionalProperties": false
+    },
+    "result": { "$ref": "rerank-output.schema.json" },
+    "failure_phase": { "enum": ["validation", "submission", "content"] },
+    "local_error_code": { "type": "string", "pattern": "^[a-z][a-z0-9_]{0,99}$(?![\\s\\S])" },
+    "http_status": { "type": "integer", "minimum": 100, "maximum": 599 },
+    "api_error_code": { "type": "string", "pattern": "^[A-Za-z0-9_.-]{1,100}$(?![\\s\\S])" },
+    "error_message": { "type": "string", "minLength": 1 },
+    "next_action": { "type": "string", "minLength": 1 },
+    "retry_after_seconds": { "type": "integer", "minimum": 1 },
+    "support": { "$ref": "support-summary.schema.json" },
+    "timings_ms": { "$ref": "timings.schema.json" }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "properties": { "ok": { "const": true } } },
+      "then": {
+        "required": ["artifact"],
+        "properties": {
+          "submission_outcome": { "const": "accepted" },
+          "next_step": { "const": "done" },
+          "output_verified": { "const": true },
+          "failure_phase": false,
+          "local_error_code": false,
+          "error_message": false,
+          "next_action": false
+        }
+      },
+      "else": {
+        "required": ["failure_phase", "local_error_code", "error_message", "next_action"],
+        "properties": {
+          "next_step": { "const": "await_user" },
+          "output_verified": { "const": false },
+          "artifact": false,
+          "result": false
+        }
+      }
+    },
+    {
+      "if": { "properties": { "command": { "const": "embedding" } } },
+      "then": {
+        "properties": {
+          "result": false,
+          "artifact": { "required": ["dimensions"], "properties": { "format": { "const": "jsonl" } } }
+        }
+      },
+      "else": {
+        "properties": {
+          "artifact": { "properties": { "format": { "const": "json" }, "dimensions": false } }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "ok": { "const": true } } },
+            "then": { "required": ["result"] }
+          }
+        ]
+      }
+    },
+    {
+      "if": { "properties": { "failure_phase": { "const": "content" } }, "required": ["failure_phase"] },
+      "then": { "properties": { "submission_outcome": { "const": "accepted" } } }
+    }
+  ]
+}

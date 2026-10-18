@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
   "schemaVersion": 1,
   "capability": "video",
-  "catalogUpdatedAt": "2026-10-14",
-  "catalogCapturedAt": "2026-10-14T09:21:16.289Z",
+  "catalogUpdatedAt": "2026-10-18",
+  "catalogCapturedAt": "2026-10-18T12:22:09.975Z",
   "id": "grok-imagine-video-1.5",
   "parameterSchema": {
     "properties": {
@@ -20,7 +20,9 @@
           "4:3",
           "3:4",
           "3:2",
-          "2:3"
+          "2:3",
+          "21:9",
+          "5:2"
         ]
       },
       "resolution": {
@@ -57,6 +59,9 @@
           "480p",
           "720p"
         ]
+      },
+      "unsupported_operations": {
+        "video_edit": true
       }
     },
     "operations": {
@@ -97,29 +102,6 @@
         "inputs": {
           "reference_images": {
             "field": "reference_images",
-            "required": true,
-            "minItems": 1,
-            "maxItems": 1,
-            "transports": [
-              "multipart_file"
-            ]
-          }
-        }
-      },
-      "video_edit": {
-        "request": {
-          "method": "POST",
-          "path": "/v1/videos/edits",
-          "contentType": "multipart/form-data"
-        },
-        "requiredBodyFields": [
-          "model",
-          "prompt",
-          "video"
-        ],
-        "inputs": {
-          "video": {
-            "field": "video",
             "required": true,
             "minItems": 1,
             "maxItems": 1,

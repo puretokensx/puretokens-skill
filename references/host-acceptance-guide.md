@@ -53,10 +53,12 @@ Never add paid tests to CI.
 | jev-evaluation | Evaluate synthetic text with explicit choice, score and noul questions | One synchronous request; question/option order retained; validated typed results shown; no polling or external action |
 | image-to-video-workflow | Explicitly use an image just delivered as a video's first frame | Exact selected local image bytes passed through a declared multipart operation; distinct records; each actual attachment delivered |
 | video-audio-workflow | Request video and independent narration or music assets | User accepted separate assets; each delivered once; no claim of composition, mixing or duration alignment |
-| help-no-api | Ask for local help, then ask only to revise a narration/lyric/prompt | Correct guidance/text; no Skill executor API call, init, credentials read, model discovery or paid media/evaluation submission |
+| text-embedding | Embed two explicitly supplied synthetic texts into an authorized new JSONL path | Exactly one synchronous POST; artifact verified in the real host, two rows preserve original indices and equal dimensions; chat shows count/dimensions/path only; no database or implicit ingestion |
+| text-rerank | Rerank explicit synthetic candidates for a query and save a new JSON file | Exactly one synchronous POST; verified output and displayed summary preserve original indices and finite raw scores in relevance order; scores are not probabilities; no implicit ingestion |
+| help-no-api | Ask for local help, then ask only to revise a narration/lyric/prompt | Correct guidance/text; no Skill executor API call, init, credentials read, model discovery or paid media/evaluation/embedding/rerank submission |
 
 The original nine image/video cases remain the `media` group. New cases form
-`audio`, `music`, `evaluation`, `workflows` and `help` groups. Report these
+`audio`, `music`, `evaluation`, `embedding`, `rerank`, `workflows` and `help` groups. Report these
 separately: `media-verified` does not verify the new groups. A candidate with
 only offline request tests or an unavailable gateway deployment keeps those
 real-host cases pending; absence of credentials is not evidence of API success.
@@ -155,7 +157,7 @@ from fixtures.
 
 This release schedules Linux targets for Claude Code, Codex, Gemini CLI, Grok Build and OpenCode; other Linux combinations are unavailable with an explicit reason until a client execution target is verified. Record Linux evidence with `os: linux` and a matching `linux-amd64` or `linux-arm64` executor. Do not substitute Windows/macOS hashes.
 
-Four summary checks and the nineteen detailed cases above are distinct. The validator reports pending summary cells, detailed outcomes and separate capability groups; absence of evidence is never a pass. Do not rewrite historical release records to add new passes.
+Four summary checks and the twenty-one detailed cases above are distinct. The validator reports pending summary cells, detailed outcomes and separate capability groups; absence of evidence is never a pass. Do not rewrite historical release records to add new passes.
 
 For installation, retain separate outcomes for a clean install and an upgrade
 from the preceding distributed version, default and explicit directories, spaces
@@ -215,7 +217,7 @@ responses. Omit unmeasured counters/phases; never fill missing observations with
 zero. A passed `help-no-api` measurement requires all four counters observed zero.
 Host chat model traffic is outside these Skill counters.
 
-For synchronous audio/evaluation, `request` covers the entire command until
+For synchronous audio/evaluation/embedding/rerank, `request` covers the entire command until
 its receipt (including audio response saving); there is no separately observed
 server-generation interval or task wait. Do not manufacture a breakdown.
 Audio/music handoff requires the real host, and transcript/Jev handoff means
@@ -229,7 +231,7 @@ remain in test reports, never in real-host measurements.
 
 The manual stable publication gate requires every declared available host/OS
 summary check to pass with matching real-host evidence. An API-capable target
-also needs all nineteen detailed cases passed together in one local environment,
+also needs all twenty-one detailed cases passed together in one local environment,
 including the new capability groups. Older media-only evidence cannot satisfy
 this requirement by combining different hosts or unrelated runs.
 Hosts without an adapter require only installation acceptance on their declared
@@ -245,14 +247,12 @@ share the acceptance record date, and explain the approval. It only bypasses the
 stable promotion gate; it never changes pending, unavailable or failed evidence,
 does not count as real-host acceptance, and must not be copied to a later version.
 
-For 0.18.8, the maintainer explicitly requested publication after the installation
-permissions readiness review on 2026-10-04. This independent version-specific
-decision retains the previously requested maintenance-only gap reporting. The
-0.18.7 record is archived at `acceptance/0.18.7-host-acceptance.json`; its approval
-was not copied forward. The maintainer requested
-that its gaps remain in the maintenance record, not in user-facing release,
-installation or update notices. `host-acceptance.json` retains all 166 pending
-summary checks and the empty real-host evidence array. The exception does not
-waive engineering tests, committed-source CI, reproducible builds or uploaded
-asset verification. Product restrictions and actual command failures retain
-their normal behavior; publication does not create real-host evidence.
+For 0.19.5, the maintainer explicitly authorized direct stable publication on
+2026-10-18 and will verify production behavior personally. This independent
+version-specific decision does not reuse an older approval. Gaps remain in the
+maintenance record, not in user-facing release, installation or update notices.
+`host-acceptance.json` retains all 166 pending summary checks and the empty
+real-host evidence array. The exception does not waive engineering tests,
+committed-source CI, reproducible builds or uploaded asset verification. Product
+restrictions and actual command failures retain their normal behavior;
+publication does not create real-host evidence.

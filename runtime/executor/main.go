@@ -175,7 +175,7 @@ func run(args []string, input io.Reader, output io.Writer) error {
 	defer func() { dispatchOperationsReceipt(support.operationsEvent) }()
 	output = support
 	if len(args) < 1 {
-		writeReceipt(output, validationFailure("Choose init, doctor, connection, balance, models, model-groups, evaluate, audio, audio-verify, preflight, submit, status, wait, content, resume, redeliver or delivered."))
+		writeReceipt(output, validationFailure("Choose init, doctor, connection, balance, models, model-groups, evaluate, audio, audio-verify, embedding, rerank, preflight, submit, status, wait, content, resume, redeliver or delivered."))
 		return errors.New("missing command")
 	}
 
@@ -192,7 +192,9 @@ func run(args []string, input io.Reader, output io.Writer) error {
 	support.host = *host
 	if parseErr != nil || (*host == "" && command != "delivered") || len(flags.Args()) != 0 {
 		message := "Identify the current host and use supported command options before starting the request."
-		if command == "evaluate" {
+		if isRetrievalCommand(command) {
+			writeJSON(output, retrievalFailure(command, "not_submitted", "validation", command+"_request_invalid", message, 0))
+		} else if command == "evaluate" {
 			writeJSON(output, evaluationFailure("not_submitted", "validation", "evaluation_request_invalid", message, 0))
 		} else if command == "audio" || command == "audio-verify" {
 			result := audioFailure("not_submitted", "validation", "audio_request_invalid", message, 0)
@@ -204,11 +206,11 @@ func run(args []string, input io.Reader, output io.Writer) error {
 		return errors.New("invalid command")
 	}
 	isTask := command == "submit" || command == "status" || command == "wait" || command == "content" || command == "resume" || command == "redeliver" || command == "delivered" || command == "preflight"
-	if !isTask && command != "init" && command != "doctor" && command != "connection" && command != "balance" && command != "models" && command != "evaluate" && command != "audio" && command != "audio-verify" {
-		writeReceipt(output, validationFailure("Choose init, doctor, connection, balance, models, model-groups, evaluate, audio, audio-verify, preflight, submit, status, wait, content, resume, redeliver or delivered."))
+	if !isTask && command != "init" && command != "doctor" && command != "connection" && command != "balance" && command != "models" && command != "evaluate" && command != "audio" && command != "audio-verify" && !isRetrievalCommand(command) {
+		writeReceipt(output, validationFailure("Choose init, doctor, connection, balance, models, model-groups, evaluate, audio, audio-verify, embedding, rerank, preflight, submit, status, wait, content, resume, redeliver or delivered."))
 		return errors.New("unknown command")
 	}
-	if command == "evaluate" || command == "audio" || command == "audio-verify" {
+	if command == "evaluate" || command == "audio" || command == "audio-verify" || isRetrievalCommand(command) {
 		unsupportedOption := false
 		flags.Visit(func(option *flag.Flag) {
 			if option.Name != "host" && option.Name != "request" {
@@ -216,7 +218,10 @@ func run(args []string, input io.Reader, output io.Writer) error {
 			}
 		})
 		if unsupportedOption {
-			if command == "audio" || command == "audio-verify" {
+			if isRetrievalCommand(command) {
+				writeJSON(output, retrievalFailure(command, "not_submitted", "validation", command+"_request_invalid",
+					"This synchronous command accepts only --host and --request. No API request was sent.", 0))
+			} else if command == "audio" || command == "audio-verify" {
 				result := audioFailure("not_submitted", "validation", "audio_request_invalid",
 					"Audio accepts only --host and --request; task polling and recovery flags do not apply. No API request was sent.", 0)
 				result.Command = command
@@ -228,11 +233,14 @@ func run(args []string, input io.Reader, output io.Writer) error {
 			return errors.New("incompatible synchronous command options")
 		}
 	}
-	if (*recordFile != "" && (!isTask || command == "preflight")) || ((*index != 0 || *outputDir != "") && (*recordFile == "" || (command != "content" && command != "delivered" && command != "redeliver"))) || ((command == "resume" || command == "redeliver" || command == "delivered") && *recordFile == "") || (*recordFile != "" && *requestFile != "" && command != "submit") || (!isTask && command != "models" && command != "evaluate" && command != "audio" && command != "audio-verify" && *requestFile != "") {
+	if (*recordFile != "" && (!isTask || command == "preflight")) || ((*index != 0 || *outputDir != "") && (*recordFile == "" || (command != "content" && command != "delivered" && command != "redeliver"))) || ((command == "resume" || command == "redeliver" || command == "delivered") && *recordFile == "") || (*recordFile != "" && *requestFile != "" && command != "submit") || (!isTask && command != "models" && command != "evaluate" && command != "audio" && command != "audio-verify" && !isRetrievalCommand(command) && *requestFile != "") {
 		writeReceipt(output, validationFailure("Use --request for media JSON, --record for same-task recovery, and --index/--output-dir only for recorded content. Never submit into an existing record."))
 		return errors.New("incompatible command options")
 	}
 	svc := service{baseURL: apiOrigin, client: &http.Client{Timeout: 90 * time.Second, CheckRedirect: rejectRedirect}, profilesRoot: installedSkillsRoot(), host: *host, support: support}
+	if isRetrievalCommand(command) {
+		return runRetrievalCommand(output, svc, *host, command, *requestFile)
+	}
 	if command == "evaluate" {
 		return runEvaluationCommand(output, svc, *host, *requestFile)
 	}
@@ -425,7 +433,7 @@ func executeInitContext(parent context.Context, output io.Writer, svc service) e
 		if svc.host == "zcode" {
 			result.Message = "The enabled ZCode Pure Tokens connection can reach the fixed API. This does not identify the model or connection selected for the current chat."
 		}
-		result.NextAction = "Use puretokens-image, puretokens-video, puretokens-audio, puretokens-balance, puretokens-models, puretokens-evaluate, or puretokens-connection in a new host conversation."
+		result.NextAction = "Use puretokens-image, puretokens-video, puretokens-audio, puretokens-balance, puretokens-models, puretokens-evaluate, puretokens-embedding, puretokens-rerank, or puretokens-connection in a new host conversation."
 	} else {
 		result.ConfigurationStatus = "api_identity_unconfirmed"
 		result.Message = "The fixed Pure Tokens API did not return a confirmable identity."
@@ -1124,7 +1132,7 @@ func (svc service) requestWithBearer(ctx context.Context, method, path string, b
 	if readErr != nil || len(bodyBytes) > maxResponseBytes {
 		return nil, response.StatusCode, retryAfter(response), "", "", errAPIResponseUnreadable
 	}
-	if path == evaluationPath && response.StatusCode >= 200 && response.StatusCode < 300 {
+	if (path == evaluationPath || path == "/v1/embeddings" || path == "/v1/rerank") && response.StatusCode >= 200 && response.StatusCode < 300 {
 		// Validate before sanitization can collapse duplicate object keys.
 		if _, err := strictEvaluationJSON(bodyBytes, maxResponseBytes); err != nil {
 			return nil, response.StatusCode, retryAfter(response), "", "", errAPIResponseUnreadable

@@ -7,6 +7,8 @@ export const acceptanceGroups = {
   audio: ["speech-generation", "audio-transcription", "sound-generation", "audio-reattachment"],
   music: ["music-generation", "music-resume"],
   evaluation: ["jev-evaluation"],
+  embedding: ["text-embedding"],
+  rerank: ["text-rerank"],
   workflows: ["image-to-video-workflow", "video-audio-workflow"],
   help: ["help-no-api"],
 };
@@ -86,7 +88,7 @@ export function validateAcceptanceMeasurements(measurements, cases) {
     if (["sameTaskResume", "music-resume"].includes(measurement.case) && requests?.submit !== undefined && requests.submit !== 0) {
       errors.push("Same-task recovery cannot include a new submission.");
     }
-    const synchronous = ["speech-generation", "audio-transcription", "sound-generation", "jev-evaluation"].includes(measurement.case);
+    const synchronous = ["speech-generation", "audio-transcription", "sound-generation", "jev-evaluation", "text-embedding", "text-rerank"].includes(measurement.case);
     if (synchronous && (["status", "content"].some(key => requests?.[key] !== undefined && requests[key] !== 0) ||
         ["wait", "download"].some(key => Object.hasOwn(durations ?? {}, key)))) {
       errors.push("Synchronous cases have one request interval, not separate task polling or content download.");
@@ -184,7 +186,7 @@ export function validateStableHostAcceptance(document) {
       const complete = document.evidence?.some(item => item.method === "real-host" && item.host === host.host && item.os === os &&
         item.executionMode === "local" && acceptanceCases.every(id => item.cases?.[id] === "passed"));
       if (complete) mediaEnvironments++;
-      else errors.push(`${host.host}/${os} has no complete local media acceptance including audio, music, evaluation, workflows and local help.`);
+      else errors.push(`${host.host}/${os} has no complete local media acceptance including audio, music, evaluation, embedding, rerank, workflows and local help.`);
     }
   }
   if (mediaEnvironments === 0) errors.push("Stable publication requires at least one complete real-host media environment.");
@@ -216,7 +218,7 @@ export async function checkHostAcceptance({stable = false} = {}) {
   console.log("Capability groups passed in individual environments: " +
     Object.keys(acceptanceGroups).map(group => `${group}=${document.evidence.filter(item =>
       hostCapabilityAcceptance(item)[group] === "passed").length}`).join(", ") +
-    ". media-verified alone does not verify audio, music or evaluation.");
+    ". media-verified alone does not verify audio, music, evaluation, embedding or rerank.");
   if (validStablePublicationException(document)) {
     console.log("Stable publication exception: maintainer-approved pending acceptance for this exact version; pending evidence remains unmodified.");
   }

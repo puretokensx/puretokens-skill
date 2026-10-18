@@ -18,7 +18,7 @@ function lines(value) {
   const result = ["Next: " + value.activation];
   if (value.apiSupport === "unsupported") result.push("API tasks: unsupported in this host; no credential adapter is available. Installing instructions does not enable generation.");
   else {
-    result.push("Available instructions: images, video, audio/music, Jev evaluation, models and balance. Connection and task results remain separate checks.");
+    result.push("Available instructions: images, video, audio/music, Jev evaluation, embeddings, reranking, models and balance. Connection and task results remain separate checks.");
     for (const example of value.examples) result.push("Example (not executed): " + example);
   }
   result.push("Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.");

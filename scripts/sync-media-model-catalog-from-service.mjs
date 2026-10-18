@@ -176,10 +176,11 @@ export function buildPublishedCatalog(previous, models, args) {
     },
     models: normalized,
     localMetadataRevision: {
-      date: "2026-09-12",
-      source: "references/media-parameter-review.md; scripts/reviewed-media-supplements.mjs",
+      date: "2026-10-18",
+      source: "references/media-parameter-review.md; scripts/reviewed-media-supplements.mjs; runtime/executor/reviewed-media-policy.json",
       retainedAfterCatalogRefresh: ["Seedance first/last frame operations and exclusive reference constraints when both frame fields remain declared"],
-      note: "Local compatibility additions are not claimed as returned by the public catalog or as live availability proof."
+      conservativeRestrictions: ["Grok 1.5/preview video editing is closed; standard Grok edits inherit source duration, ratio and resolution"],
+      note: "Local compatibility additions and conservative restrictions are not claimed as returned by the public catalog or as live availability proof. Reviewed restrictions narrow stale declarations; they never enable an operation or parameter."
     }
   };
 }

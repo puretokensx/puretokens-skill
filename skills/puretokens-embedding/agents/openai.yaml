@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pure Tokens Embedding"
+  short_description: "Generate text embeddings into an explicit JSONL file."
+  default_prompt: "Use $puretokens-embedding to embed the supplied texts through the current Pure Tokens connection into the specified new JSONL file."

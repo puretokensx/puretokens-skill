@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
   "schemaVersion": 1,
   "capability": "video",
-  "catalogUpdatedAt": "2026-10-14",
-  "catalogCapturedAt": "2026-10-14T09:21:16.289Z",
+  "catalogUpdatedAt": "2026-10-18",
+  "catalogCapturedAt": "2026-10-18T12:22:09.975Z",
   "id": "grok-imagine-video",
   "parameterSchema": {
     "properties": {
@@ -20,7 +20,9 @@
           "4:3",
           "3:4",
           "3:2",
-          "2:3"
+          "2:3",
+          "21:9",
+          "5:2"
         ]
       },
       "resolution": {
@@ -53,6 +55,15 @@
         "reference": [
           "480p",
           "720p"
+        ]
+      },
+      "unsupported_parameters_by_operation": {
+        "video_edit": [
+          "duration",
+          "seconds",
+          "aspect_ratio",
+          "aspectRatio",
+          "resolution"
         ]
       }
     },

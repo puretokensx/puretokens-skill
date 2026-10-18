@@ -115,7 +115,7 @@ func (writer *supportReceiptWriter) summary(document map[string]json.RawMessage)
 	}
 	switch writer.command {
 	case "init", "doctor", "connection", "balance", "models", "model-groups", "preflight", "submit",
-		"status", "wait", "content", "resume", "redeliver", "delivered", "evaluate", "audio", "audio-verify":
+		"status", "wait", "content", "resume", "redeliver", "delivered", "evaluate", "audio", "audio-verify", "embedding", "rerank":
 		summary["command"] = writer.command
 	}
 	if writer.attempted {
@@ -190,4 +190,6 @@ var supportLocalErrorCodes = map[string]bool{
 	"task_response_unreadable": true, "task_id_missing": true, "task_id_invalid": true,
 	"evaluation_request_invalid": true, "evaluation_response_invalid": true, "evaluation_request_failed": true,
 	"audio_artifact_invalid": true, "audio_request_invalid": true, "audio_request_failed": true, "audio_response_invalid": true, "audio_output_unavailable": true,
+	"embedding_request_invalid": true, "embedding_request_failed": true, "embedding_response_invalid": true, "embedding_output_unavailable": true,
+	"rerank_request_invalid": true, "rerank_request_failed": true, "rerank_response_invalid": true, "rerank_output_unavailable": true,
 }

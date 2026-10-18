@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "puretokens-evaluate",
-  "version": "0.19.4",
+  "version": "0.19.5",
   "entry": "SKILL.md",
   "displayName": "Pure Tokens Evaluate",
   "description": "Use when the current Pure Tokens connection should evaluate text or structured text with Jev: classification, choice, rubric scoring or yes/no judgments.",

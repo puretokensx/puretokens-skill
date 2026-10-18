@@ -85,7 +85,9 @@
         "audio",
         "audio-verify",
         "model-groups",
-        "redeliver"
+        "redeliver",
+        "embedding",
+        "rerank"
       ]
     },
     "request_phase": {
@@ -247,7 +249,15 @@
         "audio_artifact_invalid",
         "model_groups_request_invalid",
         "model_groups_unavailable",
-        "model_groups_response_unreadable"
+        "model_groups_response_unreadable",
+        "embedding_request_invalid",
+        "embedding_request_failed",
+        "embedding_response_invalid",
+        "embedding_output_unavailable",
+        "rerank_request_invalid",
+        "rerank_request_failed",
+        "rerank_response_invalid",
+        "rerank_output_unavailable"
       ]
     }
   },

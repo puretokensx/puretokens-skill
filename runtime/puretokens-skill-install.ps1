@@ -18,7 +18,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$currentSkills = @("puretokens-balance", "puretokens-connection", "puretokens-models", "puretokens-image", "puretokens-video", "puretokens-audio", "puretokens-evaluate", "puretokens-update")
+$currentSkills = @("puretokens-balance", "puretokens-connection", "puretokens-models", "puretokens-image", "puretokens-video", "puretokens-audio", "puretokens-evaluate", "puretokens-embedding", "puretokens-rerank", "puretokens-update")
 $script:installStage = "arguments"
 $script:installationStatus = "not_started"
 $script:installedFilesChanged = "false"
@@ -193,7 +193,7 @@ function Show-InstallationSummary([string]$RequestedHost) {
   switch ($RequestedHost) {
     'zcode' {
       Write-Output 'Next: Refresh and enable the installed Skills in ZCode, then start a new conversation. Loading has not been verified in this session.'
-      Write-Output 'Available instructions: images, video, audio/music, Jev evaluation, models and balance. Connection and task results remain separate checks.'
+      Write-Output 'Available instructions: images, video, audio/music, Jev evaluation, embeddings, reranking, models and balance. Connection and task results remain separate checks.'
       Write-Output 'Example (not executed): Generate an image of a lake at sunset.'
       Write-Output 'Example (not executed): Generate a 5-second video of a paper boat on a river.'
       Write-Output 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
@@ -205,7 +205,7 @@ function Show-InstallationSummary([string]$RequestedHost) {
     }
     default {
       Write-Output 'Next: Follow this client''s Skill loading controls, then start a new conversation. Loading has not been verified in this session.'
-      Write-Output 'Available instructions: images, video, audio/music, Jev evaluation, models and balance. Connection and task results remain separate checks.'
+      Write-Output 'Available instructions: images, video, audio/music, Jev evaluation, embeddings, reranking, models and balance. Connection and task results remain separate checks.'
       Write-Output 'Example (not executed): Generate an image of a lake at sunset.'
       Write-Output 'Example (not executed): Generate a 5-second video of a paper boat on a river.'
       Write-Output 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'

@@ -157,7 +157,7 @@ test("image/video acceptance does not imply audio, music, evaluation or complete
   for (const id of ["installation", "authenticatedAPI", "sameTaskResume", "nativeAttachmentDelivery"]) record.hosts[0].macOS[id] = "passed";
   assert.equal(hostAcceptanceLevel(evidence), "media-verified");
   assert.deepEqual(hostCapabilityAcceptance(evidence), {
-    media: "passed", audio: "pending", music: "pending", evaluation: "pending", workflows: "pending", help: "pending",
+    media: "passed", audio: "pending", music: "pending", evaluation: "pending", embedding: "pending", rerank: "pending", workflows: "pending", help: "pending",
   });
   assert.ok(validateStableHostAcceptance(record).some(error => error.includes("audio, music, evaluation")));
   const separate = structuredClone(evidence);
@@ -169,6 +169,24 @@ test("image/video acceptance does not imply audio, music, evaluation or complete
   assert.equal(hostCapabilityAcceptance(evidence).music, "pending", "music resume still needs evidence");
   evidence.cases["music-resume"] = "failed";
   assert.equal(hostCapabilityAcceptance(evidence).music, "failed");
+});
+
+test("older complete media acceptance cannot accept unverified embedding or rerank execution", () => {
+  const record = fixture();
+  const evidence = {
+    method: "real-host", host: "codex", os: "macOS", executionMode: "local",
+    cases: {
+      ...Object.fromEntries(acceptanceCases.map(id => [id, "passed"])),
+      "text-embedding": "pending", "text-rerank": "pending",
+    },
+  };
+  record.evidence.push(evidence);
+  for (const id of ["installation", "authenticatedAPI", "sameTaskResume", "nativeAttachmentDelivery"]) record.hosts[0].macOS[id] = "passed";
+  assert.ok(validateStableHostAcceptance(record).some(error => error.includes("no complete local")));
+  assert.equal(hostCapabilityAcceptance(evidence).embedding, "pending");
+  evidence.cases["text-embedding"] = "passed";
+  assert.equal(hostCapabilityAcceptance(evidence).embedding, "passed");
+  assert.equal(hostCapabilityAcceptance(evidence).rerank, "pending");
 });
 
 test("local help can be verified without a credential adapter", () => {

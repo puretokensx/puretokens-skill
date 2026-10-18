@@ -121,7 +121,7 @@
     {
       "id": "same-version-verified",
       "when": "install or update finds the selected stable version already installed",
-      "then": "Verify the selected release executor checksum and all nine managed inventories. Only an intact installation with no unresolved transaction returns already current, without archive download, file writes or init. Missing or modified files stop without automatic repair."
+      "then": "Verify the selected release executor checksum and all managed inventories (eleven in this candidate). Only an intact installation with no unresolved transaction returns already current, without archive download, file writes or init. Missing or modified files stop without automatic repair."
     },
     {
       "id": "install-host-launch-failure",
