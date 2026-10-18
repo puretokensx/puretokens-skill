@@ -2,6 +2,11 @@
 
 This repository owns the ten installable Skill instructions, model selections, contracts, documentation, validation, platform installers, and the small one-shot native API executor. It does not own, display, persist or manage user connection configuration or credentials.
 
+## Git workflow
+
+- Use `main` as the only development and release branch. Commit and publish directly from `main`; do not create feature, develop or release branches unless the user explicitly requests one.
+- Keep version tags and published releases as release history. Complete the existing engineering and release checks before publishing from a pinned `main` commit.
+
 ## Direct API product contract
 
 - API-facing Skills use full fixed URLs under `https://api.puretokensx.com`. Console-origin exceptions are the existing balance endpoints, the anonymous public model-group guidance endpoint and the opt-in completion receipt below. Fixed requests never reuse a configured Base URL as their target.
