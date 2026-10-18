@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "checkedAt": "2026-10-18",
   "candidateVersion": "0.19.5",
-  "publishedVersion": "0.19.4",
-  "publishedSourceCommit": "b5fb55b24b6db4835acb2b7d274c5e91f65ae624",
+  "publishedVersion": "0.19.5",
+  "publishedSourceCommit": "23b0bad994ea98c32161e1f34c493217da4a1f76",
   "catalog": {
     "source": "https://console.puretokensx.com/api/product/docs/model-catalog",
     "capturedAt": "2026-10-18T12:14:13.773Z",
@@ -370,5 +370,55 @@
     "credentialReads": 0,
     "productionWrites": 0,
     "publication": "not performed"
+  },
+  "stablePublication": {
+    "verifiedAt": "2026-10-18T14:00:28.134849+00:00",
+    "status": "published-stable-and-latest",
+    "tag": "v0.19.5",
+    "publishedAt": "2026-10-18T13:54:39Z",
+    "sourceCommit": "23b0bad994ea98c32161e1f34c493217da4a1f76",
+    "releaseUrl": "https://github.com/puretokensx/puretokens-skill/releases/tag/v0.19.5",
+    "assetCount": 11,
+    "anonymousLatestDownloads": "passed",
+    "assets": {
+      "puretokens-skill-0.19.5-darwin-amd64.zip": "642543807a5e1dd64ca2b95dda95668349a1d8560924c58a70344f11b621229b",
+      "puretokens-skill-0.19.5-darwin-arm64.zip": "4a3f83cfde18e05af18c79f14ff9201d280dcf11d4c9cba4f40f5e7749c560db",
+      "puretokens-skill-0.19.5-linux-amd64.zip": "efdd18e46dff28f71c1f9a15b04b88ef1c57c3ced6af59b5ab54e8d0bfa1defe",
+      "puretokens-skill-0.19.5-linux-arm64.zip": "b2c4695b6486a6f3a8c80c8199fc143a6b672c610118518fae5ce2d90872a3ec",
+      "puretokens-skill-0.19.5-windows-amd64.zip": "252fe2f76f2287196fe20b78e79870cdb58b6b49983153b2dc062c437dadb59c",
+      "puretokens-skill-0.19.5-windows-arm64.zip": "6f1b7d09688792e546e87364bc472a70d83231cacdc4233c69ddc1736cf71747",
+      "puretokens-skill-fetch.ps1": "f50d25f449c6796c2170bceafe66d77ce2f0263d44662f3bff8e7a7a469d504e",
+      "puretokens-skill-fetch.sh": "4a2d41ddec49a43fb8c3e1b7ac0c7a00b956b7fb48dfeb4d8a19fb3397e31685",
+      "puretokens-skill-install.ps1": "73b88ab4938633f329c9634d6c2bdb7f104046e9f519fc71ef52b81573738189",
+      "puretokens-skill-install.sh": "3258ab09b952fa6f10bdc6f1c3b1316979a86881fd6b7ce2c07f717c169aea44",
+      "release-manifest.json": "9a0ec1bb19b9cc346ef1ad3ef11f667aab27cd458dc325c5d50cb1c9e831bdea"
+    },
+    "engineeringCI": {
+      "conclusion": "success",
+      "headSha": "23b0bad994ea98c32161e1f34c493217da4a1f76",
+      "status": "completed",
+      "url": "https://github.com/puretokensx/puretokens-skill/actions/runs/39132489035"
+    },
+    "publicationWorkflow": {
+      "conclusion": "success",
+      "headSha": "23b0bad994ea98c32161e1f34c493217da4a1f76",
+      "status": "completed",
+      "url": "https://github.com/puretokensx/puretokens-skill/actions/runs/39133034561"
+    },
+    "uploadedAndAnonymousAssets": "All six platform archives, four bootstrap/selector scripts and the release manifest were downloaded anonymously from latest; publishable validation compared their bytes with the tagged committed source.",
+    "isolatedPublishedArchiveInstallation": {
+      "platform": "darwin-arm64",
+      "version": "0.19.5",
+      "executorSourceSha256": "6cb09b567cd69adfd64ca1c7d35be48e8937bf85c1e111cc6088b86b0411ece0",
+      "skillCount": 10,
+      "managedInventories": 11,
+      "sameVersionVerification": "passed without writes or init",
+      "networkPolicy": "all network denied by OS sandbox",
+      "connectionRead": false,
+      "billableRequests": 0,
+      "realHomeWrites": 0,
+      "realHostAcceptance": false
+    },
+    "realHostAcceptance": "Pending records remain unchanged. The maintainer approved this exact version for direct stable publication and will verify online; offline installation does not establish real-host or billable API acceptance."
   }
 }
