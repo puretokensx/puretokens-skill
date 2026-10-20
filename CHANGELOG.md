@@ -4,6 +4,14 @@
 
 # Changelog
 
+## 0.19.6 - 2026-10-21
+
+- Add TRAE installation and read-only Switch connection support, stopping safely when the client edition or saved connection is ambiguous.
+- Align ChatGPT display names with the existing Codex host and configuration paths.
+- Refresh model selection from the production catalog, use exact `MiniMax-H3` as the video default and remove `minimax_h3` and `seedance2.0` from new selections without changing existing tasks.
+- Add 11 reviewed Kling, Vidu, MiniMax-H3 and Super Vega video profiles, preserving exact model IDs and validating reference combinations and parameters before submission.
+- Add dedicated audio adapters for nine ElevenLabs models covering speech, transcription, sound, synchronous music and voice change, while keeping StepFun asynchronous music unchanged.
+
 ## 0.19.5 - 2026-10-18
 
 - Add text embedding and reranking Skills that save vectors as JSONL and relevance rankings as JSON.

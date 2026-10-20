@@ -109,10 +109,11 @@ test("installation summaries stay compact and reflect host activation and API su
   assert.ok(Buffer.byteLength(stdout)<2200, `${host} dumped a long guide`);
   assert.doesNotMatch(stdout,/## 操作与恢复|# Pure Tokens Skill 使用须知/);
   if(host==="zcode")assert.match(stdout,/Refresh and enable the installed Skills in ZCode/);
-  if(host==="trae"){
-   assert.match(stdout,/API tasks: unsupported in this host/);
-   assert.doesNotMatch(stdout,/Example \(not executed\):|Available instructions:/);
-  }else assert.equal(stdout.split("Example (not executed):").length-1,2);
+  if(host==="trae") {
+   assert.match(stdout,/Refresh or enable Pure Tokens Skills in TRAE Settings/);
+   assert.doesNotMatch(stdout,/historical installation|API tasks: unsupported/);
+  }
+  assert.equal(stdout.split("Example (not executed):").length-1,2);
  }
 });
 test("a failed update restores every existing Skill and releases its lock", async t => {

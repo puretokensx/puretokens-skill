@@ -25,8 +25,8 @@
     },
     {
       "id": "video-h3-first-last-declared-operation",
-      "when": "The user explicitly requests a transition from attached image A to attached image B using default minimax_h3.",
-      "then": "Read only minimax_h3 profile; choose declared image_to_video, bind A as first_frame_image and B as last_frame_image and submit once to /v1/videos. Do not choose undeclared first_last_frame_video, drop B, swap roles or change the model. Ordinary supported first/last submission does not fetch the catalog."
+      "when": "The user explicitly requests a transition from local attached image A to attached image B using default MiniMax-H3.",
+      "then": "Read only MiniMax-H3 profile. Its reference operations accept public HTTPS URLs, not local attachment bytes: stop without POST, uploading, rehosting, dropping B or automatically changing models. Explain the input limitation; another compatible model requires explicit user consent. Existing minimax_h3 tasks retain their original model and task ID."
     },
     {
       "id": "video-workflow-downstream-recovery",

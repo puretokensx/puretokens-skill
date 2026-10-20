@@ -39,17 +39,22 @@ test("reviewed embedded audio profiles, installed selection and request schema a
   assert.equal(variant.properties.operation.const,profile.operation);
   let request={operation:profile.operation,model:item.id};
   if(profile.operation==="speech"){
-   assert.deepEqual(variant.properties.voice.enum,Object.keys(profile.voices));
+   if (profile.voice_pattern) assert.equal(variant.properties.voice.pattern, profile.voice_pattern+"(?![\\s\\S])");
+   else assert.deepEqual(variant.properties.voice.enum,Object.keys(profile.voices));
    assert.equal(variant.properties.input.maxLength,profile.max_input_characters);
-   assert.equal(variant.properties.speed.minimum,profile.speed_min);
-   assert.equal(variant.properties.speed.maximum,profile.speed_max);
+   assert.equal(variant.properties.speed?.minimum,profile.speed_min);
+   assert.equal(variant.properties.speed?.maximum,profile.speed_max);
    assert.equal(!!variant.properties.instruction,profile.supports_instruction);
-   request={...request,input:"text",voice:"cixingnansheng",response_format:"wav",output_dir:"/output"};
+   request={...request,input:"text",voice:profile.voice_pattern?"JBFqnCBsd6RMkjVDRZzb":"cixingnansheng",response_format:profile.formats[0],output_dir:"/output"};
   }else if(profile.operation==="transcribe"){
    assert.equal(profile.max_input_bytes,8*1024*1024);request.file="/recording.wav";
+  }else if(profile.operation==="voice_change"){
+   request={...request,file:"/recording.wav",voice:"JBFqnCBsd6RMkjVDRZzb",response_format:"mp3",output_dir:"/output"};
   }else{
    assert.equal(variant.properties.instruction.maxLength,profile.max_instruction_characters);
    request={...request,instruction:"rain",response_format:"mp3",output_dir:"/output"};
+   if(profile.duration_max) request.duration_seconds=profile.duration_min;
+   if(profile.instrumental_required) request.instrumental=false;
   }
   assert.deepEqual(validate(request),[],item.id);
  }

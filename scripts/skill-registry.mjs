@@ -6,7 +6,7 @@ import { validModelID } from "./model-id.mjs";
 
 export const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const skillsRoot = path.join(repositoryRoot, "skills");
-export const mediaDefaultModels = Object.freeze({ image: "gpt-image-2.5-flare", video: "minimax_h3" });
+export const mediaDefaultModels = Object.freeze({ image: "gpt-image-2.5-flare", video: "MiniMax-H3" });
 
 const forbiddenPattern = /(BEGIN [A-Z ]*PRIVATE|127\.0\.0\.1:|\/Users\/)/i;
 const directApiOrigin = "https://api.puretokensx.com";
@@ -493,13 +493,15 @@ function validateExecutionContract(errors, directory, contract) {
     return;
   }
   if (kind === "audio") {
-    for (const [op, suffix] of [["speech", "speech"], ["transcribe", "transcriptions"], ["generate", "generate"]]) {
+    for (const [op, suffix] of [["speech", "speech"], ["transcribe", "transcriptions"], ["generate", "generate"], ["music_sync", "generate"], ["voice_change", "generate"]]) {
       validateRequest(errors, `${label} ${op}`, operations[op], "POST", `${directApiOrigin}/v1/audio/${suffix}`);
     }
     validateRequest(errors, `${label} music submit`, operations.musicSubmit, "POST", `${directApiOrigin}/v1/audio/music/submit`);
     validateRequest(errors, `${label} music status`, operations.musicStatus, "GET", `${directApiOrigin}/v1/audio/music/tasks/{task_id}`, true);
     validateRequest(errors, `${label} music content`, operations.musicContent, "GET", `${directApiOrigin}/v1/audio/music/tasks/{task_id}/content`, true);
-    if (!sameArray(contract.result?.synchronousOperations, ["speech", "transcribe", "generate"]) ||
+    if (!sameArray(contract.result?.synchronousOperations, ["speech", "transcribe", "generate", "music_sync", "voice_change"]) ||
+      contract.result?.synchronousMusic?.model !== "music_v2_5" ||
+      contract.result?.synchronousMusic?.neverUsesAsyncMusicRoute !== true ||
       contract.result?.asynchronousMusic?.neverAutomaticallyResubmits !== true) errors.push(`${label} must separate synchronous audio and async music`);
     for (const rule of ["onePostPerInvocation", "neverAutomaticallyRetries",
       "nativeAudioBytesRequired", "localArtifactVerification", "downloadIsNotDelivery", "supportExcludesInputsAndResults"]) {
@@ -857,6 +859,9 @@ async function validateModelIndex(errors, directory, skillDir, index) {
       profile.capability !== capability || profile.id !== model.id || profile.catalogUpdatedAt !== index.catalogUpdatedAt ||
       profile.catalogCapturedAt !== index.catalogCapturedAt || !profile.parameterSchema || typeof profile.parameterSchema !== "object" || Array.isArray(profile.parameterSchema)) {
       errors.push(`${label} profile ${model.id} must match the index and declare a parameterSchema object`);
+    }
+    if ((model.supportScope === "reviewed_source") !== (profile?.sourceReview?.scope === "reviewed_source_not_live_availability")) {
+      errors.push(`${label} source-reviewed profiles must preserve their explicit non-live scope in both index and profile`);
     }
   }
   if (!ids.has(index.defaultModel)) errors.push(`${label} defaultModel must be in models`);

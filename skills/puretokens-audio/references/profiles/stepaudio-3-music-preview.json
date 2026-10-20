@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-09-27",
+  "reviewedAt": "2026-10-21",
   "model": "stepaudio-3-music-preview",
   "operation": "music",
   "path": "/v1/audio/music/submit",

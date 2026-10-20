@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const acceptanceGroups = {
   media: ["installation", "authenticatedAPI", "image-generation", "uploaded-image-edit", "generated-image-edit", "multiple-images", "video-generation", "sameTaskResume", "nativeAttachmentDelivery"],
-  audio: ["speech-generation", "audio-transcription", "sound-generation", "audio-reattachment"],
+  audio: ["speech-generation", "audio-transcription", "sound-generation", "sync-music-generation", "voice-change", "audio-reattachment"],
   music: ["music-generation", "music-resume"],
   evaluation: ["jev-evaluation"],
   embedding: ["text-embedding"],
@@ -88,7 +88,7 @@ export function validateAcceptanceMeasurements(measurements, cases) {
     if (["sameTaskResume", "music-resume"].includes(measurement.case) && requests?.submit !== undefined && requests.submit !== 0) {
       errors.push("Same-task recovery cannot include a new submission.");
     }
-    const synchronous = ["speech-generation", "audio-transcription", "sound-generation", "jev-evaluation", "text-embedding", "text-rerank"].includes(measurement.case);
+    const synchronous = ["speech-generation", "audio-transcription", "sound-generation", "sync-music-generation", "voice-change", "jev-evaluation", "text-embedding", "text-rerank"].includes(measurement.case);
     if (synchronous && (["status", "content"].some(key => requests?.[key] !== undefined && requests[key] !== 0) ||
         ["wait", "download"].some(key => Object.hasOwn(durations ?? {}, key)))) {
       errors.push("Synchronous cases have one request interval, not separate task polling or content download.");

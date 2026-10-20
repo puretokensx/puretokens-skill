@@ -790,7 +790,9 @@
             "required": [
               "speech",
               "transcribe",
-              "generate"
+              "generate",
+              "music_sync",
+              "voice_change"
             ],
             "properties": {
               "speech": {
@@ -814,6 +816,26 @@
                 }
               },
               "generate": {
+                "properties": {
+                  "method": {
+                    "const": "POST"
+                  },
+                  "url": {
+                    "const": "https://api.puretokensx.com/v1/audio/generate"
+                  }
+                }
+              },
+              "music_sync": {
+                "properties": {
+                  "method": {
+                    "const": "POST"
+                  },
+                  "url": {
+                    "const": "https://api.puretokensx.com/v1/audio/generate"
+                  }
+                }
+              },
+              "voice_change": {
                 "properties": {
                   "method": {
                     "const": "POST"

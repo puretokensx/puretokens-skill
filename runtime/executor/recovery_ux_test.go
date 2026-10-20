@@ -116,7 +116,8 @@ func TestExplicitRedeliveryKeepsHistoryAndCurrentHandoff(t *testing.T) {
 
 func TestAdaptiveAspectRatioSurvivesReceiptAndRecord(t *testing.T) {
 	request := taskRequest{Kind: "video", Operation: "generate", Model: "minimax_h3", Prompt: "fixture", Parameters: map[string]any{"aspect_ratio": "adaptive"}}
-	if err := prepareProfileRequest(&request, profileService()); err != nil {
+	_, svc, _ := retiredProfileService(t, "minimax_h3")
+	if err := prepareProfileRequest(&request, svc); err != nil {
 		t.Fatal(err)
 	}
 	result := taskReceipt(request, "paid-task", "pending")
@@ -127,7 +128,8 @@ func TestAdaptiveAspectRatioSurvivesReceiptAndRecord(t *testing.T) {
 		t.Fatal(err)
 	}
 	loaded, err := loadTaskRecord(path)
-	if err != nil || result.Parameters["aspect_ratio"] != "adaptive" || loaded.Parameters["aspect_ratio"] != "adaptive" {
+	if err != nil || result.Parameters["aspect_ratio"] != "adaptive" || loaded.Parameters["aspect_ratio"] != "adaptive" ||
+		result.Model != "minimax_h3" || loaded.Model != "minimax_h3" {
 		t.Fatalf("legal adaptive ratio lost: receipt=%v record=%v err=%v", result.Parameters, loaded.Parameters, err)
 	}
 }

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-21",
+  "model": "music_v2_5",
+  "operation": "music_sync",
+  "path": "/v1/audio/generate",
+  "content_type": "application/json",
+  "formats": [
+    "mp3"
+  ],
+  "task": "text_to_music",
+  "stream_format": "audio",
+  "synchronous": true,
+  "executor_kind": "audio",
+  "support_scope": "reviewed_source_not_live_acceptance",
+  "max_instruction_characters": 1000,
+  "duration_min": 3,
+  "duration_max": 600,
+  "duration_milliseconds": true,
+  "instrumental_required": true,
+  "lyrics_in_instruction": true
+}

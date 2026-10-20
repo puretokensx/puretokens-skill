@@ -18,7 +18,7 @@
       "globalSkillDirectory": "~/.agents/skills",
       "directMediaExecution": "managed-native-executor",
       "credentialAdapter": "fixture-tested",
-      "guidance": "Install into ~/.agents/skills. The native executor has credential-format fixture coverage; actual host API and attachment delivery acceptance is pending.",
+      "guidance": "Switch/Web display this client as ChatGPT; the native host ID remains codex. Install into ~/.agents/skills. The native executor has credential-format fixture coverage; actual host API and attachment delivery acceptance is pending.",
       "directorySelection": "Use the documented default unless the user explicitly supplies an absolute target."
     },
     {
@@ -62,9 +62,9 @@
       "delivery": "native-installer",
       "globalSkillDirectory": "~/.trae/skills",
       "directMediaExecution": "managed-native-executor",
-      "credentialAdapter": "pending",
-      "guidance": "The Skills can be installed, but this release has no Trae credential adapter; API commands stop before a request.",
-      "directorySelection": "Use the documented default unless the user explicitly supplies an absolute target."
+      "credentialAdapter": "fixture-tested",
+      "guidance": "Read-only adapter for the saved Switch-managed TRAE connection on local macOS/Windows, included in 0.19.6. Verify the active receipt and its exact account-scoped model caches; multiple editions, distinct saved credentials, missing or edited records stop. Actual Skill loading, API and delivery acceptance remain pending. No claim of current chat selection.",
+      "directorySelection": "International ~/.trae/skills; domestic ~/.trae-cn/skills. Select the sole existing edition root; with both present require an explicit absolute target. No migration or duplicate deletion."
     },
     {
       "id": "claude-desktop",

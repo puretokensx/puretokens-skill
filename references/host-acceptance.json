@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "version": "0.19.5",
-  "checkedAt": "2026-10-18",
+  "version": "0.19.6",
+  "checkedAt": "2026-10-21",
   "stablePublicationException": {
     "kind": "maintainer-approved-pending-acceptance",
-    "version": "0.19.5",
+    "version": "0.19.6",
     "approved": true,
-    "approvedAt": "2026-10-18",
-    "reason": "The maintainer explicitly authorized direct stable publication of 0.19.5 on 2026-10-18 and will verify production behavior personally. Preserve all pending real-host evidence in maintenance records; engineering checks, committed-source CI, reproducible builds and uploaded-asset verification remain required."
+    "approvedAt": "2026-10-21",
+    "reason": "The maintainer explicitly authorized publishing version 0.19.6 as stable after the candidate report. Pending real-host, model-permission, paid API and native-delivery acceptance remains pending; this decision does not authorize paid tests or assert production acceptance. Engineering, reproducible-build and published-asset checks remain required."
   },
-  "method": "isolated fixture coverage and packaged native offline task recovery; twenty-one real-host cases now include audio, music, evaluation, embeddings, rerank, workflows and local help, all remain pending; historical 0.18.3 evidence remains in references/acceptance/0.18.3-host-acceptance.json",
+  "method": "Isolated credential, API-wire and native output fixture coverage only. Real-host loading, model-group permission, paid dedicated API and attachment/playback acceptance remain pending for this candidate. Historical stable exception is archived in references/acceptance/0.19.5-host-acceptance.json.",
   "guide": "references/host-acceptance-guide.md",
   "evidence": [],
   "hosts": [
@@ -148,20 +148,20 @@
     },
     {
       "host": "trae",
-      "credentialFixtures": "unavailable",
+      "credentialFixtures": "passed",
       "macOS": {
         "installation": "pending",
-        "authenticatedAPI": "unavailable",
-        "sameTaskResume": "unavailable",
-        "nativeAttachmentDelivery": "unavailable",
-        "reason": "This release has no Trae credential adapter; API commands stop before a request. Installation remains a separate acceptance target."
+        "authenticatedAPI": "pending",
+        "sameTaskResume": "pending",
+        "nativeAttachmentDelivery": "pending",
+        "reason": "Source adapter fixture coverage only; native TRAE Skill loading, saved connection/API authentication and attachment delivery have not been accepted on this real platform."
       },
       "windows": {
         "installation": "pending",
-        "authenticatedAPI": "unavailable",
-        "sameTaskResume": "unavailable",
-        "nativeAttachmentDelivery": "unavailable",
-        "reason": "This release has no Trae credential adapter; API commands stop before a request. Installation remains a separate acceptance target."
+        "authenticatedAPI": "pending",
+        "sameTaskResume": "pending",
+        "nativeAttachmentDelivery": "pending",
+        "reason": "Source adapter fixture coverage only; native TRAE Skill loading, saved connection/API authentication and attachment delivery have not been accepted on this real platform."
       },
       "linux": {
         "installation": "unavailable",

@@ -10,8 +10,8 @@
         "model",
         "response_format",
         "output_dir",
-        "input",
-        "voice"
+        "voice",
+        "input"
       ],
       "properties": {
         "operation": {
@@ -29,12 +29,6 @@
         "output_dir": {
           "type": "string",
           "pattern": "^(?:/|[A-Za-z]:[\\\\/]|\\\\\\\\)[^\\u0000]+$(?![\\s\\S])"
-        },
-        "input": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 1000,
-          "pattern": "\\S"
         },
         "voice": {
           "enum": [
@@ -75,6 +69,12 @@
             "zhixingjiejie",
             "zixinnansheng"
           ]
+        },
+        "input": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "pattern": "\\S"
         },
         "speed": {
           "type": "number",
@@ -97,8 +97,8 @@
         "model",
         "response_format",
         "output_dir",
-        "input",
-        "voice"
+        "voice",
+        "input"
       ],
       "properties": {
         "operation": {
@@ -116,12 +116,6 @@
         "output_dir": {
           "type": "string",
           "pattern": "^(?:/|[A-Za-z]:[\\\\/]|\\\\\\\\)[^\\u0000]+$(?![\\s\\S])"
-        },
-        "input": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 1000,
-          "pattern": "\\S"
         },
         "voice": {
           "enum": [
@@ -163,6 +157,12 @@
             "zixinnansheng"
           ]
         },
+        "input": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "pattern": "\\S"
+        },
         "speed": {
           "type": "number",
           "minimum": 0.5,
@@ -178,8 +178,8 @@
         "model",
         "response_format",
         "output_dir",
-        "input",
-        "voice"
+        "voice",
+        "input"
       ],
       "properties": {
         "operation": {
@@ -197,12 +197,6 @@
         "output_dir": {
           "type": "string",
           "pattern": "^(?:/|[A-Za-z]:[\\\\/]|\\\\\\\\)[^\\u0000]+$(?![\\s\\S])"
-        },
-        "input": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 1000,
-          "pattern": "\\S"
         },
         "voice": {
           "enum": [
@@ -234,6 +228,12 @@
             "zhengpaiqingnian",
             "zhixingjiejie"
           ]
+        },
+        "input": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "pattern": "\\S"
         },
         "speed": {
           "type": "number",
@@ -358,6 +358,331 @@
           "minLength": 1,
           "maxLength": 500,
           "pattern": "\\S"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "operation",
+        "model",
+        "response_format",
+        "output_dir",
+        "voice",
+        "input"
+      ],
+      "properties": {
+        "operation": {
+          "const": "speech"
+        },
+        "model": {
+          "const": "eleven_v3"
+        },
+        "response_format": {
+          "enum": [
+            "mp3"
+          ]
+        },
+        "output_dir": {
+          "type": "string",
+          "pattern": "^(?:/|[A-Za-z]:[\\\\/]|\\\\\\\\)[^\\u0000]+$(?![\\s\\S])"
+        },
+        "voice": {
+          "type": "string",
+          "maxLength": 120,
+          "pattern": "^[A-Za-z0-9_-]{1,120}$(?![\\s\\S])"
+        },
+        "input": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "pattern": "\\S"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "operation",
+        "model",
+        "response_format",
+        "output_dir",
+        "voice",
+        "input"
+      ],
+      "properties": {
+        "operation": {
+          "const": "speech"
+        },
+        "model": {
+          "const": "eleven_v4"
+        },
+        "response_format": {
+          "enum": [
+            "mp3"
+          ]
+        },
+        "output_dir": {
+          "type": "string",
+          "pattern": "^(?:/|[A-Za-z]:[\\\\/]|\\\\\\\\)[^\\u0000]+$(?![\\s\\S])"
+        },
+        "voice": {
+          "type": "string",
+          "maxLength": 120,
+          "pattern": "^[A-Za-z0-9_-]{1,120}$(?![\\s\\S])"
+        },
+        "input": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "pattern": "\\S"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "operation",
+        "model",
+        "response_format",
+        "output_dir",
+        "voice",
+        "input"
+      ],
+      "properties": {
+        "operation": {
+          "const": "speech"
+        },
+        "model": {
+          "const": "eleven_multilingual_v2"
+        },
+        "response_format": {
+          "enum": [
+            "mp3"
+          ]
+        },
+        "output_dir": {
+          "type": "string",
+          "pattern": "^(?:/|[A-Za-z]:[\\\\/]|\\\\\\\\)[^\\u0000]+$(?![\\s\\S])"
+        },
+        "voice": {
+          "type": "string",
+          "maxLength": 120,
+          "pattern": "^[A-Za-z0-9_-]{1,120}$(?![\\s\\S])"
+        },
+        "input": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "pattern": "\\S"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "operation",
+        "model",
+        "response_format",
+        "output_dir",
+        "voice",
+        "input"
+      ],
+      "properties": {
+        "operation": {
+          "const": "speech"
+        },
+        "model": {
+          "const": "eleven_flash_v2_5"
+        },
+        "response_format": {
+          "enum": [
+            "mp3"
+          ]
+        },
+        "output_dir": {
+          "type": "string",
+          "pattern": "^(?:/|[A-Za-z]:[\\\\/]|\\\\\\\\)[^\\u0000]+$(?![\\s\\S])"
+        },
+        "voice": {
+          "type": "string",
+          "maxLength": 120,
+          "pattern": "^[A-Za-z0-9_-]{1,120}$(?![\\s\\S])"
+        },
+        "input": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "pattern": "\\S"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "operation",
+        "model",
+        "file"
+      ],
+      "properties": {
+        "operation": {
+          "const": "transcribe"
+        },
+        "model": {
+          "const": "scribe_v2"
+        },
+        "file": {
+          "type": "string",
+          "pattern": "^(?:/|[A-Za-z]:[\\\\/]|\\\\\\\\)[^\\u0000]+$(?![\\s\\S])"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "operation",
+        "model",
+        "file"
+      ],
+      "properties": {
+        "operation": {
+          "const": "transcribe"
+        },
+        "model": {
+          "const": "scribe_v2_medical"
+        },
+        "file": {
+          "type": "string",
+          "pattern": "^(?:/|[A-Za-z]:[\\\\/]|\\\\\\\\)[^\\u0000]+$(?![\\s\\S])"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "operation",
+        "model",
+        "response_format",
+        "output_dir",
+        "instruction",
+        "duration_seconds"
+      ],
+      "properties": {
+        "operation": {
+          "const": "generate"
+        },
+        "model": {
+          "const": "eleven_text_to_sound_v2"
+        },
+        "response_format": {
+          "enum": [
+            "mp3"
+          ]
+        },
+        "output_dir": {
+          "type": "string",
+          "pattern": "^(?:/|[A-Za-z]:[\\\\/]|\\\\\\\\)[^\\u0000]+$(?![\\s\\S])"
+        },
+        "instruction": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "pattern": "\\S"
+        },
+        "duration_seconds": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 30
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "operation",
+        "model",
+        "response_format",
+        "output_dir",
+        "instruction",
+        "duration_seconds",
+        "instrumental"
+      ],
+      "properties": {
+        "operation": {
+          "const": "music_sync"
+        },
+        "model": {
+          "const": "music_v2_5"
+        },
+        "response_format": {
+          "enum": [
+            "mp3"
+          ]
+        },
+        "output_dir": {
+          "type": "string",
+          "pattern": "^(?:/|[A-Za-z]:[\\\\/]|\\\\\\\\)[^\\u0000]+$(?![\\s\\S])"
+        },
+        "instruction": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000,
+          "pattern": "\\S"
+        },
+        "duration_seconds": {
+          "type": "number",
+          "minimum": 3,
+          "maximum": 600,
+          "multipleOf": 0.001
+        },
+        "instrumental": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "operation",
+        "model",
+        "response_format",
+        "output_dir",
+        "voice",
+        "file"
+      ],
+      "properties": {
+        "operation": {
+          "const": "voice_change"
+        },
+        "model": {
+          "const": "eleven_multilingual_sts_v2"
+        },
+        "response_format": {
+          "enum": [
+            "mp3"
+          ]
+        },
+        "output_dir": {
+          "type": "string",
+          "pattern": "^(?:/|[A-Za-z]:[\\\\/]|\\\\\\\\)[^\\u0000]+$(?![\\s\\S])"
+        },
+        "voice": {
+          "type": "string",
+          "maxLength": 120,
+          "pattern": "^[A-Za-z0-9_-]{1,120}$(?![\\s\\S])"
+        },
+        "file": {
+          "type": "string",
+          "pattern": "^(?:/|[A-Za-z]:[\\\\/]|\\\\\\\\)[^\\u0000]+$(?![\\s\\S])"
         }
       },
       "additionalProperties": false

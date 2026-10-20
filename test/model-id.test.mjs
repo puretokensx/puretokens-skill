@@ -28,7 +28,7 @@ test("exact parenthesized model identity survives every generated document", () 
 });
 
 test("generators and schemas reject unsafe IDs before producing paths", () => {
- for (const id of ["", ".", "..", "../escape", "x/../../outside", "x\\y", "/absolute", "x()", "x(a)(b)", "x(a/b)", "x\n", "x\r", "x\u0000", "x".repeat(161)]) {
+ for (const id of ["", ".", "..", "../escape", "x/../../outside", "x\\y", "/absolute", "x()", "x(a)(b)", "x(a/b)", "x\n", "x\r", "x\u0000", "x".repeat(161), " Super Vega", "Super Vega ", "Super  Vega", "Super\tVega", "Super\u00a0Vega"]) {
   const changed = {...model, id};
   const input = {...catalog, models:[changed]};
   assert.equal(validModelID(id), false, JSON.stringify(id));
@@ -42,8 +42,18 @@ test("generators and schemas reject unsafe IDs before producing paths", () => {
   index.models = [{id, aliases:[], profile:`profiles/${id}.json`}];
   assert.ok(validateIndex(index).length, JSON.stringify(id));
  }
- for (const id of ["gpt-image-2(Sub)", "x".repeat(160), "standard-v1.5"]) {
+ for (const id of ["gpt-image-2(Sub)", "x".repeat(160), "standard-v1.5", "Super Vega 1.5-pro"]) {
   assert.equal(validModelID(id), true);
   assert.deepEqual(validateQuery({model:id}), []);
  }
+});
+
+test("spaced exact IDs survive catalog generation, profile paths and schemas", () => {
+ const changed = {...model, id:"Super Vega 1.5-pro", capabilities:["video"]};
+ const input = {...catalog, models:[changed]};
+ const index = buildModelIndex(input, "video", changed.id);
+ assert.equal(index.models[0].profile, "profiles/Super Vega 1.5-pro.json");
+ assert.deepEqual(validateIndex(index), []);
+ assert.deepEqual(validateProfile(buildModelProfile(input, "video", changed)), []);
+ assert.equal(buildPublishedCatalog(catalog, [changed], {}).models[0].id, changed.id);
 });

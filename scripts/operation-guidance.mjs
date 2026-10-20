@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 const fields = ["id", "skill", "label", "command", "kind", "operations", "lifecycle", "delivery", "recovery"];
-const ids = ["image", "video", "speech", "transcribe", "sound", "music", "evaluate", "embedding", "rerank"];
+const ids = ["image", "video", "speech", "transcribe", "sound", "music_sync", "voice_change", "music", "evaluate", "embedding", "rerank"];
 const recoveries = {
   "task-record": "原任务 `resume`；仅实际附件交付后 `delivered`",
   "local-artifact": "仅已有文件 `audio-verify` 后重新附加；无任务查询",

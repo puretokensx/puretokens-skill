@@ -71,7 +71,7 @@ func TestDesktopAndUnsupportedHostDiagnostics(t *testing.T) {
 		assertLocalConnectionDiagnostic(t, err)
 	}
 	assertLocalConnectionDiagnostic(t, desktopSelectionFailure())
-	_, err := credentialForHost("trae")
+	_, err := credentialForHost("unsupported-fixture-host")
 	assertLocalConnectionDiagnostic(t, err)
 	result := initCredentialFailure(err)
 	if result.ConfigurationStatus != "host_credential_adapter_unavailable" || result.APIRequestExecuted {

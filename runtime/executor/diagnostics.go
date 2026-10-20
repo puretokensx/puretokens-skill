@@ -175,7 +175,10 @@ func doctorHostLocations(host, home string, getenv func(string) string) []doctor
 			return nil
 		}
 	case "trae":
-		location = filepath.Join(home, ".trae")
+		return []doctorLocation{
+			{"host_skills", filepath.Join(home, ".trae", "skills")},
+			{"domestic_host_skills", filepath.Join(home, ".trae-cn", "skills")},
+		}
 	default:
 		return nil
 	}

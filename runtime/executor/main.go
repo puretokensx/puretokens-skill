@@ -489,6 +489,8 @@ func credentialForHost(host string) (string, error) {
 		return credentialFromDeepSeekHarness()
 	case "minimax-code":
 		return credentialFromMiniMaxCode()
+	case "trae":
+		return credentialFromTrae()
 	case "kimi-code", "qoder", "pi":
 		return credentialFromNewHost(host)
 	case "hermes", "evox", "vscode", "octop":
@@ -739,7 +741,7 @@ func validateTaskRequest(request taskRequest) error {
 	if request.TaskID != "" || request.TaskStatus != "" || request.OriginalOperation != "" || request.RetryNotBefore != "" || request.ReconciliationRequired || request.Index != 0 || request.WaitWindowsCompleted != 0 {
 		return errors.New("new submissions cannot contain existing-task metadata")
 	}
-	if strings.TrimSpace(request.Model) == "" || strings.TrimSpace(request.Prompt) == "" {
+	if strings.TrimSpace(request.Model) == "" || (strings.TrimSpace(request.Prompt) == "" && !reviewedVideoAllowsEmptyPrompt(request)) {
 		return errors.New("missing model or prompt")
 	}
 

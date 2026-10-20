@@ -28,6 +28,13 @@ Use `--host minimax-code` only in MiniMax Code Desktop 3.1.0 macOS/Windows local
 
 Desktop loads `<runtime-data>/skills`. Use the explicitly supplied `MINIMAX_DATA_DIR`, then `MAVIS_DATA_DIR`; without overrides or Desktop directory preferences the default is `~/.minimax`. The standalone installer does not parse Desktop settings: if either regional preferences store exists, provide the already confirmed absolute Skill target or run within the current Desktop runtime with its declared data root. It refuses to guess or migrate `.mavis`. The credential adapter separately resolves only the documented preferences files and the saved default in `<runtime-data>/config.yaml`. Verify the loaded Skill path because project, agent and shared roots may shadow it; doctor only examines the selected global root and loaded installation, never session stores. Real Skill loading, API and attachment delivery remain pending.
 
+## ChatGPT / Codex
+
+Switch 和 Web 的客户端展示名为 ChatGPT；原生宿主入口仍是 Codex。
+绑定 `--host codex`，安装目录保持 `~/.agents/skills`，适配器仍读取声明的
+`.codex` 有效连接文件。显示名称不能用来猜测当前会话或更换凭据来源；
+自动检测仍只认已验证的原生启动器，未知 Electron／浏览器边界须明确选择。
+
 ## ZCode
 
 Use host `zcode` in a local execution environment. Install into `~/.zcode/skills`, or `ZCODE_DATA_BASE_DIR/.zcode/skills` when that explicit base directory is absolute. Refresh and enable the installed Skills in ZCode. The executor reads only the v2 connection store and uses one uniquely enabled matching Pure Tokens connection. This confirms API capability, not the current conversation model. Route media here only when host context explicitly selects Pure Tokens or the user explicitly requests it; connection presence alone is not a routing signal. Multiple matching enabled connections stop before a request. Legacy migration belongs to ZCode; no legacy-store fallback is attempted. Remote workspaces need their own accessible executor and connection; syncing Skills alone does not supply either. Native image/video attachment delivery remains pending real-host acceptance.
@@ -42,7 +49,7 @@ WorkBuddy 适配器无法匹配连接时，不据此断言当前聊天未使用 
 
 `init` 按当前宿主适配器验证已声明的有效连接，不要求用户为检查而切换聊天模型；配置选择规则依宿主而定，不能将此结果当作当前会话选择证明。WorkBuddy 使用 `workbuddy_record_missing`、`workbuddy_record_unreadable`、`workbuddy_record_format_unsupported`、`workbuddy_connection_not_found`、`workbuddy_credential_missing`、`workbuddy_connection_ambiguous` 区分本地原因；这些状态不代表安装失败，也不证明用户从未配置过。只反馈脱敏状态，不读取配置原文。
 
-连接验证失败必须按脱敏状态解释，适用于所有宿主。`active_connection_record_missing` 只说明执行环境中未找到适配器声明的记录；`active_connection_unavailable` 表示读取或解释未完成；`active_connection_selection_unconfirmed` 表示无法确认有效选择；`active_connection_format_unsupported`、`active_connection_endpoint_missing`、`active_connection_endpoint_unsupported` 表示适配器支持范围或字段识别问题；历史码 `active_connection_not_puretokens` 仅表示未通过固定端点识别，不证明用户从未配置。`active_connection_credential_missing` 表示适配器未取得可用凭据，不等于服务端判定凭据无效。`active_connection_ambiguous` 表示无法安全选择，不要求删除其他连接。保留现有可用连接，反馈宿主版本和诊断码；不展示配置，不要求重装、切换聊天模型、重配或更换凭据。`api_request_executed: false` 时明确本次未发送 API 请求、未认证凭据。TRAE 的 `host_credential_adapter_unavailable` 表示缺少受支持适配器，不是用户没配置。身份或网络检查失败也不能归因于未配置。
+连接验证失败必须按脱敏状态解释，适用于所有宿主。`active_connection_record_missing` 只说明执行环境中未找到适配器声明的记录；`active_connection_unavailable` 表示读取或解释未完成；`active_connection_selection_unconfirmed` 表示无法确认有效选择；`active_connection_format_unsupported`、`active_connection_endpoint_missing`、`active_connection_endpoint_unsupported` 表示适配器支持范围或字段识别问题；历史码 `active_connection_not_puretokens` 仅表示未通过固定端点识别，不证明用户从未配置。`active_connection_credential_missing` 表示适配器未取得可用凭据，不等于服务端判定凭据无效。`active_connection_ambiguous` 表示无法安全选择，不要求删除其他连接。保留现有可用连接，反馈宿主版本和诊断码；不展示配置，不要求重装、切换聊天模型、重配或更换凭据。`api_request_executed: false` 时明确本次未发送 API 请求、未认证凭据。TRAE 仅在受支持的本地桌面环境读取 Switch 已保存连接；`host_credential_adapter_unavailable` 表示执行环境不受支持，不是用户没配置。身份或网络检查失败也不能归因于未配置。
 
 宿主绑定与本地失败停止：首次调用前按当前应用或用户明确指定绑定一个 host，全部命令沿用，不从安装目录推断。`active_connection_*`、`workbuddy_*` 或 `host_credential_adapter_unavailable` 本地失败后停止 API 流程，保留用户原任务和已有 task ID；不得自动调用 puretokens-connection、init、doctor、models 或其他 Skill 探测，不得枚举、更换 `--host` 或借用凭据。仅用户明确重查或有可验证的新依据时，在原 host 检查一次；换宿主须用户明确指定。“继续生成”本身不是重查、换宿主或重提授权；本次未发送不代表此前未提交。
 
@@ -110,5 +117,22 @@ stop; never copy credentials into the workspace.
 
 All four additions have fixture coverage only. Installation, native execution,
 API authorization and host attachment handoff remain separate acceptance.
-Cursor is not a Skill host; TraeWork's current Native detection/preview does
-not imply Skill discovery or API support for the historical `trae` directory.
+Cursor is not a Skill host.
+
+## TRAE
+
+TRAE supports Skills. International installations use `~/.trae/skills`, domestic
+installations use `~/.trae-cn/skills`; project Skills use `.trae/skills`.
+Run the installer with the bound `--host trae`. With both global roots present,
+confirm the directory for the current edition and pass an explicit absolute
+target; do not install duplicate copies or delete the other edition's files.
+Refresh/enable the installed Skills in TRAE's Skill settings and start a new
+conversation. Requires a Skills release containing the new TRAE adapter.
+
+The source adapter resolves only the single Switch-managed saved connection
+described in `credential-adapters.md`. It neither claims the current chat/account
+selection nor requires changing that selection. Missing/edited receipts,
+multiple desktop state stores or different saved group credentials stop safely.
+Do not decrypt login/recovery data, read other account caches, switch hosts or
+fall back to another credential. Native Skill loading, fixed-API authentication
+and file handoff remain separate real-host acceptance steps.

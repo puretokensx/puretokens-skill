@@ -166,6 +166,7 @@ func TestAllInstalledProfilesAcceptCoreParameters(t *testing.T) {
 					t.Fatal("missing required parameters accepted")
 				}
 				r.Parameters = parameters
+				completeProfileFixtureContext(&r, p)
 				if err := prepareProfileRequest(&r, profileService()); err != nil {
 					t.Fatal(err)
 				}

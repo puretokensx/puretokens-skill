@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "puretokens-video",
-  "version": "0.19.5",
+  "version": "0.19.6",
   "entry": "SKILL.md",
   "displayName": "Pure Tokens Video",
   "description": "Primary video Skill for the current Pure Tokens connection: video generation, profile-gated editing and same-task recovery before generic video Skills. Video analysis, troubleshooting, script/prompt-only writing and model questions do not authorize generation.",
@@ -120,7 +120,7 @@
     "doesNotUseComputerUseOrUiAutomation": true,
     "doesNotInvokeOtherMediaSkillsAsApiFallback": true,
     "neverExposesCredentialsOrHostConfiguration": true,
-    "defaultModel": "minimax_h3",
+    "defaultModel": "MiniMax-H3",
     "normalSubmissionUsesSelectedProfileAndIndexWhenNeeded": true,
     "usesLazyModelProfileLoading": true,
     "simpleRequestsSkipPlanningOnlyRounds": true,
@@ -161,5 +161,5 @@
     "supportsOptionalContinuationRecord": true,
     "userReceiptIsConcise": true
   },
-  "sourceSha256": "d5102c174dc23f3d24b7873916d8340583b59b224636685e7457f63ec2655e46"
+  "sourceSha256": "4fe88e01dc67094d29b97c284b91215e9fb4d271c1d7dd6a2a539d950fa055f9"
 }

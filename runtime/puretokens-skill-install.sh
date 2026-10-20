@@ -191,7 +191,15 @@ target_for_host() {
       case "$opencode_root/" in */../*) fail "OpenCode config directory must not contain parent traversal" ;; esac
       printf '%s\n' "$opencode_root/skills"
       ;;
-    trae) printf '%s\n' "$HOME/.trae/skills" ;;
+    trae)
+      if [ -e "$HOME/.trae" ] && [ -e "$HOME/.trae-cn" ]; then
+        fail "Multiple TRAE edition roots exist; confirm this client's skills directory and use --target with its absolute path"
+      elif [ -d "$HOME/.trae-cn" ]; then
+        printf '%s\n' "$HOME/.trae-cn/skills"
+      else
+        printf '%s\n' "$HOME/.trae/skills"
+      fi
+      ;;
     *) fail "unsupported host: $host" ;;
   esac
 }
@@ -279,7 +287,7 @@ installation_summary() {
       printf '%s\n' 'Next: Refresh and enable the installed Skills in ZCode, then start a new conversation. Loading has not been verified in this session.' 'Available instructions: images, video, audio/music, Jev evaluation, embeddings, reranking, models and balance. Connection and task results remain separate checks.' 'Example (not executed): Generate an image of a lake at sunset.' 'Example (not executed): Generate a 5-second video of a paper boat on a river.' 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
       ;;
     trae)
-      printf '%s\n' 'Next: This is a historical installation directory; Skill discovery in current TraeWork is not confirmed.' 'API tasks: unsupported in this host; no credential adapter is available. Installing instructions does not enable generation.' 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
+      printf '%s\n' 'Next: Refresh or enable Pure Tokens Skills in TRAE Settings > Skills, then start a new conversation. Requires the TRAE adapter in this installed release and a saved Switch-managed connection; actual loading and API results remain separate checks.' 'Available instructions: images, video, audio/music, Jev evaluation, embeddings, reranking, models and balance. Connection and task results remain separate checks.' 'Example (not executed): Generate an image of a lake at sunset.' 'Example (not executed): Generate a 5-second video of a paper boat on a river.' 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
       ;;
     *)
       printf '%s\n' 'Next: Follow this client'"'"'s Skill loading controls, then start a new conversation. Loading has not been verified in this session.' 'Available instructions: images, video, audio/music, Jev evaluation, embeddings, reranking, models and balance. Connection and task results remain separate checks.' 'Example (not executed): Generate an image of a lake at sunset.' 'Example (not executed): Generate a 5-second video of a paper boat on a river.' 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'

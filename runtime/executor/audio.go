@@ -5,16 +5,19 @@ import (
 	"context"
 	"crypto/sha256"
 	_ "embed"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io"
+	"math"
 	"mime"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -35,6 +38,15 @@ type audioProfile struct {
 	MaxInstructionCharacters int               `json:"max_instruction_characters"`
 	Voices                   map[string]string `json:"voices"`
 	SupportsInstruction      bool              `json:"supports_instruction"`
+	Formats                  []string          `json:"formats"`
+	SpeedMin                 float64           `json:"speed_min"`
+	SpeedMax                 float64           `json:"speed_max"`
+	VoicePattern             string            `json:"voice_pattern"`
+	Task                     string            `json:"task"`
+	DurationMin              float64           `json:"duration_min"`
+	DurationMax              float64           `json:"duration_max"`
+	DurationMilliseconds     bool              `json:"duration_milliseconds"`
+	InstrumentalRequired     bool              `json:"instrumental_required"`
 }
 
 func audioProfiles() map[string]audioProfile {
@@ -48,15 +60,17 @@ func audioProfiles() map[string]audioProfile {
 }
 
 type audioRequest struct {
-	Operation      string   `json:"operation"`
-	Model          string   `json:"model"`
-	Input          string   `json:"input,omitempty"`
-	Instruction    string   `json:"instruction,omitempty"`
-	Voice          string   `json:"voice,omitempty"`
-	Speed          *float64 `json:"speed,omitempty"`
-	ResponseFormat string   `json:"response_format,omitempty"`
-	File           string   `json:"file,omitempty"`
-	OutputDir      string   `json:"output_dir,omitempty"`
+	Operation       string   `json:"operation"`
+	Model           string   `json:"model"`
+	Input           string   `json:"input,omitempty"`
+	Instruction     string   `json:"instruction,omitempty"`
+	Voice           string   `json:"voice,omitempty"`
+	Speed           *float64 `json:"speed,omitempty"`
+	ResponseFormat  string   `json:"response_format,omitempty"`
+	File            string   `json:"file,omitempty"`
+	OutputDir       string   `json:"output_dir,omitempty"`
+	DurationSeconds *float64 `json:"duration_seconds,omitempty"`
+	Instrumental    *bool    `json:"instrumental,omitempty"`
 }
 
 type audioArtifact struct {
@@ -194,8 +208,14 @@ func decodeAudioRequest(data []byte) (audioRequest, error) {
 	allowed := map[string]bool{"operation": true, "model": true}
 	switch request.Operation {
 	case "speech":
-		for _, key := range []string{"input", "voice", "speed", "response_format", "output_dir", "instruction"} {
+		for _, key := range []string{"input", "voice", "response_format", "output_dir"} {
 			allowed[key] = true
+		}
+		if profile.SpeedMin > 0 {
+			allowed["speed"] = true
+		}
+		if profile.SupportsInstruction {
+			allowed["instruction"] = true
 		}
 		if strings.TrimSpace(request.Input) == "" {
 			return request, audioIssue("input", "required", 0)
@@ -203,11 +223,16 @@ func decodeAudioRequest(data []byte) (audioRequest, error) {
 		if utf8.RuneCountInString(request.Input) > profile.MaxInputCharacters {
 			return request, audioIssue("input", "max_characters", profile.MaxInputCharacters)
 		}
-		if profile.Voices[request.Voice] == "" {
+		if !validAudioVoice(profile, request.Voice) {
 			return request, audioIssue("voice", "unsupported", 0)
 		}
-		if request.Speed != nil && (*request.Speed < 0.5 || *request.Speed > 2) {
-			return request, audioIssue("speed", "out_of_range", 0)
+		if request.Speed != nil {
+			if profile.SpeedMin == 0 {
+				return request, audioIssue("speed", "unsupported", 0)
+			}
+			if *request.Speed < profile.SpeedMin || *request.Speed > profile.SpeedMax {
+				return request, audioIssue("speed", "out_of_range", 0)
+			}
 		}
 		if _, exists := fields["instruction"]; exists {
 			if !profile.SupportsInstruction {
@@ -220,7 +245,7 @@ func decodeAudioRequest(data []byte) (audioRequest, error) {
 				return request, audioIssue("instruction", "max_characters", 500)
 			}
 		}
-	case "generate":
+	case "generate", "music_sync":
 		for _, key := range []string{"instruction", "response_format", "output_dir"} {
 			allowed[key] = true
 		}
@@ -230,10 +255,32 @@ func decodeAudioRequest(data []byte) (audioRequest, error) {
 		if utf8.RuneCountInString(request.Instruction) > profile.MaxInstructionCharacters {
 			return request, audioIssue("instruction", "max_characters", profile.MaxInstructionCharacters)
 		}
-	case "transcribe":
+		if profile.DurationMax > 0 {
+			allowed["duration_seconds"] = true
+			if request.DurationSeconds == nil || math.IsNaN(*request.DurationSeconds) || math.IsInf(*request.DurationSeconds, 0) ||
+				*request.DurationSeconds < profile.DurationMin || *request.DurationSeconds > profile.DurationMax ||
+				(profile.DurationMilliseconds && math.Round(*request.DurationSeconds*1000)/1000 != *request.DurationSeconds) {
+				return request, audioIssue("duration_seconds", "out_of_range", 0)
+			}
+		}
+		if profile.InstrumentalRequired {
+			allowed["instrumental"] = true
+			if request.Instrumental == nil {
+				return request, audioIssue("instrumental", "required", 0)
+			}
+		}
+	case "transcribe", "voice_change":
 		allowed["file"] = true
 		if !filepath.IsAbs(request.File) {
 			return request, audioIssue("file", "absolute_path_required", 0)
+		}
+		if request.Operation == "voice_change" {
+			for _, key := range []string{"voice", "response_format", "output_dir"} {
+				allowed[key] = true
+			}
+			if !validAudioVoice(profile, request.Voice) {
+				return request, audioIssue("voice", "unsupported", 0)
+			}
 		}
 	default:
 		return request, audioIssue("operation", "unsupported", 0)
@@ -250,17 +297,25 @@ func decodeAudioRequest(data []byte) (audioRequest, error) {
 		if !filepath.IsAbs(request.OutputDir) {
 			return request, audioIssue("output_dir", "absolute_path_required", 0)
 		}
-		if request.ResponseFormat != "mp3" && request.ResponseFormat != "wav" {
+		if !contains(profile.Formats, request.ResponseFormat) {
 			return request, audioIssue("response_format", "unsupported", 0)
 		}
 	}
 	return request, nil
 }
 
+func validAudioVoice(profile audioProfile, voice string) bool {
+	if profile.VoicePattern != "" {
+		matched, err := regexp.MatchString(profile.VoicePattern, voice)
+		return err == nil && matched
+	}
+	return profile.Voices[voice] != ""
+}
+
 // Preparation finishes before credential resolution or paid HTTP. Input bytes
 // remain a bounded in-memory snapshot; the caller owns the original file.
 func prepareAudioBody(request audioRequest) ([]byte, string, error) {
-	if request.Operation != "transcribe" {
+	if request.Operation != "transcribe" && request.Operation != "voice_change" {
 		body := map[string]any{"model": request.Model, "response_format": request.ResponseFormat}
 		if request.Operation == "speech" {
 			body["input"], body["voice"] = request.Input, request.Voice
@@ -271,7 +326,13 @@ func prepareAudioBody(request audioRequest) ([]byte, string, error) {
 				body["instruction"] = request.Instruction
 			}
 		} else {
-			body["instruction"], body["task"], body["stream_format"] = request.Instruction, "text_to_audio", "audio"
+			body["instruction"], body["task"], body["stream_format"] = request.Instruction, audioProfiles()[request.Model].Task, "audio"
+			if request.DurationSeconds != nil {
+				body["duration_seconds"] = *request.DurationSeconds
+			}
+			if request.Instrumental != nil {
+				body["instrumental"] = *request.Instrumental
+			}
 		}
 		data, err := json.Marshal(body)
 		return data, "application/json", err
@@ -294,6 +355,14 @@ func prepareAudioBody(request audioRequest) ([]byte, string, error) {
 	format := strings.TrimPrefix(strings.ToLower(filepath.Ext(request.File)), ".")
 	if err != nil || statErr != nil || !sameAttachment(opened, after) || int64(len(data)) != opened.Size() || !validAudioBytes(data, format) {
 		return nil, "", errors.New("invalid audio attachment")
+	}
+	if request.Operation == "voice_change" {
+		body, err := json.Marshal(map[string]any{
+			"model": request.Model, "voice": request.Voice, "response_format": request.ResponseFormat,
+			"task": "voice_change", "stream_format": "audio",
+			"audio": base64.StdEncoding.EncodeToString(data), "audio_format": format,
+		})
+		return body, "application/json", err
 	}
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)
@@ -336,7 +405,7 @@ func runAudioCommand(output io.Writer, svc service, host, file string) error {
 		}
 		result := audioFailure("not_submitted", "validation", "audio_request_invalid", issue.message(), 0)
 		result.Validation = issue
-		result.NextAction = "Correct only the identified request construction error before any POST. If correction changes the user's text, voice, format, speed or request count, obtain that choice first; never truncate, replace or split silently. This receipt describes only this unsubmitted attempt."
+		result.NextAction = "Correct only the identified request construction error before any POST. If correction changes the user's model, text, recording, voice, format, speed, duration, instrumental choice or request count, obtain that choice first; never truncate, replace or split silently. This receipt describes only this unsubmitted attempt."
 		writeJSON(output, result)
 		return errors.New("audio preparation failed")
 	}

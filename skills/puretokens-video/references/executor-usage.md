@@ -17,31 +17,31 @@ Create UTF-8 JSON using the host file tool; use escaped backslashes or forward s
 Generation:
 
 ```json
-{"kind":"video","operation":"generate","model":"minimax_h3","prompt":"A slow camera movement over a mountain lake","parameters":{"duration":5}}
+{"kind":"video","operation":"generate","model":"MiniMax-H3","prompt":"A slow camera movement over a mountain lake","parameters":{"duration":5}}
 ```
 
-Current local first-frame image:
+Current local first-frame image, only after the user selects this multipart-capable model (do not silently replace the H3 default):
 
 ```json
-{"kind":"video","operation":"generate","media_operation":"image_to_video","model":"minimax_h3","prompt":"A gentle camera movement","attachments":[{"field":"first_frame_image","path":"/absolute/current.png"}]}
+{"kind":"video","operation":"generate","media_operation":"first_frame_video","model":"seedance-2.5","prompt":"A gentle camera movement","attachments":[{"field":"first_frame_image","path":"/absolute/current.png"}]}
 ```
 
-Public HTTPS first-frame URL for this model (JSON, without the multipart-only `media_operation`; do not download or rehost it):
+Public HTTPS first-frame URL for the H3 default (JSON; do not download or rehost it). Its profile does not declare local multipart attachments:
 
 ```json
-{"kind":"video","operation":"generate","model":"minimax_h3","prompt":"A gentle camera movement","parameters":{"first_frame_image":"https://example.com/current.png"}}
+{"kind":"video","operation":"generate","media_operation":"image_to_video","model":"MiniMax-H3","prompt":"A gentle camera movement","parameters":{"first_frame_image":"https://example.com/current.png"}}
 ```
 
 `submit` returns the task ID immediately; it never polls or downloads. Do not repeat a submission with unknown output. `status` reads once and `wait` performs one bounded window. Carry the original operation as `original_operation`, model, confirmed count and safe parameters into a same-task request:
 
 ```json
-{"kind":"video","original_operation":"generate","task_id":"RETURNED_ID","model":"minimax_h3","requested_count":1,"parameters":{"duration":5}}
+{"kind":"video","original_operation":"generate","task_id":"RETURNED_ID","model":"MiniMax-H3","requested_count":1,"parameters":{"duration":5}}
 ```
 
 After a completed same-task receipt, `content --host codex --request <file>` downloads one index:
 
 ```json
-{"kind":"video","original_operation":"generate","task_id":"RETURNED_ID","model":"minimax_h3","requested_count":1,"parameters":{"duration":5},"task_status":"completed","index":0,"output_dir":"/absolute/existing/output-directory"}
+{"kind":"video","original_operation":"generate","task_id":"RETURNED_ID","model":"MiniMax-H3","requested_count":1,"parameters":{"duration":5},"task_status":"completed","index":0,"output_dir":"/absolute/existing/output-directory"}
 ```
 
 A video task has one output, index 0. Attach the returned `downloaded_paths` file; video has no next index. Downloading is not delivery. Reuse requires a matching SHA-256, byte count and media type in an explicit task record. Without that proof, preserve any existing file and select another output directory for this same task index.

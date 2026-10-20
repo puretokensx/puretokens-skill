@@ -10,8 +10,9 @@
     "capability": { "enum": ["image", "video"] },
     "catalogUpdatedAt": { "type": "string", "minLength": 1 },
     "catalogCapturedAt": { "type": "string", "format": "date-time" },
-    "id": { "type": "string", "maxLength": 160, "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+(\\([A-Za-z0-9_.-]+\\))?$(?![\\s\\S])" },
-    "parameterSchema": { "type": "object" }
+    "id": { "type": "string", "maxLength": 160, "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+(?: [A-Za-z0-9_.-]+)*(\\([A-Za-z0-9_.-]+\\))?$(?![\\s\\S])" },
+    "parameterSchema": { "type": "object" },
+    "sourceReview": { "type": "object", "required": ["reviewedAt", "scope", "source"], "properties": { "reviewedAt": { "type": "string" }, "scope": { "const": "reviewed_source_not_live_availability" }, "source": { "type": "string" } }, "additionalProperties": false }
   },
   "additionalProperties": false
 }

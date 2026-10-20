@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "name": "puretokens-audio",
-  "version": "0.19.5",
+  "version": "0.19.6",
   "entry": "SKILL.md",
   "displayName": "Pure Tokens Audio",
-  "description": "Use when the current Pure Tokens connection should turn text into speech, transcribe a user recording generate a sound scene, or create instrumental music or a song.",
+  "description": "Use the current Pure Tokens connection to synthesize speech, transcribe a recording, generate sound or music, or change a recording to an explicitly permitted voice.",
   "executionContract": "references/execution-contract.json",
   "behaviorScenarios": "references/behavior-scenarios.json",
   "distribution": {
@@ -125,5 +125,5 @@
     "asynchronousMusicWithExplicitTaskRecord": true,
     "requiresActualAudioBytesForDelivery": true
   },
-  "sourceSha256": "9f810c2a60d0aea593be8e8c3a4bf586fe931be7260ddcbfc1f99a7ec20fd38c"
+  "sourceSha256": "1e992b0668fb830eb176e18423b34e2e530e9192c8deb93775759f0d2d719e10"
 }

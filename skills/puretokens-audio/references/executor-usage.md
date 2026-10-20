@@ -1,6 +1,6 @@
 # 同步音频命令与请求
 
-音乐使用独立的异步任务命令，见 [音乐指南](music-usage.md)。
+StepFun 音乐使用异步任务，见 [音乐指南](music-usage.md)。ElevenLabs 的配音、音效、同步音乐和变声见 [专用指南](elevenlabs-usage.md)；本页示例和限制属于 StepFun。
 
 统一执行 `<执行器> audio --host <当前宿主> --request <绝对 UTF-8 JSON 文件>`。
 Windows PowerShell UTF-8 BOM 可用，UTF-16 不可用。请求文件及附件路径必须为绝对路径；
@@ -54,7 +54,7 @@ ASR Max/Pro 依赖网关将供应商 SSE 聚合为最终 JSON；不能把半段�
 ```
 
 本地最多 500 字符；执行器补固定 `task=text_to_audio`、`stream_format=audio`。
-不接收 scripts、音色附件、音乐任务或流式选项，音乐必须按 music-usage.md 的异步工作流执行。
+不接收 scripts、音色附件、音乐任务或流式选项，StepFun 音乐按 music-usage.md 的异步工作流执行；music_v2_5 按专用指南执行同步 music_sync。
 
 ## 结果与再次交付
 

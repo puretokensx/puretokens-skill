@@ -61,7 +61,9 @@ Pure Tokens 是一个提供多种模型能力的 AI 服务平台。你可以在�
 | 文字配音 | `audio`；`operation=speech` | 同步；一次请求最多90秒 | 仅已有文件 `audio-verify` 后重新附加；无任务查询 |
 | 录音转写 | `audio`；`operation=transcribe` | 同步；一次请求最多90秒 | 无任务查询或结果找回；不自动重发 |
 | 音效／声音场景 | `audio`；`operation=generate` | 同步；一次请求最多90秒 | 仅已有文件 `audio-verify` 后重新附加；无任务查询 |
-| 纯音乐／歌曲 | `submit`；`kind=music` | 异步；先回执，再独立等待／下载 | 原任务 `resume`；仅实际附件交付后 `delivered` |
+| ElevenLabs 音乐 | `audio`；`operation=music_sync` | 同步；一次请求最多90秒 | 仅已有文件 `audio-verify` 后重新附加；无任务查询 |
+| 指定音色变声 | `audio`；`operation=voice_change` | 同步；一次请求最多90秒 | 仅已有文件 `audio-verify` 后重新附加；无任务查询 |
+| StepFun 纯音乐／歌曲 | `submit`；`kind=music` | 异步；先回执，再独立等待／下载 | 原任务 `resume`；仅实际附件交付后 `delivered` |
 | Jev 文本评估 | `evaluate`；`model / state / questions` | 同步；一次请求最多90秒 | 无任务查询或结果找回；不自动重发 |
 | 文本向量 | `embedding`；`model / input / output_file` | 同步；一次请求最多90秒 | 无任务查询或结果找回；不自动重发 |
 | 文本相关性重排 | `rerank`；`model / query / documents / top_n? / output_file` | 同步；一次请求最多90秒 | 无任务查询或结果找回；不自动重发 |

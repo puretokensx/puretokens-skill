@@ -9,7 +9,7 @@ const keywords = new Set([
   ...annotations, "$ref", "$defs", "type", "const", "enum", "required", "properties",
   "patternProperties", "additionalProperties", "items", "minItems", "maxItems",
   "uniqueItems", "minLength", "maxLength", "minProperties", "maxProperties", "pattern", "format", "minimum", "maximum",
-  "exclusiveMinimum", "exclusiveMaximum", "anyOf", "oneOf", "allOf", "not", "if", "then", "else"
+  "exclusiveMinimum", "exclusiveMaximum", "multipleOf", "anyOf", "oneOf", "allOf", "not", "if", "then", "else"
 ]);
 const types = {
   object: (value) => value !== null && typeof value === "object" && !Array.isArray(value),
@@ -50,6 +50,9 @@ export function compileSchema(schema, documents) {
     }
     if (rule.format !== undefined && rule.format !== "date-time") {
       throw new Error(`Unsupported schema format: ${rule.format}`);
+    }
+    if (rule.multipleOf !== undefined && (!types.number(rule.multipleOf) || rule.multipleOf <= 0)) {
+      throw new Error("multipleOf must be a positive finite number");
     }
     let evaluate;
     const validator = (value, at = "$") => evaluate(value, at);
@@ -92,6 +95,10 @@ export function compileSchema(schema, documents) {
       if (Object.hasOwn(rule, "const") && !isDeepStrictEqual(value, rule.const)) fail("const");
       if (rule.enum && !rule.enum.some((option) => isDeepStrictEqual(value, option))) fail("enum");
       if (types.number(value)) {
+        if (rule.multipleOf !== undefined) {
+          const quotient = value / rule.multipleOf;
+          if (!Number.isFinite(quotient) || Math.abs(quotient - Math.round(quotient)) > Number.EPSILON * Math.max(1, Math.abs(quotient)) * 8) fail("multipleOf");
+        }
         if (rule.minimum !== undefined && value < rule.minimum) fail("minimum");
         if (rule.maximum !== undefined && value > rule.maximum) fail("maximum");
         if (rule.exclusiveMinimum !== undefined && value <= rule.exclusiveMinimum) fail("exclusiveMinimum");

@@ -22,7 +22,7 @@
 
 ## 首尾帧
 
-只有用户明确 A 为起点、B 为终点或表达从 A 到 B 的过渡，才选择对应首尾帧 operation。`minimax_h3` 的首尾帧属于 `image_to_video`：图 A 传 `first_frame_image`，图 B 传 `last_frame_image`，调用 `/v1/videos`；不要改成该型号未声明的 `first_last_frame_video`。其他型号按各自 profile 声明选择。单凭两张附件不能推断。表达过渡过程，不颠倒输入，不把不支持的首尾帧退化为只发第一张。
+只有用户明确 A 为起点、B 为终点或表达从 A 到 B 的过渡，才选择对应首尾帧 operation。两个本地附件可在用户确认使用声明 multipart 首尾帧的型号后按其 profile 提交，例如 `seedance-2.5` 的 `first_last_frame_video`；不能将默认 `MiniMax-H3` 的公开 HTTPS URL 输入当成本地附件传输，也不能自动换模型或上传托管。已有旧 `minimax_h3` 任务仍用原型号恢复，不把新旧 H3 互作别名。单凭两张附件不能推断首尾，不能颠倒输入或丢弃尾帧。
 
 ## 视频编辑与其他参考
 

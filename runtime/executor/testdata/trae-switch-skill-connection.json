@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "host": "trae",
+  "evidence": "Synthetic runtime.js apply and native cache readback; no real host, login information, recovery secrets or billable request.",
+  "userId": "fixture-trae-user",
+  "receiptKey": "puretokens.traework.status.v1",
+  "input": {
+    "action": "prepare",
+    "account": 42,
+    "transaction": "00000000-0000-0000-0000-000000000001",
+    "key": "pts-trae-fixture-not-real",
+    "endpoint": "https://api.puretokensx.com/v1/chat/completions",
+    "models": [
+      { "id": "fixture-chat", "vision": false },
+      { "id": "fixture-vision", "vision": true }
+    ]
+  },
+  "receipt": {
+    "schema": 1,
+    "account": 42,
+    "phase": "active",
+    "receipt": "00000000-0000-0000-0000-000000000001",
+    "cacheKeys": [
+      "fixture-trae-user:AI.agent.model.model_list_map",
+      "fixture-trae-user_AI.agent.model.model_list_map"
+    ],
+    "models": [
+      {
+        "id": "1",
+        "name": "custom_openai_compatible//fixture-chat",
+        "provider": "custom_openai_compatible",
+        "display_name": "fixture-chat",
+        "base_url": "https://api.puretokensx.com/v1/chat/completions",
+        "status": true,
+        "multimodal": false,
+        "credential": "dae1e308d0c55f4658298070c547704d7b15a31505000b36b07acee53d0ae2bd",
+        "settings": [
+          0, null, null, null, null, null, null, null, null, null,
+          {
+            "multimodal": false,
+            "model_hyper_params": { "thinking_enable": 0 },
+            "max_turn": 500
+          }
+        ]
+      },
+      {
+        "id": "2",
+        "name": "custom_openai_compatible//fixture-vision",
+        "provider": "custom_openai_compatible",
+        "display_name": "fixture-vision",
+        "base_url": "https://api.puretokensx.com/v1/chat/completions",
+        "status": true,
+        "multimodal": true,
+        "credential": "dae1e308d0c55f4658298070c547704d7b15a31505000b36b07acee53d0ae2bd",
+        "settings": [
+          0, null, null, null, null, null, null, null, null, null,
+          {
+            "multimodal": true,
+            "model_hyper_params": { "thinking_enable": 0 },
+            "max_turn": 500
+          }
+        ]
+      }
+    ]
+  },
+  "cache": {
+    "chat": [
+      {
+        "custom_model_id": "1",
+        "name": "custom_openai_compatible//fixture-chat",
+        "display_name": "fixture-chat",
+        "provider": "custom_openai_compatible",
+        "base_url": "https://api.puretokensx.com/v1/chat/completions",
+        "status": true,
+        "multimodal": false,
+        "ak": "pts-trae-fixture-not-real",
+        "sk": null,
+        "auth_type": 0,
+        "config_detail": {
+          "multimodal": false,
+          "model_hyper_params": { "thinking_enable": 0 },
+          "max_turn": 500
+        }
+      },
+      {
+        "custom_model_id": "2",
+        "name": "custom_openai_compatible//fixture-vision",
+        "display_name": "fixture-vision",
+        "provider": "custom_openai_compatible",
+        "base_url": "https://api.puretokensx.com/v1/chat/completions",
+        "status": true,
+        "multimodal": true,
+        "ak": "pts-trae-fixture-not-real",
+        "sk": null,
+        "auth_type": 0,
+        "config_detail": {
+          "multimodal": true,
+          "model_hyper_params": { "thinking_enable": 0 },
+          "max_turn": 500
+        }
+      }
+    ]
+  }
+}

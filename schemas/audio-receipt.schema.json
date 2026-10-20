@@ -23,7 +23,9 @@
       "enum": [
         "speech",
         "transcribe",
-        "generate"
+        "generate",
+        "music_sync",
+        "voice_change"
       ]
     },
     "model": {
@@ -35,7 +37,16 @@
         "step-asr",
         "stepaudio-3-asr-max",
         "stepaudio-2-asr-pro",
-        "stepaudio-3-gen-preview"
+        "stepaudio-3-gen-preview",
+        "eleven_v3",
+        "eleven_v4",
+        "eleven_multilingual_v2",
+        "eleven_flash_v2_5",
+        "scribe_v2",
+        "scribe_v2_medical",
+        "eleven_text_to_sound_v2",
+        "music_v2_5",
+        "eleven_multilingual_sts_v2"
       ]
     },
     "submission_outcome": {
@@ -154,7 +165,9 @@
             "instruction",
             "response_format",
             "file",
-            "output_dir"
+            "output_dir",
+            "duration_seconds",
+            "instrumental"
           ]
         },
         "reason": {
@@ -266,7 +279,9 @@
               "operation": {
                 "enum": [
                   "speech",
-                  "generate"
+                  "generate",
+                  "music_sync",
+                  "voice_change"
                 ]
               },
               "next_step": {

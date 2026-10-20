@@ -20,7 +20,7 @@ export async function executorInputs(root) {
       const file = `${relative}/${name}`;
       const info = await lstat(path.join(root,file));
       if (info.isDirectory()) await visit(file);
-      else if ((name.endsWith(".go") && !name.endsWith("_test.go")) || ["go.mod","go.sum","build-config.json","audio-profiles.json","reviewed-media-policy.json"].includes(name)) {
+      else if ((name.endsWith(".go") && !name.endsWith("_test.go")) || ["go.mod","go.sum","build-config.json","audio-profiles.json","reviewed-media-policy.json","reviewed-video-profiles.json"].includes(name)) {
         if (!info.isFile()) throw new Error("Unsupported build input");
         files.push(file);
       }

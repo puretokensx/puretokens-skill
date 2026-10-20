@@ -47,6 +47,8 @@ Never add paid tests to CI.
 | speech-generation | Read short synthetic text using a reviewed voice and supported style/speed | One synchronous POST; exact text preserved; real MP3/WAV attachment opens and plays |
 | audio-transcription | Transcribe one explicitly selected synthetic recording | Original bytes sent once; validated transcript displayed without replacing it with a summary; no task polling |
 | sound-generation | Generate one short sound scene | One synchronous POST; supported fields only; audio attachment plays; no music substitution |
+| sync-music-generation | Explicitly use music_v2_5 with authorized duration and instrumental choice | One synchronous generate POST, original lyrics in instruction, playable MP3; no async music submit/poll or retry |
+| voice-change | Explicitly change a synthetic recording to an entitled voice ID | Original recording bytes sent once, actual duration checked by gateway, MP3 attached and plays; no cloning or extra POST |
 | audio-reattachment | Reattach the same already-downloaded audio after interrupted handoff | Local audio-verify validates original proof; no credential/network request or regeneration; actual attachment opens |
 | music-generation | Generate one authorized instrumental piece or song | Explicit instrumental intent and exact supplied lyrics; submit receipt before wait/content; same task and playable MP3/WAV |
 | music-resume | Continue that music task in a new conversation, before its output is acknowledged delivered | Same record/ID, wait budget and file proof retained; no replacement POST, synchronous audio command or unnecessary content GET |
@@ -122,8 +124,8 @@ manually or assembled from unrelated versions: `installation-verified` requires
 the installation case; `api-verified` additionally requires authenticated API
 checks; `media-verified` requires the original nine media cases, including playable video and
 actual attachment handoff. No evidence is `unverified`. Registration and
-credential fixtures do not establish any real-host level; Trae remains without
-an API adapter.
+credential fixtures do not establish any real-host level. TRAE now has a source
+adapter for the Switch-managed saved connection; its real-host checks remain pending.
 
 Run `npm run acceptance:validate` after editing evidence. It rejects passed
 summary cells without matching real-host evidence, mismatched release versions,
@@ -143,9 +145,9 @@ An adapter marked `pending` in the host registry is not implemented in this
 release. Its `credentialFixtures` must be `unavailable`, as must the
 `authenticatedAPI`, `sameTaskResume` and `nativeAttachmentDelivery` summaries
 on every OS and all API-dependent detailed cases. Local `installation` and
-`help-no-api` can still be accepted independently. Trae currently has
-this classification: macOS and Windows installation remain pending, but API
-and media acceptance are unavailable. Installation-only real-host evidence is
+`help-no-api` can still be accepted independently. TRAE had this classification
+before the source adapter was added on 2026-10-20; current macOS/Windows API and
+media checks are pending, while Linux is unavailable. Installation-only real-host evidence is
 valid and establishes only `installation-verified`; a safe stop before a
 request is not a failed or passed authenticated API case.
 

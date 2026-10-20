@@ -1,14 +1,136 @@
 {
   "schemaVersion": 1,
   "operations": [
-    {"id":"image","skill":"puretokens-image","label":"图片生成／编辑","command":"submit","kind":"image","operations":["generate","edit"],"lifecycle":"async","delivery":"attachment","recovery":"task-record"},
-    {"id":"video","skill":"puretokens-video","label":"视频生成／编辑","command":"submit","kind":"video","operations":["generate","edit"],"lifecycle":"async","delivery":"attachment","recovery":"task-record"},
-    {"id":"speech","skill":"puretokens-audio","label":"文字配音","command":"audio","operations":["speech"],"lifecycle":"sync","delivery":"attachment","recovery":"local-artifact"},
-    {"id":"transcribe","skill":"puretokens-audio","label":"录音转写","command":"audio","operations":["transcribe"],"lifecycle":"sync","delivery":"text","recovery":"none"},
-    {"id":"sound","skill":"puretokens-audio","label":"音效／声音场景","command":"audio","operations":["generate"],"lifecycle":"sync","delivery":"attachment","recovery":"local-artifact"},
-    {"id":"music","skill":"puretokens-audio","label":"纯音乐／歌曲","command":"submit","kind":"music","operations":["generate"],"lifecycle":"async","delivery":"attachment","recovery":"task-record"},
-    {"id":"evaluate","skill":"puretokens-evaluate","label":"Jev 文本评估","command":"evaluate","operations":[],"lifecycle":"sync","delivery":"text","recovery":"none"},
-    {"id":"embedding","skill":"puretokens-embedding","label":"文本向量","command":"embedding","operations":[],"lifecycle":"sync","delivery":"file","recovery":"none"},
-    {"id":"rerank","skill":"puretokens-rerank","label":"文本相关性重排","command":"rerank","operations":[],"lifecycle":"sync","delivery":"file","recovery":"none"}
+    {
+      "id": "image",
+      "skill": "puretokens-image",
+      "label": "图片生成／编辑",
+      "command": "submit",
+      "kind": "image",
+      "operations": [
+        "generate",
+        "edit"
+      ],
+      "lifecycle": "async",
+      "delivery": "attachment",
+      "recovery": "task-record"
+    },
+    {
+      "id": "video",
+      "skill": "puretokens-video",
+      "label": "视频生成／编辑",
+      "command": "submit",
+      "kind": "video",
+      "operations": [
+        "generate",
+        "edit"
+      ],
+      "lifecycle": "async",
+      "delivery": "attachment",
+      "recovery": "task-record"
+    },
+    {
+      "id": "speech",
+      "skill": "puretokens-audio",
+      "label": "文字配音",
+      "command": "audio",
+      "operations": [
+        "speech"
+      ],
+      "lifecycle": "sync",
+      "delivery": "attachment",
+      "recovery": "local-artifact"
+    },
+    {
+      "id": "transcribe",
+      "skill": "puretokens-audio",
+      "label": "录音转写",
+      "command": "audio",
+      "operations": [
+        "transcribe"
+      ],
+      "lifecycle": "sync",
+      "delivery": "text",
+      "recovery": "none"
+    },
+    {
+      "id": "sound",
+      "skill": "puretokens-audio",
+      "label": "音效／声音场景",
+      "command": "audio",
+      "operations": [
+        "generate"
+      ],
+      "lifecycle": "sync",
+      "delivery": "attachment",
+      "recovery": "local-artifact"
+    },
+    {
+      "id": "music_sync",
+      "skill": "puretokens-audio",
+      "label": "ElevenLabs 音乐",
+      "command": "audio",
+      "operations": [
+        "music_sync"
+      ],
+      "lifecycle": "sync",
+      "delivery": "attachment",
+      "recovery": "local-artifact"
+    },
+    {
+      "id": "voice_change",
+      "skill": "puretokens-audio",
+      "label": "指定音色变声",
+      "command": "audio",
+      "operations": [
+        "voice_change"
+      ],
+      "lifecycle": "sync",
+      "delivery": "attachment",
+      "recovery": "local-artifact"
+    },
+    {
+      "id": "music",
+      "skill": "puretokens-audio",
+      "label": "StepFun 纯音乐／歌曲",
+      "command": "submit",
+      "kind": "music",
+      "operations": [
+        "generate"
+      ],
+      "lifecycle": "async",
+      "delivery": "attachment",
+      "recovery": "task-record"
+    },
+    {
+      "id": "evaluate",
+      "skill": "puretokens-evaluate",
+      "label": "Jev 文本评估",
+      "command": "evaluate",
+      "operations": [],
+      "lifecycle": "sync",
+      "delivery": "text",
+      "recovery": "none"
+    },
+    {
+      "id": "embedding",
+      "skill": "puretokens-embedding",
+      "label": "文本向量",
+      "command": "embedding",
+      "operations": [],
+      "lifecycle": "sync",
+      "delivery": "file",
+      "recovery": "none"
+    },
+    {
+      "id": "rerank",
+      "skill": "puretokens-rerank",
+      "label": "文本相关性重排",
+      "command": "rerank",
+      "operations": [],
+      "lifecycle": "sync",
+      "delivery": "file",
+      "recovery": "none"
+    }
   ]
 }

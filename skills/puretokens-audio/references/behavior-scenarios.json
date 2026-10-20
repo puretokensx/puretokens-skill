@@ -31,16 +31,16 @@
     {
       "id": "audio-sound",
       "when": "User requests a sound scene.",
-      "then": "Use synchronous generate for a sound scene; music follows the separate async task guide."
+      "then": "Use synchronous generate with the selected profile's fields and limits. StepFun music follows the async task guide; explicit music_v2_5 follows synchronous music_sync. Never interchange routes."
     },
     {
       "id": "audio-unsupported",
       "when": "User requests voice cloning, translation or live microphone conversation.",
-      "then": "Explain unsupported first release; no paid call, upload, alternate host, browser or generic Skill fallback."
+      "then": "Explain the unsupported operation before submission; no paid call, upload, alternate host, browser or generic Skill fallback. Explicit entitled-voice conversion of an existing recording uses voice_change and does not create or clone a voice."
     },
     {
       "id": "audio-limits",
-      "when": "Text exceeds1000 characters or sound instruction exceeds500, or recording exceeds8MiB.",
+      "when": "Text, instruction, duration or format violates the selected model profile, or an explicit recording exceeds8MiB.",
       "then": "Explain limit and needed user choice; no silent truncation, conversion or paid splitting."
     },
     {
@@ -71,7 +71,7 @@
     {
       "id": "music-create",
       "when": "User requests instrumental music or a song.",
-      "then": "Use reviewed music profile and kind=music, explicit instrumental boolean and exact prompt/lyrics; submit once into a new explicit task record, return receipt before wait or content."
+      "then": "Read the selected profile. Default StepFun uses kind=music and one explicit task record. Explicit music_v2_5 uses synchronous audio operation=music_sync, duration_seconds and instrumental, lyrics inside instruction. Never interchange routes or automatically retry."
     },
     {
       "id": "music-writing-only",
@@ -80,27 +80,27 @@
     },
     {
       "id": "music-unknown",
-      "when": "Music submission loses response or returns reconciliation_required.",
-      "then": "Keep unknown record or returned public ID. Stop automatic continuation; never resubmit, infer no charge or use web account routes."
+      "when": "An async StepFun music submission loses response or returns reconciliation_required, or synchronous music_sync times out.",
+      "then": "For async music keep any unknown record or returned public ID; synchronous music has no remote task recovery. Stop automatic continuation; never resubmit, infer no charge or use web account routes."
     },
     {
       "id": "music-recovery",
-      "when": "User continues an existing music task, including pending or downloaded output.",
+      "when": "User continues an existing async StepFun music task, including pending or downloaded output.",
       "then": "Use original record, retain wait count and proof. Resume verifies and reuses already downloaded files locally; attach actual MP3/WAV before delivered. A reconciliation resume makes one same-task status read."
     },
     {
       "id": "music-expired",
-      "when": "Music content returns410 after gateway artifact retention.",
+      "when": "Async StepFun music content returns410 after gateway artifact retention.",
       "then": "Preserve completed task and local files. Reuse matching local proof if available; otherwise report unavailable content. No refund assertion or automatic regeneration."
     },
     {
       "id": "music-batch",
       "when": "A finite music batch has a pending, unknown or failed item.",
-      "then": "Every item has its own record. Pending is already submitted; complete and attach serially. Stop on errors or uncertain output, and process only unattempted items after explicit continuation."
+      "then": "Every async StepFun item has its own record; synchronous music_sync items retain their artifact receipts instead. Pending is already submitted; complete and attach serially. Stop on errors or uncertain output, and process only unattempted items after explicit continuation."
     },
     {
       "id": "music-key-scope",
-      "when": "An existing music task is denied after changing host or key.",
+      "when": "An existing async StepFun music task is denied after changing host or key.",
       "then": "Explain original owner/key binding, preserve task, do not read or ask for keys, switch hosts or recreate automatically."
     }
   ]

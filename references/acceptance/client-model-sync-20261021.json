@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-21",
+  "candidateVersion": "0.19.6",
+  "publishedVersion": "0.19.5",
+  "publishedSourceCommit": "23b0bad994ea98c32161e1f34c493217da4a1f76",
+  "catalog": {
+    "capturedAt": "2026-10-20T16:53:29.058Z",
+    "responseDate": "Tue, 20 Oct 2026 16:53:28 GMT",
+    "sha256": "1b802680fc29cacecb98418956c8dd2fe18e8166916cad322111559efdef1ff5",
+    "bytes": 210008,
+    "total": 114,
+    "media": 30,
+    "image": 15,
+    "video": 15,
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "defaults": {
+    "image": "gpt-image-2.5-flare",
+    "video": "MiniMax-H3"
+  },
+  "productionFollowup": {
+    "capturedAt": "2026-10-21T02:27:06.103Z",
+    "responseDate": "Wed, 21 Oct 2026 02:27:05 GMT",
+    "sha256": "f55931488bc2eab4cbc0ed03f7af8072ef7c244fd3bb521e442191f660af00dc",
+    "bytes": 286078,
+    "total": 124,
+    "explicitMediaModels": 31,
+    "image": 15,
+    "video": 16,
+    "removedFromNewSelection": ["minimax_h3", "seedance2.0"],
+    "retainedSchemas": "Unchanged after existing reviewed supplements and restrictions; raw public omissions do not remove the reviewed Seedance operations or relax Grok restrictions.",
+    "reviewedVideoVisibility": {
+      "listed": 10,
+      "dedicatedMediaSchemas": ["MiniMax-H3", "viduq3-pro", "viduq3-turbo"],
+      "genericOnly": ["kling-v3", "kling-v3-turbo", "Super Vega 1.0-lite", "Super Vega 1.0-pro", "Super Vega 1.0-pro-fast", "Super Vega 1.0-pro-mini", "Super Vega 1.5-pro"],
+      "notListed": ["viduq4-preview"],
+      "installedProfiles": "Keep the raw public schemas in the captured catalog. Installed exact-model profiles retain the separately reviewed embedded boundary and source provenance even after the same IDs gain live metadata. Source-only profiles are not live-availability claims."
+    },
+    "earlierSameDayCapture": {
+      "capturedAt": "2026-10-21T01:59:35.599Z",
+      "sha256": "65451106705d2d160bd3dc339b2c6987043f7c1d42bf6d2387ac9c9c853f71c0",
+      "total": 125,
+      "explicitMediaModels": 28,
+      "superseded": "H3 and both Vidu Q3 models gained explicit video schemas; Vidu Q4 left the public listing. Chat sort/pricing-version changes do not change Skill routes."
+    },
+    "reviewedAudioVisible": 18,
+    "reviewedEvaluationVisible": 3,
+    "reviewedEmbeddingRerankVisible": 3,
+    "anonymousDedicatedMediaCatalog": {"status": 401, "credentialsUsed": false},
+    "defaultVideoChange": {
+      "from": "minimax_h3",
+      "to": "MiniMax-H3",
+      "reason": "The former exact default is absent from the current public catalog; the separately reviewed H3 ID is now listed. No alias is added and existing task identity is unchanged.",
+      "referenceTransport": "JSON public HTTPS URLs only; reject native multipart attachments rather than upload, rehost or automatically replace the model."
+    },
+    "regression": {
+      "red": "production-model-sync new default test fails on the previous minimax_h3 default",
+      "green": "Two production-model-sync tests and targeted current/retired-profile Go tests passed.",
+      "scope": "Offline schema, selection and transport checks only; no real-host or paid acceptance."
+    },
+    "releaseGates": {
+      "engineering": {"command": "npm run check", "status": "passed", "nodeTests": 182, "passed": 178, "skipped": 4, "failed": 0, "scope": "After default and transport changes, before final same-day catalog enrichment and profile-merge correction."},
+      "reproducibleBuilds": "passed for six platforms; no executor production inputs changed in this follow-up",
+      "finalCatalogAndMergeChecks": {
+        "status": "passed",
+        "repositoryValidation": "npm run validate",
+        "affectedTests": 22,
+        "failed": 0,
+        "regressionRed": "The previous committed generator fails read-only --check for all three newly public reviewed video profiles; the corrected generator passes.",
+        "publicationRequirement": "The release workflow must re-run the full engineering gate on the final pinned source."
+      }
+    }
+  },
+  "reviewedSourceVideoModels": [
+    "kling-v3",
+    "kling-v3-turbo",
+    "viduq3-pro",
+    "viduq3-turbo",
+    "viduq4-preview",
+    "MiniMax-H3",
+    "Super Vega 1.0-lite",
+    "Super Vega 1.0-pro",
+    "Super Vega 1.0-pro-fast",
+    "Super Vega 1.0-pro-mini",
+    "Super Vega 1.5-pro"
+  ],
+  "reviewedSourceAudioModels": [
+    "eleven_v3",
+    "eleven_v4",
+    "eleven_multilingual_v2",
+    "eleven_flash_v2_5",
+    "scribe_v2",
+    "scribe_v2_medical",
+    "eleven_text_to_sound_v2",
+    "music_v2_5",
+    "eleven_multilingual_sts_v2"
+  ],
+  "sourceMetadataSha256": "5675956b9c2c24e18d17054f7e0c9d08794a25bc2da49c6d12508a1746cb9b9b",
+  "sources": {
+    "skills": "a418f317a149fecf04a6082658c8eed7e8d9e72c",
+    "web": "155d6c10477f03baa2832b1f965fb03cd3649702",
+    "switch": "e347ec759b377fda85ebbab6addce3473ae66e23",
+    "workingTrees": "Existing modifications preserved; source review includes explicitly referenced current working files."
+  },
+  "clients": {
+    "webSwitchRegistryCount": 22,
+    "installableHostCount": 19,
+    "credentialFixtureAdapterCount": 19,
+    "stableCredentialAdapterCount": 18,
+    "sourceOnlyHost": "trae",
+    "unsupportedDirectSkills": [
+      "paseo",
+      "rakazo",
+      "openmausbot"
+    ],
+    "displayName": {
+      "codex": "ChatGPT (native Codex host ID and paths unchanged)"
+    }
+  },
+  "scope": "Source and isolated fixture compatibility plus anonymous public model visibility only; no credentials read, client configuration writes or paid API requests. The initial catalog above predates deployment; productionFollowup records the new listing and its missing dedicated metadata. Publication remains separate.",
+  "validation": {
+    "state": "passed",
+    "evidenceScope": "Local source, fixtures, cross-compilation and isolated draft packaging/installation only; no real host or paid acceptance.",
+    "engineeringGate": {
+      "command": "npm run check",
+      "status": "passed",
+      "goTests": "passed",
+      "goVet": "passed",
+      "nodeTests": {
+        "total": 180,
+        "passed": 176,
+        "failed": 0,
+        "skipped": 4
+      },
+      "skippedReason": "PowerShell is unavailable on this macOS host; its download diagnostics, host detection, failure receipts and TRAE edition selection were not executed.",
+      "scope": "Full repository gate passed before the final speed-diagnostic wording/reason correction; all Go tests/vet and affected schemas were rerun on the final native source."
+    },
+    "releaseFreshnessGate": {
+      "command": "npm run release:validate",
+      "status": "passed",
+      "publication": "not_requested_or_executed"
+    },
+    "finalDocumentationFollowup": {
+      "commands": [
+        "npm run docs:sync-guidance",
+        "npm run validate",
+        "node --test test/audio-contract.test.mjs test/reviewed-video-contract.test.mjs test/operation-guidance.test.mjs test/specialist-skills.test.mjs"
+      ],
+      "status": "passed",
+      "tests": 23,
+      "failed": 0,
+      "skipped": 0
+    },
+    "executorBuild": {
+      "platforms": [
+        "darwin-amd64",
+        "darwin-arm64",
+        "linux-amd64",
+        "linux-arm64",
+        "windows-amd64",
+        "windows-arm64"
+      ],
+      "sourceSha256": "1830b8010033b8b6e81b5e5ce2979fb3af3c5515075c4ae648fb069f9261cc1d",
+      "artifactHashes": {
+        "darwin-amd64": {
+          "path": "bin/puretokens-api-darwin-amd64",
+          "sha256": "f2aa3da8384dbd33d9376177c7c86b541c9e1f01ea6ba9999fc00d7134a6112e"
+        },
+        "darwin-arm64": {
+          "path": "bin/puretokens-api-darwin-arm64",
+          "sha256": "8f2466f4422af6e2ccd23c53b8188a6f875850d34c321a10acd75a0939ac7929"
+        },
+        "linux-amd64": {
+          "path": "bin/puretokens-api-linux-amd64",
+          "sha256": "0efe271547a5cabe90f33d908ec0ebb35e22e4955483a07e5d6da7ba23cafdf3"
+        },
+        "linux-arm64": {
+          "path": "bin/puretokens-api-linux-arm64",
+          "sha256": "2a90f7a46db44650ba6365df0e049eadce0da1a6c5c4b29b0d8083c7d8c50500"
+        },
+        "windows-amd64": {
+          "path": "bin/puretokens-api-windows-amd64.exe",
+          "sha256": "614f9e2a669b40d63f9e1416fba7da3ec874bc07f31097f88390467e8df7eff4"
+        },
+        "windows-arm64": {
+          "path": "bin/puretokens-api-windows-arm64.exe",
+          "sha256": "b2344332967af54d2d90a2096ccbc2ed9e0f5e08f4d8bd8babff7e0f918393cc"
+        }
+      },
+      "reproducibleRebuild": "passed"
+    },
+    "isolatedPackaging": {
+      "status": "passed",
+      "platformArchiveCount": 6,
+      "archiveMembersAndChecksums": "verified against final source",
+      "sourceCommit": null,
+      "publishable": false,
+      "reason": "Temporary root has no Git commit identity; draft archives are not publication artifacts and were removed after validation."
+    },
+    "isolatedInstallation": {
+      "system": "darwin",
+      "architecture": "arm64",
+      "isolated": true,
+      "managedInventories": 11,
+      "executorCount": 1,
+      "currentSystemScriptsOnly": true,
+      "spacedModelProfiles": true,
+      "elevenlabsMusicProfile": true,
+      "credentialRead": false,
+      "networkCalls": 0,
+      "init": "deferred_without_host",
+      "verification": "passed"
+    },
+    "crossRepositoryContracts": {
+      "status": "synchronized",
+      "checks": [
+        "Reviewed Web metadata SHA-256 equals the profile source provenance",
+        "Switch TRAE writer fixture is byte-identical to the Skills adapter fixture",
+        "git diff --check on the three changed Web/Switch documents"
+      ],
+      "applicationBuilds": "Not run for documentation-only additions; pre-existing working changes preserved."
+    },
+    "negativeFixtures": [
+      "Group/model permission rejection and catalog refresh remain offline fixtures",
+      "TRAE ambiguous edition, different saved credentials, missing/edited cache models and unfinished transactions stop before networking",
+      "Reviewed video count, mode, duration and resolution violations stop locally, including absent/stale installed profiles",
+      "ElevenLabs rejects inherited StepFun fields, missing voice/duration/instrumental, sub-millisecond music durations and wrong music operation before POST",
+      "Valid millisecond durations including 4.001 preserve their numeric value",
+      "Synchronous audio preserves original bytes/text, submits once, verifies output bytes and never routes music_sync to asynchronous tasks",
+      "ElevenLabs speed reports unsupported, never the StepFun 0.5–2 range."
+    ],
+    "diffWhitespace": "passed",
+    "finalNativeFollowup": {
+      "commands": [
+        "npm run executor:test",
+        "node --test test/executor-schema.test.mjs test/audio-contract.test.mjs test/reviewed-video-contract.test.mjs"
+      ],
+      "status": "passed",
+      "goTests": "passed",
+      "goVet": "passed",
+      "nodeTests": {
+        "passed": 23,
+        "failed": 0,
+        "skipped": 0
+      },
+      "regression": "ElevenLabs unsupported speed cannot return StepFun range guidance."
+    }
+  },
+  "pendingAcceptance": [
+    "Actual host Skill loading and session binding",
+    "Selected and refreshed multi-group exact model permission",
+    "Rejected key and distinct-key behavior on actual clients",
+    "Dedicated live API requests and billing with separate explicit cost authorization",
+    "Native image/video/audio attachment handoff and actual playback",
+    "Jev typed result delivery in actual host",
+    "TRAE live installation/authentication/media delivery"
+  ],
+  "paidTestPlan": {
+    "authorized": false,
+    "submittedRequests": 0,
+    "proposed": "Select one exact model per operation, one host and entitled voice where applicable; report current configured price and maximum reservation before authorization. Reuse existing artifacts for local reattachment and same-task recovery.",
+    "cost": "Not quoted: no current per-account approved tariff was read. Never infer official price or authorize from model visibility."
+  },
+  "contracts": {
+    "skills": [
+      "references/audio-execution-contract.md",
+      "references/media-parameter-review.md",
+      "references/credential-adapters.md"
+    ],
+    "web": [
+      "docs/product/audio-workspace-integration.md",
+      "docs/architecture/video-provider-adapters.md"
+    ],
+    "switch": [
+      "docs/api/puretokens-api-baseline.md"
+    ]
+  }
+}

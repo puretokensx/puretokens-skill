@@ -88,7 +88,7 @@ export function renderHostDeliveryGuide(source) {
   for (const host of source.hosts) {
     lines.push(`| \`${host.id}\` | ${host.protocols.map(id => protocols.get(id).title).join("；")} |`);
   }
-  lines.push("", "Trae 目前缺少凭据适配器；这里列出交付协议不新增其 API 支持。其他客户端同样继续遵守原有凭据与执行模式边界。", "");
+  lines.push("", "TRAE 的源码适配器仅使用 Switch 已保存连接；实际技能加载、API 与原生交付仍需分别验收。这里列出交付协议不等于已发布或实机通过。其他客户端同样遵守原有凭据与执行模式边界。", "");
   for (const protocol of source.protocols) {
     lines.push(`## ${protocol.title}`, "", `适用模式：${protocol.modes.map(mode => labels[mode]).join("、")}；媒体：${protocol.media.map(kind => labels[kind]).join("、")}。`, "",
       `前提：${protocol.requirement}`, "", `动作：${protocol.action}`, "", `确认：${protocol.confirmation}`, "", `依据：${protocol.evidence}`);

@@ -52,6 +52,42 @@ func TestContractExamples(t *testing.T) {
 		capture(name, schema, data)
 	}
 
+	t.Run("ElevenLabs dedicated audio", func(t *testing.T) {
+		for model, operation := range map[string]string{
+			"eleven_v3": "speech", "eleven_v4": "speech", "eleven_multilingual_v2": "speech", "eleven_flash_v2_5": "speech",
+			"scribe_v2": "transcribe", "scribe_v2_medical": "transcribe", "eleven_text_to_sound_v2": "generate",
+			"music_v2_5": "music_sync", "eleven_multilingual_sts_v2": "voice_change",
+		} {
+			for _, scenario := range []string{"success", "unknown", "invalid-duration"} {
+				if scenario == "invalid-duration" && operation != "music_sync" && operation != "generate" {
+					continue
+				}
+				_, err, raw := audioCLI(t, "speech", func(r map[string]any) {
+					elevenAudioRequest(t, r, model, operation)
+					if scenario == "invalid-duration" {
+						r["duration_seconds"] = 0
+					} else {
+						captureValue("eleven-request-"+model+"-"+scenario, "audio-request.schema.json", r)
+					}
+				}, func(*http.Request) (*http.Response, error) {
+					if scenario == "unknown" {
+						return nil, errors.New("synthetic lost response")
+					}
+					if operation == "transcribe" {
+						response := evaluationHTTP(200, `{"text":"合成转写"}`)
+						response.Header.Set("Content-Type", "application/json")
+						return response, nil
+					}
+					return &http.Response{StatusCode: 200, Header: http.Header{"Content-Type": {"audio/mpeg"}}, Body: io.NopCloser(bytes.NewReader(audioMP3Fixture()))}, nil
+				})
+				if (err == nil) != (scenario == "success") {
+					t.Fatal("unexpected dedicated audio outcome")
+				}
+				capture("eleven-receipt-"+model+"-"+scenario, "audio-receipt.schema.json", []byte(raw))
+			}
+		}
+	})
+
 	t.Run("synchronous embeddings and rerank", func(t *testing.T) {
 		for _, kind := range []string{"embedding", "rerank"} {
 			for _, scenario := range []string{"success", "invalid-request", "invalid-response", "rejected", "network", "output-race"} {

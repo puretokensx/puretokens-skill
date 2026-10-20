@@ -21,7 +21,7 @@ func TestExplicitAlternativeKeepsOriginalTaskAndReference(t *testing.T) {
 		parameters                                                                     map[string]any
 	}{
 		{"image", "gpt-image-2", "nano-banana-2", "edit", "image_edit", "/v1/images/edits", "image", "image", map[string]any{"aspect_ratio": "1:1"}},
-		{"video", "grok-imagine-video-1.5", "minimax_h3", "generate", "image_to_video", "/v1/videos", "image", "first_frame_image", map[string]any{"duration": 5}},
+		{"video", "grok-imagine-video-1.5", "wan3.0-video", "generate", "image_to_video", "/v1/videos", "image", "first_frame_image", map[string]any{"duration": 5}},
 	} {
 		t.Run(tc.kind, func(t *testing.T) {
 			root := t.TempDir()

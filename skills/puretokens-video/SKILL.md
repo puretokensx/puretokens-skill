@@ -22,9 +22,9 @@ description: 当前宿主使用 Pure Tokens 连接时，生成或编辑视频、
 | 用户需求 | 操作选择 |
 | --- | --- |
 | 用文字生成视频 | `generate`，读取所选 profile |
-| 让这张照片动起来／作为开场画面 | 本地附件用声明的 `image_to_video` |
+| 让这张照片动起来／作为开场画面 | 使用 profile 声明的首帧 operation 和附件传输 |
 | 用图中人物／商品在另一场景表演，仅参考外观 | `reference_image_video`，不改成首帧 |
-| 从图 A 过渡到图 B | 选择 profile 中同时声明首尾帧的 operation；`minimax_h3` 使用 `image_to_video`，明确首尾顺序 |
+| 从图 A 过渡到图 B | 选择 profile 中同时声明首尾帧及当前输入传输的 operation；明确首尾顺序，不把本地附件当公开 URL |
 | 参考视频动作／音频节奏 | 声明的 `reference_video`／`reference_audio`，不等同编辑原视频 |
 | 修改已有视频 | 声明的 `video_edit` |
 | 继续原任务、下载已有结果 | `resume`／同任务查询与交付；不得新 POST |
@@ -50,8 +50,9 @@ Grok 编辑限制：`grok-imagine-video-1.5`／`grok-imagine-video-1.5-preview` 
 
 ## 选择与提交
 
-1. 默认 `minimax_h3` 或用户精确 ID：只读 `references/profiles/<model>.json`；选模型或唯一别名解析才读 `references/model-index.json`。不遍历 profile，不先查余额、init、doctor、preflight 或实时目录。未知精确 ID 的纯文本请求可只传 model/prompt；字段／操作缺口由执行器按需读一次目录。
-2. 保留用户意图、主体与运动要求，只发 profile 声明的字段、值、operation。物理尺寸不是 API 尺寸。本地首帧／让图动起来用 `image_to_video`；公网 URL 首帧按 profile 的 JSON 引用字段，不套用仅 multipart 的 operation。角色风格参考用 `reference_image_video`，视频／音频参考或编辑用 `reference_video`／`reference_audio`／`video_edit`；首尾帧按 profile 的 frame operation。只混合已声明的附件组合，用途不明确才澄清。每任务一个视频，声音／静音只映射声明的 `generate_audio`。
+1. 默认 `MiniMax-H3` 或用户精确 ID：只读 `references/profiles/<model>.json`；选模型或唯一别名解析才读 `references/model-index.json`。不遍历 profile，不先查余额、init、doctor、preflight 或实时目录。未知精确 ID 的纯文本请求可只传 model/prompt；字段／操作缺口由执行器按需读一次目录。
+   带 `sourceReview` 的配置仅证明源码契约审核；公开目录列出型号不证明专用 API 权限或实机交付。`MiniMax-H3` 与旧 `minimax_h3` 不互为别名；已有任务保留原型号。默认 H3 参考输入只支持公开 HTTPS URL，本地附件不可上传托管或静默换模型。`Super Vega` 名称保留内部空格。组合不明确时读 [新增视频参数](references/reviewed-video-usage.md)。
+2. 保留用户意图、主体与运动要求，只发 profile 声明的字段、值、operation。物理尺寸不是 API 尺寸。首帧／让图动起来按所选 profile 使用 `image_to_video` 或 `first_frame_video`，同时确认本地 multipart 或公网 URL 传输，不能互换。角色风格参考用 `reference_image_video`，视频／音频参考或编辑用 `reference_video`／`reference_audio`／`video_edit`；首尾帧按 profile 的 frame operation。只混合已声明的附件组合，用途不明确才澄清。每任务一个视频，声音／静音只映射声明的 `generate_audio`。
 3. 本次本地附件只随声明的 multipart 发送；用户公网 HTTPS URL 只进声明的 JSON 字段。不下载、探测、转存参考媒体或改成提示词；没有声明的传输方式就停止。
 4. 用宿主文件工具创建 UTF-8 请求：kind=`video`、operation=`generate` 或 `edit`、model、prompt、parameters；声明的附件操作使用 media_operation 及 attachments（field、绝对 path）。执行 `<执行器> submit --host <当前宿主> --request <绝对请求文件>`，之后清理该临时文件；提示词和凭据不进命令行。命令／请求示例按需读 [executor-usage.md](references/executor-usage.md)。
 

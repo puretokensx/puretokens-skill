@@ -47,6 +47,9 @@ func loadProfile(request taskRequest, svc service) (modelProfile, error) {
 	if !validModelID(request.Model) {
 		return profile, errors.New("Choose an exact model ID from the model index.")
 	}
+	if reviewed, exists := reviewedVideoProfile(request.Model); exists && request.Kind == "video" {
+		return reviewed, nil
+	}
 	if svc.profilesRoot != "" {
 		file := filepath.Join(svc.profilesRoot, "puretokens-"+request.Kind, "references", "profiles", request.Model+".json")
 		if body, err := readBoundedFile(file, maxResponseBytes); err == nil && json.Unmarshal(body, &profile) == nil && profile.ID == request.Model && profile.Capability == request.Kind {
@@ -218,6 +221,9 @@ func requestedMediaOperation(request taskRequest) (string, error) {
 func prepareProfileRequest(request *taskRequest, svc service) error {
 	if request.Kind == "music" {
 		return prepareMusicRequest(request)
+	}
+	if err := prepareReviewedVideoOperation(request); err != nil {
+		return err
 	}
 	opName, err := requestedMediaOperation(*request)
 	if err != nil {

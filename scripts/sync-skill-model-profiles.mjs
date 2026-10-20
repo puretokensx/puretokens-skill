@@ -37,7 +37,8 @@ export function buildModelIndex(catalog, capability, defaultModel) {
         return ({
         id: model.id,
         aliases: model.aliases || [],
-        profile: `profiles/${model.id}.json`
+        profile: `profiles/${model.id}.json`,
+        ...(model.sourceReview ? { supportScope: "reviewed_source" } : {})
         });
       })
   };
@@ -52,7 +53,8 @@ export function buildModelProfile(catalog, capability, model) {
     catalogUpdatedAt: catalog.updatedAt,
     catalogCapturedAt: catalog.serviceCatalog?.capturedAt,
     id: model.id,
-    parameterSchema: model.parameterSchema || {}
+    parameterSchema: model.parameterSchema || {},
+    ...(model.sourceReview ? { sourceReview: model.sourceReview } : {})
   };
 }
 
@@ -63,6 +65,21 @@ function serialized(value) {
 async function main() {
   const { write, check } = parseMode();
   const catalog = JSON.parse(await readFile(catalogPath, "utf8"));
+  const reviewed = JSON.parse(await readFile(path.join(repositoryRoot, "runtime/executor/reviewed-video-profiles.json"), "utf8"));
+  if (reviewed.schemaVersion !== 1 || reviewed.scope !== "reviewed_source_not_live_availability") {
+    throw new Error("Invalid reviewed source profile document");
+  }
+  for (const model of reviewed.models) {
+    const sourceReview = { reviewedAt: reviewed.reviewedAt, scope: reviewed.scope, source: reviewed.source };
+    const published = catalog.models.find(row => row.id === model.id);
+    if (published) {
+      // Public visibility must not replace the executor's reviewed boundary.
+      published.parameterSchema = model.parameterSchema;
+      published.sourceReview = sourceReview;
+    } else {
+      catalog.models.push({ ...model, capabilities: [model.capability], sourceReview });
+    }
+  }
   for (const model of catalog.models) assertModelID(model.id);
   let changed = false;
   for (const target of targets) {

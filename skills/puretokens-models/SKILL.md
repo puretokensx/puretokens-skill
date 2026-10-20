@@ -22,7 +22,7 @@ description: 查询当前 Pure Tokens 连接的图片／视频模型、参数、
 ## 音频模型查询
 
 用户明确查询当前可见音频模型时，用 `{"kind":"audio"}` 筛选文件，
-可加精确 `model` 或 `operation`（speech／transcribe／generate／music），
+可加精确 `model` 或 `operation`（speech／transcribe／generate／music／music_sync／voice_change），
 执行 `<绝对执行器路径> models --host <当前宿主 ID> --request <筛选文件>`。
 该模式只请求一次 `GET https://api.puretokensx.com/v1/models`，取返回 ID
 与已安装音频审核模型的交集，去重后展示；不接受 parameters 筛选。

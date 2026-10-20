@@ -6,6 +6,8 @@ import (
 	"io"
 	"mime"
 	"mime/multipart"
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 )
@@ -142,10 +144,26 @@ func TestCurrentCatalogImageTiersAndExactIDs(t *testing.T) {
 	}
 }
 
-func TestCurrentCatalogVideoOperations(t *testing.T) {
+// Retired profiles are test-only history, never new installed selections.
+func retiredProfileService(t *testing.T, id string) (modelProfile, service, *profileCatalogTransport) {
+	t.Helper()
+	body, err := os.ReadFile(filepath.Join("testdata", "retired-model-profiles", id+".json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var profile modelProfile
+	if err := json.Unmarshal(body, &profile); err != nil {
+		t.Fatal(err)
+	}
+	svc, transport := catalogProfileService(t, profile)
+	svc.profilesRoot = writeInstalledProfileFixture(t, profile)
+	return profile, svc, transport
+}
+
+func TestCurrentAndHistoricalCatalogVideoOperations(t *testing.T) {
 	for _, model := range []string{"seedance2.0"} {
 		for _, count := range []int{1, 2} {
-			svc, transport := catalogProfileService(t, readInstalledProfileFixture(t, "video", model))
+			_, svc, transport := retiredProfileService(t, model)
 			refs := []any{"https://example.com/reference.png"}
 			if count == 2 {
 				refs = append(refs, refs[0])
@@ -178,7 +196,7 @@ func TestCurrentCatalogVideoOperations(t *testing.T) {
 			t.Fatalf("seedance-2.5 JSON references %d: %v", count, err)
 		}
 	}
-	svc, transport := catalogProfileService(t, readInstalledProfileFixture(t, "video", "minimax_h3"))
+	_, svc, transport := retiredProfileService(t, "minimax_h3")
 	r := taskRequest{Kind: "video", Operation: "generate", Model: "minimax_h3", Prompt: "synthetic", Parameters: map[string]any{"last_frame_image": "https://example.com/last.png"}}
 	if prepareProfileRequest(&r, svc) == nil {
 		t.Fatal("last frame without first accepted")
@@ -208,7 +226,13 @@ func TestCurrentCatalogDoesNotInventAttachmentOperations(t *testing.T) {
 		if model == "qwen-image-3.0" {
 			kind = "image"
 		}
-		svc, transport := catalogProfileService(t, readInstalledProfileFixture(t, kind, model))
+		var svc service
+		var transport *profileCatalogTransport
+		if model == "seedance2.0" {
+			_, svc, transport = retiredProfileService(t, model)
+		} else {
+			svc, transport = catalogProfileService(t, readInstalledProfileFixture(t, kind, model))
+		}
 		r := taskRequest{Kind: kind, Operation: "generate", Model: model, Prompt: "synthetic", MediaOperation: "image_to_video", Attachments: []attachment{{Field: "first_frame_image", Path: "fixture.png"}}, Parameters: map[string]any{"duration": 8}}
 		if kind == "image" {
 			r.Operation = "edit"
@@ -222,10 +246,9 @@ func TestCurrentCatalogDoesNotInventAttachmentOperations(t *testing.T) {
 	}
 }
 
-func TestH3FirstLastFramesUseDeclaredImageToVideo(t *testing.T) {
-	profile := readInstalledProfileFixture(t, "video", "minimax_h3")
+func TestHistoricalH3FirstLastFramesUseDeclaredImageToVideo(t *testing.T) {
 	for _, op := range []string{"image_to_video", "first_last_frame_video"} {
-		svc, transport := catalogProfileService(t, profile)
+		_, svc, transport := retiredProfileService(t, "minimax_h3")
 		request := taskRequest{Kind: "video", Operation: "generate", MediaOperation: op, Model: "minimax_h3", Prompt: "synthetic", Attachments: []attachment{{Field: "first_frame_image", Path: "/synthetic/first.png"}, {Field: "last_frame_image", Path: "/synthetic/last.png"}}}
 		err := prepareProfileRequest(&request, svc)
 		if op == "image_to_video" && (err != nil || transport.calls != 0 || request.route != "/v1/videos") {
@@ -235,5 +258,20 @@ func TestH3FirstLastFramesUseDeclaredImageToVideo(t *testing.T) {
 			t.Fatalf("undeclared operation was not bounded and rejected: %v", err)
 		}
 		t.Logf("operation=%s accepted=%t simulated_catalog_reads=%d", op, err == nil, transport.calls)
+	}
+}
+
+func TestCurrentDefaultH3ReferenceTransport(t *testing.T) {
+	profile := readInstalledProfileFixture(t, "video", "MiniMax-H3")
+	svc, transport := catalogProfileService(t, profile)
+	request := taskRequest{Kind: "video", Operation: "generate", Model: "MiniMax-H3", Prompt: "fixture", MediaOperation: "image_to_video",
+		Parameters: map[string]any{"first_frame_image": "https://example.com/frame.png", "duration": 5, "resolution": "768p"}}
+	if err := prepareProfileRequest(&request, svc); err != nil || request.route != "/v1/videos" || transport.calls != 0 {
+		t.Fatalf("reviewed current H3 URL input must not need discovery: %v", err)
+	}
+	request.Parameters = map[string]any{"duration": 5}
+	request.Attachments = []attachment{{Field: "first_frame_image", Path: "/synthetic/first.png"}, {Field: "last_frame_image", Path: "/synthetic/last.png"}}
+	if err := prepareProfileRequest(&request, svc); err == nil || transport.calls != 0 {
+		t.Fatalf("current H3 must reject native attachment transport without a request: %v", err)
 	}
 }

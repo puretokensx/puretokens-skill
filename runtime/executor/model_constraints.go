@@ -80,6 +80,55 @@ func validateModelConstraints(schema parameterSchema, operation string, paramete
 		}
 	}
 	present := func(key string) bool { return counts[key] > 0 || parameters[key] != nil }
+	referenceCount := func(key string) int {
+		if counts[key] > 0 {
+			return counts[key]
+		}
+		if _, ok := parameters[key].(string); ok {
+			return 1
+		}
+		return len(array(parameters[key]))
+	}
+	if limits, exists := schema.Constraints["reference_counts"]; exists {
+		total := 0
+		for key, limit := range limits {
+			if key == "max_total" {
+				continue
+			}
+			count := referenceCount(key)
+			if maximum, ok := number(limit); ok && float64(count) > maximum {
+				return errors.New("The reference count exceeds this model's declared limit.")
+			}
+			total += count
+		}
+		if maximum, ok := number(limits["max_total"]); ok && float64(total) > maximum {
+			return errors.New("The combined reference count exceeds this model's declared limit.")
+		}
+	}
+	visual := present("first_frame_image") || present("last_frame_image") || present("reference_images") || present("reference_videos") || present("video")
+	frames := present("first_frame_image") || present("last_frame_image")
+	if rules, exists := schema.Constraints["reference_combination"]; exists {
+		if hasValue(array(rules["audio_requires_visual"]), true) && present("reference_audios") && !visual {
+			return errors.New("Audio references require a visual input for this model.")
+		}
+		if hasValue(array(rules["adaptive_requires_visual"]), true) && parameters["aspect_ratio"] == "adaptive" && !visual {
+			return errors.New("Adaptive aspect ratio requires a visual input for this model.")
+		}
+		if hasValue(array(rules["frames_exclusive"]), true) && frames &&
+			(present("reference_images") || present("reference_videos") || present("reference_audios")) {
+			return errors.New("First/last frames cannot be combined with additional reference media.")
+		}
+	}
+	if frames {
+		for _, key := range array(schema.Constraints["frame_parameters"]["unsupported"]) {
+			if present(fmt.Sprint(key)) {
+				return errors.New("This model derives geometry from frame input. Omit incompatible frame parameters rather than silently discarding them.")
+			}
+		}
+	}
+	if schema.Constraints["audio_requires_reference_images"]["enabled"] == true && present("reference_audios") && !present("reference_images") {
+		return errors.New("Audio references require reference images for this model.")
+	}
 	if rules, ok := schema.Constraints["frame_exclusivity"]; ok {
 		if hasValue(array(rules["last_frame_image"]), "requires_first_frame_image") && present("last_frame_image") && !present("first_frame_image") {
 			return errors.New("A last frame requires the first frame for this model.")

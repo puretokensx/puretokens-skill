@@ -1,6 +1,6 @@
 # 音乐：提交一次，续接原任务
 
-本指南属于 puretokens-audio。音乐是异步任务，执行器使用 `kind=music`；
+本指南属于 puretokens-audio，仅用于 StepFun 默认音乐。`music_v2_5` 见 [ElevenLabs 同步指南](elevenlabs-usage.md)，不得套用本页命令。StepFun 音乐是异步任务，执行器使用 `kind=music`；
 配音、转写和音效仍用同步 `audio` 命令，两者回执不能混用。
 唯一审核模型 `stepaudio-3-music-preview`，读对应 profile。普通生成不查目录。
 只写／润色歌词或创作建议不发请求。明确要纯音乐时 `instrumental=true`；

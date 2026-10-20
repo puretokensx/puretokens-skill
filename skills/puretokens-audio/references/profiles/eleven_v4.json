@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-21",
+  "model": "eleven_v4",
+  "operation": "speech",
+  "path": "/v1/audio/speech",
+  "content_type": "application/json",
+  "max_input_characters": 4096,
+  "formats": [
+    "mp3"
+  ],
+  "voice_pattern": "^[A-Za-z0-9_-]{1,120}$",
+  "voice_requires_explicit_entitlement": true,
+  "supports_instruction": false,
+  "support_scope": "reviewed_source_not_live_acceptance"
+}

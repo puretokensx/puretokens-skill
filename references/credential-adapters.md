@@ -14,7 +14,7 @@ Before the balance usage request only, add `sk-` in memory if absent, matching t
 | WorkBuddy | `WORKBUDDY_CONFIG_DIR/models.json`, then `CODEBUDDY_CONFIG_DIR/models.json`, otherwise `~/.workbuddy/models.json`; `url` + `apiKey` records | Requires one unique matching credential. Zero matching records, missing credential and multiple matching credentials have distinct outcomes. Saved matching records are resolved independently of the selected chat model; no chat-model switch is required for init. Missing/unreadable records, unsupported formats, no matches, missing credentials and ambiguity produce distinct workbuddy_* diagnostics. This is not proof of a separately selected UI model. |
 | Grok Build | `~/.grok/config.toml`; `models.default` selects `model.<id>.base_url/api_key` | Standard TOML fixture. Unpersisted session selection not verified. |
 | OpenCode | Declared JSON/JSONC layers and the selected native `auth.json` entry described below; root `model`, when present, selects `provider.<id>.options.baseURL/apiKey` | Optional default, layer ordering, provider filters and native API-key precedence covered by fixtures. Without a default, requires exactly one enabled endpoint-matching saved service. Not proof of current chat selection. |
-| Trae | No managed credential adapter | Stops before any API request; installing the Skills does not imply media availability. |
+| TRAE / TRAE SOLO | Default local `User/globalStorage/state.vscdb` under macOS `~/Library/Application Support/{Trae,Trae CN,TRAE SOLO}` or Windows `%APPDATA%/{Trae,Trae CN,TRAE SOLO}`; exact `puretokens.traework.status.v1` and its two declared account-scoped model-cache keys | Source adapter for a single Switch-managed saved connection. Multiple installed state stores, distinct credential fingerprints, unfinished transactions, edited/missing models, masked keys or unsupported formats stop before networking. No version whitelist; no claim of active chat/account selection. |
 | Claude Desktop | macOS `~/Library/Application Support/Claude-3p`, Windows `%APPDATA%/Claude-3p`; `claude_desktop_config.json` must select `deploymentMode: 3p`; `configLibrary/_meta.json.appliedId` selects exactly one UUID-named JSON profile. Read its `inferenceGatewayBaseUrl` / `inferenceGatewayApiKey` only for `gateway`, `static`, `bearer`. | Mirrors Switch's `crates/client-adapters/claude-desktop/src/lib.rs`. No profile enumeration, label matching or Claude Code fallback. Only the local desktop filesystem is supported; cloud/remote/Cowork access is not implied. |
 | DSH Desktop | Explicit absolute `DSH_HOME`, otherwise macOS `~/Library/Application Support/dsh-desktop/harness`, Windows `%APPDATA%/dsh-desktop/harness`; `settings.yaml.agent-default-model.provider/model` selects `llm-pi-ai.providers.<id>` with a declared matching model. Its `apiKeyEnv` selects one `refs` value in sibling `.credentials.yaml` version 1. | Mirrors Switch's `crates/client-adapters/dsh-desktop/src/lib.rs`. Validate `openai-completions` and the Pure Tokens endpoint before opening the credential store. No environment-key fallback, provider-label identity, profile enumeration or unrelated store access. YAML rejects duplicate keys, aliases, merge keys, multiple documents and excessive nesting; quoted/block/flow scalars are parsed normally. |
 
@@ -141,3 +141,40 @@ The root follows Switch writer `crates/client-adapters/minimax-code/src/paths.rs
 Read only `<root>/config.yaml`, with bounded duplicate-free YAML, no aliases/documents, symlinks/reparse points or hard links. `defaultModel` must select `custom_provider:<provider>/<exact-model>`; split once so model IDs containing `/` survive. Require the selected declared enabled model and enabled custom provider, a supported `openai-completions`, `openai-responses` or `anthropic-messages` protocol, and fixed Pure Tokens `/v1` connection identity before taking its inline Key. Labels do not identify a connection. Switch may write three protocol providers: the saved default selects one; never compare their Keys or select a sibling on failure. Foreign siblings and distinct sibling Keys do not authorize using them. Unsupported routing/header/auth overrides, dynamic references and OAuth stop; no official `minimax_api` credential or environment-Key fallback.
 
 The adapter cannot observe `explicit request > session override > defaultModel` through this file. Host binding must confirm the default local conversation; unknown/overridden sessions stop. Shared synthetic `test/fixtures/switch-minimax-code-connection.json` matches Switch writer output on both OS layouts. Fixtures and Desktop static inspection are not real loading, current-session identity, dedicated API or native delivery acceptance.
+
+
+## TRAE saved connection (source addition, 2026-10-20)
+
+Official Skill discovery: international `~/.trae/skills`, domestic
+`~/.trae-cn/skills`, and project `.trae/skills`; see
+`https://docs.trae.cn/ide_skills` and `https://docs.trae.ai/ide/skills`.
+The installed TRAE 3.6.4 distribution confirms peer-product Skill discovery
+controls and the account-scoped model-cache storage format. These sources are
+format evidence, not a version gate or real-host execution acceptance.
+
+This adapter uses the saved connection created by Switch's native model service.
+Only existence-check the three declared desktop databases. When more than one
+exists, stop instead of picking an edition or borrowing another connection.
+Read only the active receipt and the two same-account cache keys it declares,
+in a bounded read-only SQLite transaction including committed WAL. Accept exactly the saved `/v1`, `/v1/` or `/v1/chat/completions` endpoint
+forms written by Switch. Require one
+credential fingerprint across the receipt's models and verify every saved model
+against the native receipt before using its inline `ak`. Fingerprints remain
+private integrity metadata in memory; do not emit them. Labels are not endpoint
+identity, and unowned models cannot supply a credential.
+
+Never decrypt TRAE login/SecretStorage or Switch recovery records, enumerate
+other account caches, create a credential copy, connect over CDP, invoke a host
+CLI, change a chat model or use a fallback connection. A missing receipt or
+ambiguous edition/connection is an adapter diagnostic, not evidence that the
+user has never configured TRAE. This supports the Switch-managed saved API
+connection independently of current chat selection; manual/portable/remote
+profiles and unpersisted session overrides are outside this contract.
+Fixture coverage and local builds do not establish public release, actual
+TRAE Skill loading, authenticated API access or attachment delivery.
+
+The independent Switch writer contract is mirrored in
+`runtime/executor/testdata/trae-switch-skill-connection.json`; keep it byte-identical
+with Switch `tests/fixtures/client-configs/traework/skill-connection.json`. The Go
+adapter consumes the actual receipt/cache shape, including the full Chat endpoint,
+through a synthetic read-only SQLite store.

@@ -26,7 +26,7 @@
     "model": {
       "type": "string",
       "maxLength": 160,
-      "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+(\\([A-Za-z0-9_.-]+\\))?$(?![\\s\\S])"
+      "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+(?: [A-Za-z0-9_.-]+)*(\\([A-Za-z0-9_.-]+\\))?$(?![\\s\\S])"
     },
     "prompt": {
       "type": "string"
@@ -145,12 +145,43 @@
             "generate",
             "edit"
           ]
-        },
-        "prompt": {
-          "type": "string",
-          "pattern": "\\S"
         }
-      }
+      },
+      "anyOf": [
+        {
+          "properties": {
+            "prompt": {
+              "pattern": "\\S"
+            }
+          }
+        },
+        {
+          "required": [
+            "kind",
+            "operation",
+            "model",
+            "media_operation"
+          ],
+          "properties": {
+            "kind": {
+              "const": "video"
+            },
+            "operation": {
+              "const": "generate"
+            },
+            "model": {
+              "enum": [
+                "viduq3-pro",
+                "viduq3-turbo",
+                "viduq4-preview"
+              ]
+            },
+            "media_operation": {
+              "const": "image_to_video"
+            }
+          }
+        }
+      ]
     }
   ],
   "allOf": [

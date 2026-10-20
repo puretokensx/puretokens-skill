@@ -10,7 +10,7 @@
     "capability": { "enum": ["image", "video"] },
     "catalogUpdatedAt": { "type": "string", "minLength": 1 },
     "catalogCapturedAt": { "type": "string", "format": "date-time" },
-    "defaultModel": { "type": "string", "maxLength": 160, "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+(\\([A-Za-z0-9_.-]+\\))?$(?![\\s\\S])" },
+    "defaultModel": { "type": "string", "maxLength": 160, "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+(?: [A-Za-z0-9_.-]+)*(\\([A-Za-z0-9_.-]+\\))?$(?![\\s\\S])" },
     "models": {
       "type": "array",
       "minItems": 1,
@@ -18,13 +18,14 @@
         "type": "object",
         "required": ["id", "aliases", "profile"],
         "properties": {
-          "id": { "type": "string", "maxLength": 160, "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+(\\([A-Za-z0-9_.-]+\\))?$(?![\\s\\S])" },
+          "id": { "type": "string", "maxLength": 160, "pattern": "^(?!\\.{1,2}$)[A-Za-z0-9_.-]+(?: [A-Za-z0-9_.-]+)*(\\([A-Za-z0-9_.-]+\\))?$(?![\\s\\S])" },
           "aliases": {
             "type": "array",
             "uniqueItems": true,
             "items": { "type": "string", "minLength": 1, "maxLength": 160 }
           },
-          "profile": { "type": "string", "maxLength": 174, "pattern": "^profiles/(?!\\.{1,2}\\.json$)[A-Za-z0-9_.-]+(\\([A-Za-z0-9_.-]+\\))?\\.json$(?![\\s\\S])" }
+          "supportScope": { "const": "reviewed_source" },
+          "profile": { "type": "string", "maxLength": 174, "pattern": "^profiles/(?!\\.{1,2}\\.json$)[A-Za-z0-9_.-]+(?: [A-Za-z0-9_.-]+)*(\\([A-Za-z0-9_.-]+\\))?\\.json$(?![\\s\\S])" }
         },
         "additionalProperties": false
       }

@@ -1,6 +1,6 @@
 # Audio Skill and gateway contract
 
-Reviewed 2026-09-27. Owners: `puretokens-skill` owns `puretokens-audio`, the
+Reviewed 2026-10-21. Owners: `puretokens-skill` owns `puretokens-audio`, the
 one-shot executor, reviewed model/voice profiles, local validation and host
 attachment handoff. `PureTokenPlus_web` owns API routing, upstream adapters,
 authorization, billing and its separate account-session audio workspace.
@@ -20,10 +20,10 @@ verified Pure Tokens connection. API-key `/v1` routes must not be replaced by
 account-session `/pg` or `/api/product/audio` routes. SSE adaptation for ASR
 Max/Pro belongs to the gateway: the client requires one final JSON response.
 
-Speech sends `model`, unchanged `input`, a model-specific reviewed `voice`,
+StepFun speech sends `model`, unchanged `input`, a model-specific reviewed `voice`,
 `response_format`, optional `speed` (0.5–2), and optional `instruction` only for
 TTS2.5. The local text limit is 1000 Unicode characters, instruction limit 500.
-Sound sends only `model`, `instruction` (max 500), `response_format`, fixed
+StepFun sound sends only `model`, `instruction` (max 500), `response_format`, fixed
 `task=text_to_audio` and `stream_format=audio`. Transcription sends only multipart
 `model`, `response_format=json`, and the original MP3/WAV/OGG file, at most 8 MiB.
 It does not send local paths, original filenames or upload to another service.
@@ -42,6 +42,36 @@ one file per model. Changes to voices, fields, limits or IDs must synchronize
 that source, schemas, native validation and the paired gateway contract/tests.
 TTS3 has no reviewed preset voice mapping and remains excluded. Cloning,
 translation, streaming input and real-time conversation are not implemented.
+
+## ElevenLabs synchronous expansion (candidate 0.19.6)
+
+These are source-reviewed API-Key contracts, not production availability,
+model/voice entitlement, paid acceptance or host playback evidence. New IDs are
+absent from the anonymous production snapshot dated 2026-10-21. Ordinary calls
+still read only the selected profile, never a catalog preflight.
+
+| Exact IDs | Executor operation | Fixed route and fields |
+| --- | --- | --- |
+| `eleven_v3`, `eleven_v4`, `eleven_multilingual_v2`, `eleven_flash_v2_5` | `speech` | `/v1/audio/speech`: model, original input (4096 Unicode characters), explicit entitled voice ID, response_format=mp3; no speed/instruction/WAV |
+| `scribe_v2`, `scribe_v2_medical` | `transcribe` | `/v1/audio/transcriptions`: original multipart file, model, response_format=json |
+| `eleven_text_to_sound_v2` | `generate` | `/v1/audio/generate`: instruction (1000 characters), task=text_to_audio, stream_format=audio, MP3, required duration_seconds 0.5–30 |
+| `music_v2_5` | `music_sync` | `/v1/audio/generate`: instruction (1000 characters, including exact lyrics), task=text_to_music, stream_format=audio, MP3, required duration_seconds 3–600 with millisecond precision, explicit instrumental boolean |
+| `eleven_multilingual_sts_v2` | `voice_change` | `/v1/audio/generate`: explicit entitled voice ID, task=voice_change, stream_format=audio, MP3; executor encodes original bounded local file as raw Base64 audio plus audio_format |
+
+Voice IDs use the gateway's ASCII `[A-Za-z0-9_-]{1,120}` syntax; syntax is not
+entitlement. Never inherit a StepFun default voice or guess permission from a
+display name. Transcription/voice-change inputs retain the 8 MiB MP3/WAV/OGG
+boundary; the gateway measures the five-minute limit from original bytes.
+No audio URLs, caller-provided Base64, implicit conversion or separate upload
+service. All outputs retain the existing 16 MiB structure verification,
+exclusive file save, artifact receipt and local-only audio-verify semantics.
+
+Synchronous music never enters kind=music, music task polling or the asynchronous
+submit route. It has no task record or remote recovery. The 90-second deadline
+may expire on long music; report unknown and never resubmit automatically.
+No BFF UUID deduplication/history guarantee is inherited. Explicit false and
+fractional durations are preserved. Every model operation is one POST with the
+same no-retry policy; lyrics are never silently truncated or split.
 
 ## Asynchronous music
 

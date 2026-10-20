@@ -61,11 +61,11 @@ test("all managed provenance entries derive from the registry", async () => {
   }
 });
 
-test("installer activation fragments match their single source and unsupported hosts have no examples", async () => {
+test("installer activation fragments match their single source and TRAE explains activation", async () => {
   await execFile(process.execPath,[path.join(repositoryRoot,"scripts/sync-install-activation.mjs"),"--check"]);
   const registry=JSON.parse(await readFile(path.join(repositoryRoot,"references/install-activation.json"),"utf8"));
-  assert.equal(registry.hosts.trae.apiSupport,"unsupported");
-  assert.deepEqual(registry.hosts.trae.examples,[]);
+  assert.match(registry.hosts.trae.activation,/Settings > Skills/);
+  assert.notEqual(registry.hosts.trae.apiSupport,"unsupported");
   assert.match(registry.hosts.zcode.activation,/Refresh and enable/);
 });
 

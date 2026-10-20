@@ -114,7 +114,7 @@ func decodeModelQuery(input io.Reader) (modelQuery, error) {
 	if isRetrievalCommand(query.Kind) && (query.Operation != "" || len(query.Parameters) > 0) {
 		return query, errors.New("retrieval discovery accepts no operation or parameter filters")
 	}
-	if query.Kind == "audio" && (len(query.Parameters) > 0 || (query.Operation != "" && query.Operation != "speech" && query.Operation != "transcribe" && query.Operation != "generate" && query.Operation != "music")) {
+	if query.Kind == "audio" && (len(query.Parameters) > 0 || (query.Operation != "" && query.Operation != "speech" && query.Operation != "transcribe" && query.Operation != "generate" && query.Operation != "music" && query.Operation != "music_sync" && query.Operation != "voice_change")) {
 		return query, errors.New("audio discovery accepts only reviewed operations and no parameter filters")
 	}
 	if query.Model != "" && (!validModelID(query.Model) || safePublicString(query.Model) != query.Model) {
@@ -251,6 +251,13 @@ func modelQueryMatches(query modelQuery, entry map[string]any) bool {
 	if err != nil || json.Unmarshal(body, &schema) != nil {
 		return false
 	}
+	if reviewed, exists := reviewedVideoProfile(id); exists && !modelSchemaMatches(query, capabilities, reviewed.Parameters) {
+		return false
+	}
+	return modelSchemaMatches(query, capabilities, schema)
+}
+
+func modelSchemaMatches(query modelQuery, capabilities []any, schema parameterSchema) bool {
 	var operation mediaOperation
 	counts := make(map[string]int)
 	if query.Operation != "" {

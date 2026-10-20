@@ -148,12 +148,12 @@ Jev、音频、向量和重排需要相应 API 权限，不需要将专用模型
 | 宿主 | Skill 目录 | 直连执行 |
 | --- | --- | --- |
 | Claude Code | `~/.claude/skills` | 凭据格式通过夹具测试；客户端端到端待验收 |
-| Codex | `~/.agents/skills` | 凭据格式通过夹具测试；客户端端到端待验收 |
+| ChatGPT（Codex） | `~/.agents/skills` | 凭据格式通过夹具测试；客户端端到端待验收 |
 | WorkBuddy | `~/.workbuddy/skills` | 凭据格式通过夹具测试；客户端端到端待验收 |
 | Gemini CLI | `~/.gemini/skills` | 凭据格式通过夹具测试；客户端端到端待验收 |
 | Grok Build | `~/.grok/skills` | 凭据格式通过夹具测试；客户端端到端待验收 |
 | OpenCode | `~/.config/opencode/skills` | 凭据格式通过夹具测试；客户端端到端待验收 |
-| Trae / TraeWork（`trae`） | `~/.trae/skills`（仅历史安装） | 无凭据适配器；当前 TraeWork 的 Skill 发现未验证 |
+| TRAE / TRAE SOLO（`trae`） | 国际版 `~/.trae/skills`；国内版 `~/.trae-cn/skills` | 0.19.6 包含 Switch 已保存连接的只读适配器；实机验收单独记录 |
 | Claude Desktop | `~/.claude/skills`（与 Claude Code 共享） | 本地 Code 会话；Desktop 凭据夹具通过，端到端待验收 |
 | DSH Desktop | macOS：`~/Library/Application Support/dsh-desktop/harness/skills`；Windows：`%APPDATA%\dsh-desktop\harness\skills` | 凭据格式通过夹具测试；客户端端到端待验收 |
 | 官方 DeepSeek Harness | `~/.dsh/skills` 或绝对路径 `DSH_HOME/skills` | 0.18.7 默认本地 Desktop 连接 |
@@ -181,7 +181,7 @@ Claude Desktop 请选择本地 Code 会话并使用宿主 ID `claude-desktop`；
 
 ## 图片、视频与异步任务
 
-普通生成使用默认模型或精确 ID 时只读选中 profile；需要选择模型或解析别名时才读小型索引。不加载全部模型，也不在每次提交前查实时目录。`puretokens-image` 默认使用 `gpt-image-2.5-flare`；`puretokens-video` 默认使用 `minimax_h3`。用户明确指定模型时优先使用指定值；已有任务保留原模型。只有用户明确查询当前模型、请求选中 profile 没有的参数/媒体操作，或需要诊断模型/参数/capability 拒绝时，才读取实时目录。
+普通生成使用默认模型或精确 ID 时只读选中 profile；需要选择模型或解析别名时才读小型索引。不加载全部模型，也不在每次提交前查实时目录。`puretokens-image` 默认使用 `gpt-image-2.5-flare`；`puretokens-video` 默认使用 `MiniMax-H3`。新 H3 参考输入只支持公开 HTTPS URL，不支持本地 multipart 附件，不可静默换模型或上传托管。用户明确指定模型时优先使用指定值；已有任务保留原模型。只有用户明确查询当前模型、请求选中 profile 没有的参数/媒体操作，或需要诊断模型/参数/capability 拒绝时，才读取实时目录。
 
 正常等待窗口结束表示任务仍在生成，不算失败。当前已授权的前台交付最多再续一个窗口，随后暂停并询问用户；任务记录保存该预算。错误、对账及无法容纳的等待要求停止自动续等。视频、多图和跨会话任务默认使用明确的工作区任务记录；附件交付失败时重交已验证文件，不重新提交或下载。
 
@@ -194,7 +194,7 @@ Claude Desktop 请选择本地 Code 会话并使用宿主 ID `claude-desktop`；
 <!-- media-model-catalog:start -->
 ## 媒体模型清单
 
-已与基础模型目录同步：2026-10-18T12:22:09.975Z。
+已与基础模型目录同步：2026-10-21T02:29:21.846Z。
 
 这份清单用于安装后的模型选择，不是每次请求的认证检查。普通生成只读选中 profile；仅明确查询、profile 缺口或拒绝诊断时读取实时目录。经审查的本地兼容补充定义单独注明来源。
 
@@ -226,17 +226,18 @@ README 只从基础目录中带有明确图片/视频能力的模型生成，不
 | --- | --- | --- | --- | --- |
 | `grok-imagine-video` | xAI | `grok video` | 视频生成 | `用 grok-imagine-video 生成一条视频。` |
 | `grok-imagine-video-1.5` | xAI | 仅精确 ID | 视频生成 | `用 grok-imagine-video-1.5 生成一条短视频。` |
-| `minimax_h3` | MiniMax | 仅精确 ID | 视频生成 | `用 minimax_h3 生成一条短视频。` |
+| `MiniMax-H3` | MiniMax | 仅精确 ID | 视频生成 | `用 MiniMax-H3 生成一条短视频。` |
 | `muse-video` | Meta | 仅精确 ID | 视频生成 | `用 muse-video 生成一条短视频。` |
 | `omni` | Google | 仅精确 ID | 视频生成 | `用 omni 生成一条短视频。` |
 | `seedance-2.0` | ByteDance | 仅精确 ID | 视频生成 | `用 seedance-2.0 生成一条视频。` |
 | `seedance-2.0-fast` | ByteDance | 仅精确 ID | 视频生成 | `用 seedance-2.0-fast 生成一条视频。` |
 | `seedance-2.0-mini` | ByteDance | 仅精确 ID | 视频生成 | `用 seedance-2.0-mini 生成一条视频。` |
 | `seedance-2.5` | ByteDance | 仅精确 ID | 视频生成 | `用 seedance-2.5 生成一条视频。` |
-| `seedance2.0` | ByteDance | 仅精确 ID | 视频生成 | `用 seedance2.0 生成一条短视频。` |
 | `veo_fast` | Google | 仅精确 ID | 视频生成 | `用 veo_fast 生成一条短视频。` |
 | `veo_lite` | Google | 仅精确 ID | 视频生成 | `用 veo_lite 生成一条短视频。` |
 | `veo_quan` | Google | 仅精确 ID | 视频生成 | `用 veo_quan 生成一条短视频。` |
+| `viduq3-pro` | Vidu | 仅精确 ID | 视频生成 | `用 viduq3-pro 生成一条短视频。` |
+| `viduq3-turbo` | Vidu | 仅精确 ID | 视频生成 | `用 viduq3-turbo 生成一条短视频。` |
 | `wan3.0-video` | Qwen | 仅精确 ID | 视频生成 | `用 wan3.0-video 生成一条短视频。` |
 | `wan3.0-video-prime` | Qwen | 仅精确 ID | 视频生成 | `用 wan3.0-video-prime 生成一条短视频。` |
 

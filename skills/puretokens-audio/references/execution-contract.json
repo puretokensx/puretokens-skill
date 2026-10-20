@@ -40,6 +40,14 @@
     "musicContent": {
       "method": "GET",
       "urlTemplate": "https://api.puretokensx.com/v1/audio/music/tasks/{task_id}/content"
+    },
+    "music_sync": {
+      "method": "POST",
+      "url": "https://api.puretokensx.com/v1/audio/generate"
+    },
+    "voice_change": {
+      "method": "POST",
+      "url": "https://api.puretokensx.com/v1/audio/generate"
     }
   },
   "result": {
@@ -52,7 +60,9 @@
     "synchronousOperations": [
       "speech",
       "transcribe",
-      "generate"
+      "generate",
+      "music_sync",
+      "voice_change"
     ],
     "asynchronousMusic": {
       "kind": "music",
@@ -74,6 +84,18 @@
       "maxAutomaticWaitWindows": 2,
       "reconciliationStopsAutomaticContinuation": true,
       "downloadIsNotDelivery": true
+    },
+    "synchronousMusic": {
+      "model": "music_v2_5",
+      "operation": "music_sync",
+      "task": "text_to_music",
+      "neverUsesAsyncMusicRoute": true,
+      "durationSeconds": [
+        3,
+        600
+      ],
+      "instrumentalRequired": true,
+      "lyricsInInstruction": true
     }
   }
 }

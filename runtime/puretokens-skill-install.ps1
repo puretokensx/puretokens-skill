@@ -199,8 +199,10 @@ function Show-InstallationSummary([string]$RequestedHost) {
       Write-Output 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
     }
     'trae' {
-      Write-Output 'Next: This is a historical installation directory; Skill discovery in current TraeWork is not confirmed.'
-      Write-Output 'API tasks: unsupported in this host; no credential adapter is available. Installing instructions does not enable generation.'
+      Write-Output 'Next: Refresh or enable Pure Tokens Skills in TRAE Settings > Skills, then start a new conversation. Requires the TRAE adapter in this installed release and a saved Switch-managed connection; actual loading and API results remain separate checks.'
+      Write-Output 'Available instructions: images, video, audio/music, Jev evaluation, embeddings, reranking, models and balance. Connection and task results remain separate checks.'
+      Write-Output 'Example (not executed): Generate an image of a lake at sunset.'
+      Write-Output 'Example (not executed): Generate a 5-second video of a paper boat on a river.'
       Write-Output 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
     }
     default {
@@ -363,7 +365,15 @@ function Get-TargetForHost([string]$RequestedHost) {
       }
       return (Join-Path $config "skills")
     }
-    "trae" { return (Join-Path $env:USERPROFILE ".trae\skills") }
+    "trae" {
+      $international = Join-Path $env:USERPROFILE ".trae"
+      $domestic = Join-Path $env:USERPROFILE ".trae-cn"
+      if ((Test-Path -LiteralPath $international) -and (Test-Path -LiteralPath $domestic)) {
+        Fail "Multiple TRAE edition roots exist; confirm this client's skills directory and use -Target with its absolute path"
+      }
+      if (Test-Path -LiteralPath $domestic -PathType Container) { return (Join-Path $domestic "skills") }
+      return (Join-Path $international "skills")
+    }
     default { Fail "unsupported host: $RequestedHost" }
   }
 }

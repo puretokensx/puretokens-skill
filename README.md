@@ -165,12 +165,12 @@ The priority is carried by the installed Skill metadata and the host's current c
 | Host | Skill directory | Direct execution |
 | --- | --- | --- |
 | Claude Code | `~/.claude/skills` | Credential fixtures tested; host end-to-end acceptance pending |
-| Codex | `~/.agents/skills` | Credential fixtures tested; host end-to-end acceptance pending |
+| ChatGPT (Codex) | `~/.agents/skills` | Credential fixtures tested; host end-to-end acceptance pending |
 | WorkBuddy | `~/.workbuddy/skills` | Credential fixtures tested; host end-to-end acceptance pending |
 | Gemini CLI | `~/.gemini/skills` | Credential fixtures tested; host end-to-end acceptance pending |
 | Grok Build | `~/.grok/skills` | Credential fixtures tested; host end-to-end acceptance pending |
 | OpenCode | `~/.config/opencode/skills` | Credential fixtures tested; host end-to-end acceptance pending |
-| Trae / TraeWork (`trae`) | `~/.trae/skills` (legacy installation only) | No credential adapter; current TraeWork discovery is not verified |
+| TRAE / TRAE SOLO (`trae`) | International `~/.trae/skills`; domestic `~/.trae-cn/skills` | Read-only Switch saved-connection adapter included in 0.19.6; real-host acceptance is separate |
 | Claude Desktop | `~/.claude/skills` (shared with Claude Code) | Local Code sessions; Desktop credential fixtures tested, end-to-end acceptance pending |
 | DSH Desktop | macOS: `~/Library/Application Support/dsh-desktop/harness/skills`; Windows: `%APPDATA%\dsh-desktop\harness\skills` | Credential fixtures tested; host end-to-end acceptance pending |
 | Official DeepSeek Harness | `~/.dsh/skills` or absolute `DSH_HOME/skills` | Default local Desktop connection in 0.18.7 |
@@ -203,7 +203,7 @@ For Claude Desktop, use a local Code session and host ID `claude-desktop`; its a
 
 ## Images and videos
 
-Normal generation reads only the selected profile for a default or exact model ID; the small index is needed only for model selection or alias resolution. It does not load every model or fetch the catalog before every task. `puretokens-image` defaults to `gpt-image-2.5-flare`; `puretokens-video` defaults to `minimax_h3`. An explicit user model choice takes precedence; an existing task retains its original model. The live catalog is read only when a user explicitly asks for current models, requests an option or media operation absent from the selected profile, or needs a post-rejection diagnosis.
+Normal generation reads only the selected profile for a default or exact model ID; the small index is needed only for model selection or alias resolution. It does not load every model or fetch the catalog before every task. `puretokens-image` defaults to `gpt-image-2.5-flare`; `puretokens-video` defaults to `MiniMax-H3`. The new H3 profile uses public HTTPS reference URLs, not local multipart attachments; never silently switch models or rehost an attachment. An explicit user model choice takes precedence; an existing task retains its original model. The live catalog is read only when a user explicitly asks for current models, requests an option or media operation absent from the selected profile, or needs a post-rejection diagnosis.
 
 A normal wait window ending means the task is still processing, not failed. The active authorized delivery can continue for one more bounded foreground window, then pauses for user input. Task records preserve this budget; errors, reconciliation and deferred retries stop automatic continuation. Videos, multiple outputs and cross-session work use explicit workspace task records by default. A failed attachment handoff reuses the verified existing file rather than submitting or downloading again.
 
@@ -216,7 +216,7 @@ The selected installed profile governs ordinary requests. An explicit authentica
 <!-- media-model-catalog:start -->
 ## Media model catalog
 
-Synchronized with the base model catalog: 2026-10-18T12:22:09.975Z.
+Synchronized with the base model catalog: 2026-10-21T02:29:21.846Z.
 
 This list is an installed selection aid, not a per-request authorization check. Ordinary generation reads only the selected profile; live discovery is limited to explicit requests, profile gaps or rejection diagnosis. Reviewed local compatibility supplements are separately sourced.
 
@@ -248,17 +248,18 @@ README is generated only from base-catalog models with explicit image/video capa
 | --- | --- | --- | --- | --- |
 | `grok-imagine-video` | xAI | `grok video` | Video generation | `Use grok-imagine-video to generate a video.` |
 | `grok-imagine-video-1.5` | xAI | Exact ID only | Video generation | `Use grok-imagine-video-1.5 to generate a short video.` |
-| `minimax_h3` | MiniMax | Exact ID only | Video generation | `Use minimax_h3 to generate a short video.` |
+| `MiniMax-H3` | MiniMax | Exact ID only | Video generation | `Use MiniMax-H3 to generate a short video.` |
 | `muse-video` | Meta | Exact ID only | Video generation | `Use muse-video to generate a short video.` |
 | `omni` | Google | Exact ID only | Video generation | `Use omni to generate a short video.` |
 | `seedance-2.0` | ByteDance | Exact ID only | Video generation | `Use seedance-2.0 to generate a video.` |
 | `seedance-2.0-fast` | ByteDance | Exact ID only | Video generation | `Use seedance-2.0-fast to generate a video.` |
 | `seedance-2.0-mini` | ByteDance | Exact ID only | Video generation | `Use seedance-2.0-mini to generate a video.` |
 | `seedance-2.5` | ByteDance | Exact ID only | Video generation | `Use seedance-2.5 to generate a video.` |
-| `seedance2.0` | ByteDance | Exact ID only | Video generation | `Use seedance2.0 to generate a short video.` |
 | `veo_fast` | Google | Exact ID only | Video generation | `Use veo_fast to generate a short video.` |
 | `veo_lite` | Google | Exact ID only | Video generation | `Use veo_lite to generate a short video.` |
 | `veo_quan` | Google | Exact ID only | Video generation | `Use veo_quan to generate a short video.` |
+| `viduq3-pro` | Vidu | Exact ID only | Video generation | `Use viduq3-pro to generate a short video.` |
+| `viduq3-turbo` | Vidu | Exact ID only | Video generation | `Use viduq3-turbo to generate a short video.` |
 | `wan3.0-video` | Qwen | Exact ID only | Video generation | `Use wan3.0-video to generate a short video.` |
 | `wan3.0-video-prime` | Qwen | Exact ID only | Video generation | `Use wan3.0-video-prime to generate a short video.` |
 

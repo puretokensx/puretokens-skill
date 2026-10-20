@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-09-27",
+  "reviewedAt": "2026-10-21",
   "scope": "reviewed_contract_not_live_availability",
   "defaults": {
     "speech": "stepaudio-2.5-tts",
@@ -53,6 +53,51 @@
       "id": "stepaudio-3-music-preview",
       "operation": "music",
       "profile": "profiles/stepaudio-3-music-preview.json"
+    },
+    {
+      "id": "eleven_v3",
+      "operation": "speech",
+      "profile": "profiles/eleven_v3.json"
+    },
+    {
+      "id": "eleven_v4",
+      "operation": "speech",
+      "profile": "profiles/eleven_v4.json"
+    },
+    {
+      "id": "eleven_multilingual_v2",
+      "operation": "speech",
+      "profile": "profiles/eleven_multilingual_v2.json"
+    },
+    {
+      "id": "eleven_flash_v2_5",
+      "operation": "speech",
+      "profile": "profiles/eleven_flash_v2_5.json"
+    },
+    {
+      "id": "scribe_v2",
+      "operation": "transcribe",
+      "profile": "profiles/scribe_v2.json"
+    },
+    {
+      "id": "scribe_v2_medical",
+      "operation": "transcribe",
+      "profile": "profiles/scribe_v2_medical.json"
+    },
+    {
+      "id": "eleven_text_to_sound_v2",
+      "operation": "generate",
+      "profile": "profiles/eleven_text_to_sound_v2.json"
+    },
+    {
+      "id": "music_v2_5",
+      "operation": "music_sync",
+      "profile": "profiles/music_v2_5.json"
+    },
+    {
+      "id": "eleven_multilingual_sts_v2",
+      "operation": "voice_change",
+      "profile": "profiles/eleven_multilingual_sts_v2.json"
     }
   ]
 }

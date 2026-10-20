@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "puretokens-rerank",
-  "version": "0.19.5",
+  "version": "0.19.6",
   "entry": "SKILL.md",
   "displayName": "Pure Tokens Rerank",
   "description": "Rerank explicitly supplied candidates for a query into a new JSON file through the current Pure Tokens connection.",

@@ -280,6 +280,7 @@ func TestInstalledProfileFieldsAndNativeOperationsNeedNoRefresh(t *testing.T) {
 						if name == "height" {
 							request.Parameters["width"] = 1024
 						}
+						completeProfileFixtureContext(&request, profile)
 						if err := prepareProfileRequest(&request, svc); err != nil {
 							t.Fatalf("supported %s=%v failed: %v", name, value, err)
 						}
@@ -314,6 +315,25 @@ func TestInstalledProfileFieldsAndNativeOperationsNeedNoRefresh(t *testing.T) {
 								}
 							}
 						}
+						completeProfileFixtureContext(&request, profile)
+						total := 0
+						for key := range profile.Parameters.Constraints["reference_counts"] {
+							if key == "max_total" {
+								continue
+							}
+							if _, ok := request.Parameters[key].(string); ok {
+								total++
+							} else {
+								total += len(array(request.Parameters[key]))
+							}
+						}
+						maximum, bounded := number(profile.Parameters.Constraints["reference_counts"]["max_total"])
+						if bounded && float64(total) > maximum {
+							if prepareProfileRequest(&request, svc) == nil {
+								t.Fatal("individually maximal references exceeded the declared combined bound")
+							}
+							continue
+						}
 						if err := prepareProfileRequest(&request, svc); err != nil {
 							t.Fatalf("supported %s failed: %v", name, err)
 						}
@@ -338,6 +358,49 @@ func TestInstalledProfileFieldsAndNativeOperationsNeedNoRefresh(t *testing.T) {
 					t.Fatalf("supported installed requests read the live catalog %d times", transport.calls)
 				}
 			})
+		}
+	}
+}
+
+// Construct a valid context for an individual field. A field's allowed values
+// never imply that companions, visual input or a combined count can be omitted.
+func completeProfileFixtureContext(request *taskRequest, profile modelProfile) {
+	if _, reviewed := reviewedVideoProfile(profile.ID); !reviewed {
+		return
+	}
+	ref := "https://example.invalid/reference.png"
+	for key, companions := range profile.Parameters.Constraints["requires_together"] {
+		if request.Parameters[key] != nil {
+			for _, companion := range array(companions) {
+				if request.Parameters[fmt.Sprint(companion)] == nil {
+					request.Parameters[fmt.Sprint(companion)] = ref
+				}
+			}
+		}
+	}
+	rules := profile.Parameters.Constraints["reference_combination"]
+	if (hasValue(array(rules["audio_requires_visual"]), true) && request.Parameters["reference_audios"] != nil) ||
+		(hasValue(array(rules["adaptive_requires_visual"]), true) && request.Parameters["aspect_ratio"] == "adaptive") {
+		if request.Parameters["reference_images"] == nil && request.Parameters["reference_videos"] == nil && request.Parameters["video"] == nil {
+			request.Parameters["reference_images"] = []any{ref}
+		}
+	}
+	if request.Parameters["video"] != nil {
+		if _, exists := profile.Parameters.Operations["video_edit"]; exists {
+			request.Operation, request.MediaOperation = "edit", "video_edit"
+		}
+	}
+	if request.MediaOperation == "" && profile.Capability == "video" && profile.Parameters.Operations["video_generation"].Request.Path == "" {
+		switch {
+		case request.Parameters["reference_audios"] != nil:
+			request.MediaOperation = "reference_audio"
+		case request.Parameters["reference_images"] != nil:
+			request.MediaOperation = "reference_image_video"
+		default:
+			request.MediaOperation = "image_to_video"
+			if request.Parameters["first_frame_image"] == nil {
+				request.Parameters["first_frame_image"] = ref
+			}
 		}
 	}
 }

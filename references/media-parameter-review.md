@@ -1,6 +1,64 @@
 # Media Parameter Review
 
-## Current review - 2026-10-18
+## Current review - 2026-10-21
+
+Production follow-up at 02:27:05 UTC: the anonymous catalog now lists 124 models,
+including 31 explicitly declared media models (15 image, 16 video). Remove
+`minimax_h3` and `seedance2.0` from new installed selections. The exact reviewed
+`MiniMax-H3` is now publicly listed and becomes the video default; it is not an
+alias for the retired ID, and existing tasks keep their original identity.
+Its references remain JSON public HTTPS URLs only, not local multipart files.
+Retained image/video schemas are unchanged after the existing reviewed
+supplements and restrictions. Nine reviewed ElevenLabs IDs are now listed;
+all 18 reviewed audio, three Jev and three embedding/rerank IDs are visible.
+
+The live catalog now declares dedicated video schemas for `MiniMax-H3`,
+`viduq3-pro` and `viduq3-turbo`; seven other reviewed video IDs still have only
+generic `openai` endpoints, and `viduq4-preview` is not listed. Keep the public
+schemas unchanged in the catalog, but preserve the separately reviewed embedded
+boundaries and provenance in installed profiles. A live metadata addition must
+not silently replace the reviewed reference limits, required frame combinations
+or Vidu controls. Source-only profiles remain separate from live availability;
+visibility is not dedicated-route, model-group permission or delivery acceptance.
+Anonymous `/v1/media/models` returns 401, as expected for an authenticated route;
+no real credentials or paid requests were used. Web metadata source hash still
+matches the reviewed profiles. Evidence is recorded in the production follow-up
+of `acceptance/client-model-sync-20261021.json`.
+
+The earlier 01:59 UTC capture (125 total, 28 explicitly declared media) is
+superseded by this metadata rollout; its digest remains in the evidence record.
+
+### Pre-deployment comparison
+
+Public production comparison remains 114 total / 30 media (15 image, 15 video),
+with unchanged IDs and schemas. Defaults remain gpt-image-2.5-flare and minimax_h3.
+The 0.19.6 source candidate adds 11 separately marked reviewed video profiles:
+Kling V3/Turbo, Vidu Q3 Pro/Turbo/Q4 Preview, exact MiniMax-H3 and five exact
+Super Vega names. These are NOT additions to the captured public catalog.
+`runtime/executor/reviewed-video-profiles.json` records their Web source hash;
+profile generation preserves sourceReview and index supportScope metadata.
+
+The executor embeds the same source profiles, so missing/stale installed files
+cannot expand these exact models. Parameter combinations enforce visual/audio
+requirements, frame/reference exclusion, count totals, duration and resolution.
+Filtered discovery requires BOTH live declarations and the reviewed boundary;
+it never invents live models/operations. Existing task recovery is unchanged.
+Source requests use JSON public HTTPS references only; no local attachment
+transport is inferred. Optional Vega tail-frame delivery is excluded until a
+native attachment contract exists. The source profiles do not grant permission
+or prove deployment, HEVC playback or billing acceptance.
+
+Model IDs preserve bounded internal ASCII spaces end-to-end; padding, repeated
+spaces, controls, path separators and shell syntax remain rejected. No aliases
+connect MiniMax-H3 and minimax_h3.
+
+ElevenLabs adds nine reviewed synchronous audio IDs with explicit model-specific
+fields. See audio-execution-contract.md; music_v2_5 remains separate from async
+StepFun music. Client display ChatGPT retains internal host codex. TRAE is source
+and fixture support only, pending publication and real-host acceptance. Evidence:
+acceptance/client-model-sync-20261021.json.
+
+## Historical review - 2026-10-18
 
 Anonymous production catalog capture at 2026-10-18 12:14:13 UTC: 114 models,
 including 15 image and 15 video models. Compared with the earlier 02:05 UTC

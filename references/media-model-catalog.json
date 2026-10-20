@@ -1,10 +1,10 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-18",
+  "updatedAt": "2026-10-21",
   "serviceCatalog": {
     "source": "Pure Tokens base model catalog",
     "path": "/api/product/docs/model-catalog",
-    "capturedAt": "2026-10-18T12:22:09.975Z"
+    "capturedAt": "2026-10-21T02:29:21.846Z"
   },
   "availabilityNotice": {
     "en": "This list is an installed selection aid, not a per-request authorization check. Ordinary generation reads only the selected profile; live discovery is limited to explicit requests, profile gaps or rejection diagnosis. Reviewed local compatibility supplements are separately sourced.",
@@ -1353,8 +1353,8 @@
       }
     },
     {
-      "id": "minimax_h3",
-      "name": "minimax_h3",
+      "id": "MiniMax-H3",
+      "name": "MiniMax-H3",
       "provider": "MiniMax",
       "vendorId": 20,
       "capabilities": [
@@ -1366,21 +1366,42 @@
         "zh": "视频生成"
       },
       "example": {
-        "en": "Use minimax_h3 to generate a short video.",
-        "zh": "用 minimax_h3 生成一条短视频。"
+        "en": "Use MiniMax-H3 to generate a short video.",
+        "zh": "用 MiniMax-H3 生成一条短视频。"
       },
       "parameterSchema": {
         "properties": {
           "prompt": {
             "type": "string",
-            "required": true,
-            "maxLength": 7000
+            "required": true
           },
           "duration": {
             "type": "integer",
-            "default": 15,
-            "min": 4,
-            "max": 15
+            "enum": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "default": 5
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "768p"
+            ],
+            "default": "768p"
           },
           "aspect_ratio": {
             "type": "string",
@@ -1391,56 +1412,78 @@
               "1:1",
               "3:4",
               "9:16",
-              "9:21",
               "adaptive"
             ],
             "default": "16:9"
-          },
-          "image_urls": {
-            "type": "string[]",
-            "maxLength": 9
-          },
-          "audio_urls": {
-            "type": "string[]",
-            "maxLength": 3
-          },
-          "video_urls": {
-            "type": "string[]",
-            "maxLength": 3
           },
           "first_frame_image": {
             "type": "string"
           },
           "last_frame_image": {
             "type": "string"
+          },
+          "reference_images": {
+            "type": "string[]"
+          },
+          "reference_videos": {
+            "type": "string[]"
+          },
+          "reference_audios": {
+            "type": "string[]"
           }
         },
         "constraints": {
-          "reference_transport": {
-            "image_urls": [
-              "public_https_url"
+          "reference_combination": {
+            "audio_requires_visual": [
+              false
             ],
-            "audio_urls": [
-              "public_https_url"
+            "frames_exclusive": [
+              true
             ],
-            "video_urls": [
-              "public_https_url"
-            ],
-            "first_frame_image": [
-              "public_https_url",
-              "max_1"
-            ],
-            "last_frame_image": [
-              "public_https_url",
-              "max_1"
+            "adaptive_requires_visual": [
+              true
             ]
           },
-          "frame_exclusivity": {
-            "last_frame_image": [
-              "requires_first_frame_image"
+          "reference_image": {
+            "min_width": [
+              256
             ],
-            "first_frame_image": [
-              "cannot_mix_reference_images_videos_audios"
+            "max_width": [
+              5760
+            ],
+            "min_height": [
+              256
+            ],
+            "max_height": [
+              5760
+            ],
+            "min_ratio": [
+              0.4
+            ],
+            "max_ratio": [
+              2.5
+            ],
+            "max_bytes": [
+              30000000
+            ],
+            "max_pixels": [
+              33177600
+            ]
+          },
+          "reference_video": {
+            "max_bytes": [
+              50000000
+            ],
+            "min_seconds": [
+              2
+            ]
+          },
+          "reference_audio": {
+            "max_bytes": [
+              15000000
+            ],
+            "min_seconds": [
+              2
             ]
           }
         },
@@ -1457,7 +1500,7 @@
           "poll": {
             "method": "GET",
             "path": "/v1/videos/{task_id}",
-            "intervalSeconds": 5,
+            "intervalSeconds": 8,
             "statusField": "status",
             "pendingStatuses": [
               "queued",
@@ -1475,48 +1518,11 @@
           }
         },
         "operations": {
-          "video_generation": {
-            "request": {
-              "method": "POST",
-              "path": "/v1/videos",
-              "contentType": "application/json"
-            },
-            "requiredBodyFields": [
-              "model",
-              "prompt"
-            ],
-            "inputs": {
-              "reference_images": {
-                "field": "reference_images",
-                "minItems": 0,
-                "maxItems": 9,
-                "transports": [
-                  "https_url"
-                ]
-              },
-              "reference_videos": {
-                "field": "reference_videos",
-                "minItems": 0,
-                "maxItems": 3,
-                "transports": [
-                  "https_url"
-                ]
-              },
-              "reference_audios": {
-                "field": "reference_audios",
-                "minItems": 0,
-                "maxItems": 3,
-                "transports": [
-                  "https_url"
-                ]
-              }
-            }
-          },
           "image_to_video": {
             "request": {
               "method": "POST",
               "path": "/v1/videos",
-              "contentType": "multipart/form-data"
+              "contentType": "application/json"
             },
             "requiredBodyFields": [
               "model",
@@ -1530,15 +1536,30 @@
                 "minItems": 1,
                 "maxItems": 1,
                 "transports": [
-                  "multipart_file"
+                  "https_url"
                 ]
-              },
+              }
+            }
+          },
+          "last_frame_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "last_frame_image"
+            ],
+            "inputs": {
               "last_frame_image": {
                 "field": "last_frame_image",
-                "minItems": 0,
+                "required": true,
+                "minItems": 1,
                 "maxItems": 1,
                 "transports": [
-                  "multipart_file"
+                  "https_url"
                 ]
               }
             }
@@ -1547,7 +1568,7 @@
             "request": {
               "method": "POST",
               "path": "/v1/videos",
-              "contentType": "multipart/form-data"
+              "contentType": "application/json"
             },
             "requiredBodyFields": [
               "model",
@@ -1561,30 +1582,7 @@
                 "minItems": 1,
                 "maxItems": 9,
                 "transports": [
-                  "multipart_file"
-                ]
-              }
-            }
-          },
-          "reference_audio": {
-            "request": {
-              "method": "POST",
-              "path": "/v1/videos",
-              "contentType": "multipart/form-data"
-            },
-            "requiredBodyFields": [
-              "model",
-              "prompt",
-              "reference_audios"
-            ],
-            "inputs": {
-              "reference_audios": {
-                "field": "reference_audios",
-                "required": true,
-                "minItems": 1,
-                "maxItems": 3,
-                "transports": [
-                  "multipart_file"
+                  "https_url"
                 ]
               }
             }
@@ -1593,7 +1591,7 @@
             "request": {
               "method": "POST",
               "path": "/v1/videos",
-              "contentType": "multipart/form-data"
+              "contentType": "application/json"
             },
             "requiredBodyFields": [
               "model",
@@ -1607,7 +1605,64 @@
                 "minItems": 1,
                 "maxItems": 3,
                 "transports": [
-                  "multipart_file"
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "reference_audio": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "reference_audios"
+            ],
+            "inputs": {
+              "reference_audios": {
+                "field": "reference_audios",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 3,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "video_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ],
+            "inputs": {
+              "reference_images": {
+                "field": "reference_images",
+                "maxItems": 9,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "reference_videos": {
+                "field": "reference_videos",
+                "maxItems": 3,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "reference_audios": {
+                "field": "reference_audios",
+                "maxItems": 3,
+                "transports": [
+                  "https_url"
                 ]
               }
             }
@@ -4019,180 +4074,6 @@
       }
     },
     {
-      "id": "seedance2.0",
-      "name": "seedance2.0",
-      "provider": "ByteDance",
-      "vendorId": 15,
-      "capabilities": [
-        "video"
-      ],
-      "aliases": [],
-      "goodFor": {
-        "en": "Video generation",
-        "zh": "视频生成"
-      },
-      "example": {
-        "en": "Use seedance2.0 to generate a short video.",
-        "zh": "用 seedance2.0 生成一条短视频。"
-      },
-      "parameterSchema": {
-        "properties": {
-          "prompt": {
-            "type": "string",
-            "required": true
-          },
-          "duration": {
-            "type": "integer",
-            "required": true,
-            "enum": [
-              4,
-              5,
-              6,
-              7,
-              8,
-              9,
-              10,
-              11,
-              12,
-              13,
-              14,
-              15
-            ],
-            "default": 8
-          },
-          "aspect_ratio": {
-            "type": "string",
-            "enum": [
-              "21:9",
-              "16:9",
-              "4:3",
-              "1:1",
-              "3:4",
-              "9:16"
-            ],
-            "default": "16:9"
-          },
-          "resolution": {
-            "type": "string",
-            "enum": [
-              "720p"
-            ],
-            "default": "720p"
-          }
-        },
-        "operations": {
-          "text_to_video": {
-            "request": {
-              "method": "POST",
-              "path": "/v1/videos",
-              "contentType": "application/json"
-            },
-            "requiredBodyFields": [
-              "model",
-              "prompt",
-              "duration"
-            ]
-          },
-          "image_to_video": {
-            "request": {
-              "method": "POST",
-              "path": "/v1/videos",
-              "contentType": "application/json"
-            },
-            "requiredBodyFields": [
-              "model",
-              "prompt",
-              "duration",
-              "image"
-            ],
-            "inputs": {
-              "image": {
-                "field": "image",
-                "required": true,
-                "minItems": 1,
-                "maxItems": 1,
-                "transports": [
-                  "https_url"
-                ]
-              }
-            }
-          },
-          "reference_image_video": {
-            "request": {
-              "method": "POST",
-              "path": "/v1/videos",
-              "contentType": "application/json"
-            },
-            "requiredBodyFields": [
-              "model",
-              "prompt",
-              "duration",
-              "reference_images"
-            ],
-            "inputs": {
-              "reference_images": {
-                "field": "reference_images",
-                "required": true,
-                "minItems": 1,
-                "maxItems": 1,
-                "transports": [
-                  "https_url"
-                ]
-              }
-            }
-          },
-          "reference_video": {
-            "request": {
-              "method": "POST",
-              "path": "/v1/videos",
-              "contentType": "application/json"
-            },
-            "requiredBodyFields": [
-              "model",
-              "prompt",
-              "duration",
-              "reference_videos"
-            ],
-            "inputs": {
-              "reference_videos": {
-                "field": "reference_videos",
-                "required": true,
-                "minItems": 1,
-                "maxItems": 1,
-                "transports": [
-                  "https_url"
-                ]
-              }
-            }
-          },
-          "reference_audio": {
-            "request": {
-              "method": "POST",
-              "path": "/v1/videos",
-              "contentType": "application/json"
-            },
-            "requiredBodyFields": [
-              "model",
-              "prompt",
-              "duration",
-              "reference_audios"
-            ],
-            "inputs": {
-              "reference_audios": {
-                "field": "reference_audios",
-                "required": true,
-                "minItems": 1,
-                "maxItems": 1,
-                "transports": [
-                  "https_url"
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
       "id": "veo_fast",
       "name": "veo_fast",
       "provider": "Google",
@@ -4388,6 +4269,378 @@
               "720p",
               "1080p",
               "4k"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "viduq3-pro",
+      "name": "viduq3-pro",
+      "provider": "Vidu",
+      "vendorId": 25,
+      "capabilities": [
+        "video"
+      ],
+      "aliases": [],
+      "goodFor": {
+        "en": "Video generation",
+        "zh": "视频生成"
+      },
+      "example": {
+        "en": "Use viduq3-pro to generate a short video.",
+        "zh": "用 viduq3-pro 生成一条短视频。"
+      },
+      "parameterSchema": {
+        "properties": {
+          "prompt": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16
+            ],
+            "default": 5
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "540p",
+              "720p",
+              "1080p"
+            ],
+            "default": "720p"
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "default": "16:9"
+          },
+          "first_frame_image": {
+            "type": "string"
+          },
+          "last_frame_image": {
+            "type": "string"
+          },
+          "generate_audio": {
+            "type": "boolean"
+          },
+          "seed": {
+            "type": "integer",
+            "min": 0
+          }
+        },
+        "constraints": {
+          "reference_combination": {
+            "audio_requires_visual": [
+              true
+            ],
+            "frames_exclusive": [
+              true
+            ]
+          }
+        },
+        "lifecycle": {
+          "create": {
+            "successStatus": 200,
+            "idField": "id",
+            "object": "video",
+            "initialStatuses": [
+              "queued",
+              "in_progress"
+            ]
+          },
+          "poll": {
+            "method": "GET",
+            "path": "/v1/videos/{task_id}",
+            "intervalSeconds": 8,
+            "statusField": "status",
+            "pendingStatuses": [
+              "queued",
+              "in_progress"
+            ],
+            "successStatuses": [
+              "completed"
+            ],
+            "failureStatuses": [
+              "failed"
+            ],
+            "resultFields": [
+              "metadata.url"
+            ]
+          }
+        },
+        "operations": {
+          "image_to_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "first_frame_image"
+            ],
+            "inputs": {
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "last_frame_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "first_frame_image",
+              "last_frame_image"
+            ],
+            "inputs": {
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "last_frame_image": {
+                "field": "last_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "video_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "viduq3-turbo",
+      "name": "viduq3-turbo",
+      "provider": "Vidu",
+      "vendorId": 25,
+      "capabilities": [
+        "video"
+      ],
+      "aliases": [],
+      "goodFor": {
+        "en": "Video generation",
+        "zh": "视频生成"
+      },
+      "example": {
+        "en": "Use viduq3-turbo to generate a short video.",
+        "zh": "用 viduq3-turbo 生成一条短视频。"
+      },
+      "parameterSchema": {
+        "properties": {
+          "prompt": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16
+            ],
+            "default": 5
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "540p",
+              "720p",
+              "1080p"
+            ],
+            "default": "720p"
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "default": "16:9"
+          },
+          "first_frame_image": {
+            "type": "string"
+          },
+          "last_frame_image": {
+            "type": "string"
+          },
+          "generate_audio": {
+            "type": "boolean"
+          },
+          "seed": {
+            "type": "integer",
+            "min": 0
+          }
+        },
+        "constraints": {
+          "reference_combination": {
+            "audio_requires_visual": [
+              true
+            ],
+            "frames_exclusive": [
+              true
+            ]
+          }
+        },
+        "lifecycle": {
+          "create": {
+            "successStatus": 200,
+            "idField": "id",
+            "object": "video",
+            "initialStatuses": [
+              "queued",
+              "in_progress"
+            ]
+          },
+          "poll": {
+            "method": "GET",
+            "path": "/v1/videos/{task_id}",
+            "intervalSeconds": 8,
+            "statusField": "status",
+            "pendingStatuses": [
+              "queued",
+              "in_progress"
+            ],
+            "successStatuses": [
+              "completed"
+            ],
+            "failureStatuses": [
+              "failed"
+            ],
+            "resultFields": [
+              "metadata.url"
+            ]
+          }
+        },
+        "operations": {
+          "image_to_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "first_frame_image"
+            ],
+            "inputs": {
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "last_frame_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "first_frame_image",
+              "last_frame_image"
+            ],
+            "inputs": {
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "last_frame_image": {
+                "field": "last_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "video_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
             ]
           }
         }

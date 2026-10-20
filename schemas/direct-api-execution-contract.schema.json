@@ -369,7 +369,17 @@
         "verifySchema": "schemas/audio-artifact-verify-request.schema.json",
         "verifyLocalOnly": true,
         "nativeAudioBytesRequired": true,
-        "downloadIsNotDelivery": true
+        "downloadIsNotDelivery": true,
+        "reviewedProfiles": "runtime/executor/audio-profiles.json",
+        "synchronousOperations": [
+          "speech",
+          "transcribe",
+          "generate",
+          "music_sync",
+          "voice_change"
+        ],
+        "synchronousMusicModel": "music_v2_5",
+        "neverRoutesSynchronousMusicToTaskSubmit": true
       }
     },
     "operationsReceipts": {

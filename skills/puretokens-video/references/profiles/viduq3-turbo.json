@@ -1,0 +1,233 @@
+{
+  "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
+  "schemaVersion": 1,
+  "capability": "video",
+  "catalogUpdatedAt": "2026-10-21",
+  "catalogCapturedAt": "2026-10-21T02:29:21.846Z",
+  "id": "viduq3-turbo",
+  "parameterSchema": {
+    "properties": {
+      "prompt": {
+        "type": "string",
+        "required": false,
+        "maxLength": 1500
+      },
+      "duration": {
+        "type": "integer",
+        "enum": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16
+        ],
+        "default": 5
+      },
+      "resolution": {
+        "type": "string",
+        "enum": [
+          "540p",
+          "720p",
+          "1080p"
+        ],
+        "default": "720p"
+      },
+      "aspect_ratio": {
+        "type": "string",
+        "enum": [
+          "16:9",
+          "9:16",
+          "1:1"
+        ],
+        "default": "16:9"
+      },
+      "first_frame_image": {
+        "type": "string"
+      },
+      "last_frame_image": {
+        "type": "string"
+      },
+      "generate_audio": {
+        "type": "boolean"
+      },
+      "seed": {
+        "type": "integer",
+        "min": 0
+      },
+      "is_rec": {
+        "type": "boolean"
+      },
+      "bgm": {
+        "type": "boolean"
+      },
+      "voice_id": {
+        "type": "string"
+      },
+      "watermark": {
+        "type": "boolean"
+      },
+      "wm_position": {
+        "type": "integer",
+        "enum": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "wm_url": {
+        "type": "string"
+      },
+      "meta_data": {
+        "type": "string"
+      }
+    },
+    "operations": {
+      "image_to_video": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "first_frame_image"
+        ],
+        "inputs": {
+          "first_frame_image": {
+            "field": "first_frame_image",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 1,
+            "transports": [
+              "https_url"
+            ]
+          }
+        }
+      },
+      "last_frame_video": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt",
+          "first_frame_image",
+          "last_frame_image"
+        ],
+        "inputs": {
+          "first_frame_image": {
+            "field": "first_frame_image",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 1,
+            "transports": [
+              "https_url"
+            ]
+          },
+          "last_frame_image": {
+            "field": "last_frame_image",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 1,
+            "transports": [
+              "https_url"
+            ]
+          }
+        }
+      },
+      "video_generation": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt"
+        ],
+        "inputs": {}
+      }
+    },
+    "lifecycle": {
+      "create": {
+        "successStatus": 200,
+        "idField": "id",
+        "object": "video",
+        "initialStatuses": [
+          "queued",
+          "in_progress"
+        ]
+      },
+      "poll": {
+        "method": "GET",
+        "path": "/v1/videos/{task_id}",
+        "intervalSeconds": 8,
+        "statusField": "status",
+        "pendingStatuses": [
+          "queued",
+          "in_progress"
+        ],
+        "successStatuses": [
+          "completed"
+        ],
+        "failureStatuses": [
+          "failed"
+        ],
+        "resultFields": [
+          "metadata.url"
+        ]
+      }
+    },
+    "constraints": {
+      "reference_combination": {
+        "audio_requires_visual": [
+          true
+        ],
+        "frames_exclusive": [
+          true
+        ]
+      },
+      "reference_counts": {
+        "first_frame_image": 1,
+        "last_frame_image": 1,
+        "reference_images": 2,
+        "reference_videos": 0,
+        "reference_audios": 0,
+        "video": 1,
+        "max_total": 2
+      },
+      "reference_transport": {
+        "first_frame_image": [
+          "public_https_url"
+        ],
+        "last_frame_image": [
+          "public_https_url"
+        ]
+      },
+      "requires_together": {
+        "last_frame_image": [
+          "first_frame_image"
+        ]
+      }
+    }
+  },
+  "sourceReview": {
+    "reviewedAt": "2026-10-21",
+    "scope": "reviewed_source_not_live_availability",
+    "source": "PureTokenPlus_web/config/model-metadata-official.json"
+  }
+}

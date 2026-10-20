@@ -6,6 +6,8 @@ import { repositoryRoot } from "./skill-registry.mjs";
 import { loadOperationGuidance, renderOperationGuidance, replaceGuidanceBlock } from "./operation-guidance.mjs";
 
 import { loadHostDelivery, renderHostDeliveryGuide } from "./host-delivery-guidance.mjs";
+import { validModelID } from "./model-id.mjs";
+import { buildAudioRequestSchema } from "./audio-request-schema.mjs";
 
 const bindingPattern = /^宿主绑定与本地失败停止：[^\n]+$/gm;
 
@@ -41,6 +43,7 @@ export async function syncSkillGuidance(root, { write = false } = {}) {
   const audio = JSON.parse(await read("runtime/executor/audio-profiles.json"));
   const audioRoot = "skills/puretokens-audio/references";
   const ids = Object.keys(audio.models);
+  await output("schemas/audio-request.schema.json", JSON.stringify(buildAudioRequestSchema(audio), null, 2) + "\n");
   const existing = await readdir(path.join(root, audioRoot, "profiles")).catch(error => {
     if (error.code !== "ENOENT") throw error;
     return [];
@@ -55,7 +58,7 @@ export async function syncSkillGuidance(root, { write = false } = {}) {
     models: ids.map(id => ({ id, operation: audio.models[id].operation, profile: `profiles/${id}.json` }))
   }, null, 2) + "\n");
   for (const [id, profile] of Object.entries(audio.models)) {
-    if (!/^[a-z0-9.-]+$/.test(id) || profile.model !== id) throw new Error("Invalid audio model identifier");
+    if (!validModelID(id) || profile.model !== id) throw new Error("Invalid audio model identifier");
     await output(`${audioRoot}/profiles/${id}.json`, JSON.stringify({
       schemaVersion: 1, reviewedAt: audio.reviewedAt, ...profile
     }, null, 2) + "\n");

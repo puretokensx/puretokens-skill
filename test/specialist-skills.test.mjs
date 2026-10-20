@@ -142,7 +142,7 @@ test("media contracts retain fixed endpoints, asynchronous same-task handling, a
   assert.equal(image.operations.status.urlTemplate, `${apiOrigin}/v1/images/{task_id}`);
   assert.equal(image.operations.content.urlTemplate, `${apiOrigin}/v1/images/{task_id}/content?index={index}`);
   assert.equal(image.parameterValidation.defaultModel, "gpt-image-2.5-flare");
-  assert.equal(video.parameterValidation.defaultModel, "minimax_h3");
+  assert.equal(video.parameterValidation.defaultModel, "MiniMax-H3");
   assert.equal(image.contentRetrieval.indexBase, 0);
   assert.equal(image.contentRetrieval.completeDeliveryRequiresEveryRequestedIndex, true);
   assert.equal(image.submissionFailure.hostExecutionPolicyBlockedBeforeRequestStarts, "report_validation_no_api_request_or_task_id_and_require_host_session_with_external_network_permission");
@@ -161,7 +161,7 @@ test("media contracts retain fixed endpoints, asynchronous same-task handling, a
 test("media Skills load a compact index and only the selected model profile", async () => {
   for (const [name, capability, defaultModel] of [
     ["puretokens-image", "image", "gpt-image-2.5-flare"],
-    ["puretokens-video", "video", "minimax_h3"]
+    ["puretokens-video", "video", "MiniMax-H3"]
   ]) {
     const base = path.join(repositoryRoot, "skills", name);
     const [skill, manifest, index] = await Promise.all([
@@ -277,7 +277,7 @@ test("host matrix lists nineteen installer hosts and the bounded credential adap
     assert.equal(host.delivery, "native-installer");
     assert.equal(host.directMediaExecution, "managed-native-executor");
   }
-  assert.deepEqual(support.supported.filter((host) => host.credentialAdapter === "fixture-tested").map((host) => host.id), ["claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop"]);
+  assert.deepEqual(support.supported.filter((host) => host.credentialAdapter === "fixture-tested").map((host) => host.id), ["claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop"]);
 });
 
 test("source installer synchronizes Skills and exactly one native executor", async (t) => {
