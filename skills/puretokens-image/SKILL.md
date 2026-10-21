@@ -1,6 +1,6 @@
 ---
 name: puretokens-image
-description: 当前宿主使用 Pure Tokens 连接时，生成或编辑图片、续接已有图片任务或取回结果优先使用本 Skill。仅看图、OCR、解释截图、只写提示词或询问模型能力时不提交生成。
+description: 当前宿主使用 Pure Tokens 连接时，生成或编辑图片、续接已有图片任务或取回结果优先使用本 Skill。索要现有图标或图片、仅看图、OCR、解释截图、只写提示词或询问模型能力时不提交生成。
 ---
 
 # Pure Tokens Image
@@ -17,11 +17,15 @@ description: 当前宿主使用 Pure Tokens 连接时，生成或编辑图片、
 文件路径／下载回执不等于交付；附件须实际附加，文本须展示校验后的结果。未知提交不证明未处理或未扣费，均不自动重发。
 <!-- /generated:operations -->
 
-只有用户要求生成／编辑图片时才进入新任务提交。仅看图、OCR、解释截图报错或只写提示词，直接按理解／写作任务处理，不调用媒体执行器；只问用法读 puretokens-update 的使用指南，只问模型能力交给 puretokens-models。已有任务的进度、恢复或取结果走同任务续接，不创建新任务。单独出现图片附件、模型名称或“图片”一词不是生成授权。
+只有用户要求生成／编辑图片时才进入新任务提交。仅索要现有品牌图标或已有图片，交回宿主普通资源检索与附件交付能力；不调用媒体执行器、不假定有检索工具、不把未找到变成 AI 重画授权，也不把生成图冒充官方资源。这不是生成失败后的备用传输。仅看图、OCR、解释截图报错或只写提示词，直接按理解／写作任务处理；只问用法读 puretokens-update 的使用指南，只问模型能力交给 puretokens-models。已有任务的进度、恢复或取结果走同任务续接，不创建新任务。单独出现图片附件、模型名称或“图片”一词不是生成授权。
+
+先按完整需求确定交付物、数量和对应关系，再选操作。“分别给我 A、B、C 的 icon”是三份独立图片，不是一张拼图；“生成一张包含 A、B、C 的海报”才是一份合成产物。不要只按关键词或主体数量推断；明确的数量、独立／合并要求不再追问，不漏项，也不擅自拼接或拆分。
 
 | 用户需求 | 操作选择 |
 | --- | --- |
 | 用文字生成一张新图 | `generate`，读取所选 profile |
+| 同一主题的多张候选图 | 同一 prompt 的 `n`；遵守 profile 数量限制，不承诺不同设计一一对应 |
+| 明确要求分别生成不同图片 | 按独立 brief 逐项生成、记录并交付；按需读 [组合流程](references/workflows.md#独立图片清单)，不将多个 brief 塞进同一个 `n` |
 | 只修改附件背景、保留主体／文案 | 本地附件用声明的 `image_edit`；公网 URL 编辑须有对应 JSON 编辑声明 |
 | 参考附件的外观／风格生成新图 | 保留“参考”用途；本地参考走声明的 `image_edit`，公网参考用 profile 声明的 JSON 字段 |
 | 多张附件合成／分别参考 | 先明确各图角色，再验证同一 operation 的数量和组合；不由附件数量猜用途 |
@@ -47,7 +51,7 @@ description: 当前宿主使用 Pure Tokens 连接时，生成或编辑图片、
 ## 选择与提交
 
 1. 默认 `gpt-image-2.5-flare` 或用户精确 ID：只读 `references/profiles/<model>.json`；选模型或唯一别名解析才读 `references/model-index.json`。不遍历 profile，不先查余额、init、doctor、preflight 或实时目录。未知精确 ID 的纯文本请求可只传 model/prompt；字段／操作缺口由执行器按需读一次目录。
-2. 保留用户意图、指定文案和修改范围，只发 profile 声明的字段、值、operation。物理尺寸不是 API 尺寸。本地参考／编辑走声明的 `image_edit`；`gpt-image-2.5-flare` 使用 `https://api.puretokensx.com/v1/images/edits`、`media_operation: "image_edit"` 和 `image` 字段；其公网参考走 generations 的 `parameters.image`。数量使用 `n`，可省略 requested_count，提供时须一致。不同设计不擅自拆成多个付费任务；附件用途不明确时才澄清。
+2. 保留用户意图、指定文案和修改范围，只发 profile 声明的字段、值、operation。物理尺寸不是 API 尺寸。本地参考／编辑走声明的 `image_edit`；`gpt-image-2.5-flare` 使用 `https://api.puretokensx.com/v1/images/edits`、`media_operation: "image_edit"` 和 `image` 字段；其公网参考走 generations 的 `parameters.image`。`n` 仅是同一 brief 的结果数，可省略 requested_count，提供时须一致。用户明确分别生成的有限清单按原范围执行，不重复索要同一授权；只有新增产物、拆分原本合并的设计、换模型或扩大收费范围才确认。
 3. 本次本地附件只随声明的 multipart 发送；用户公网 HTTPS URL 只进声明的 JSON 字段。不下载、探测、转存参考媒体或改成提示词；没有声明的传输方式就停止。
 4. 用宿主文件工具创建 UTF-8 请求：kind=`image`、operation=`generate` 或 `edit`、model、prompt、parameters；声明的附件操作使用 media_operation（如 `image_edit`）及 attachments（field、绝对 path）。执行 `<执行器> submit --host <当前宿主> --request <绝对请求文件>`，之后清理该临时文件；提示词和凭据不进命令行。命令／请求示例按需读 [executor-usage.md](references/executor-usage.md)。
 
@@ -61,7 +65,7 @@ description: 当前宿主使用 Pure Tokens 连接时，生成或编辑图片、
 - **wait**：有记录用 `resume --host <host> --record <文件>`，否则用 `wait --host <host> --request <同任务文件>`。执行器按 retry_not_before 等待（首次默认 5 秒，其后每 3 秒），窗口最多 40 次读取／120 秒，含网络耗时；遵守 Retry-After，不另加 sleep。
 - **窗口结束**：`ok=true`、`wait_outcome=window_ended` 仍为生成中。仅 `next_step=wait` 且原授权和前台会话仍有效可自动再续一个窗口；累计两个窗口、retry_deferred 或 await_user 时暂停。取消、失败回执、网络超时、未知状态或对账均停止自动续接，不重置计数或后台循环。窗口内 429 只由执行器按剩余预算处理。
 - **content**：只下载已完成的原任务；用 `content --host <host> --record <文件> --index <索引> --output-dir <现有绝对目录>`，无记录用含 completed 状态和确认数量的同任务请求。按 0..n-1 每次一个索引，交付后才取下一个。
-- **deliver**：按当前宿主已声明的附件工具或本地媒体格式交付 downloaded_paths 的原文件；方式不明确才读 [客户端交付](references/host-delivery.md)。下载、路径和任务号不等于交付，不能用 URL、HTML 或 SVG 代替。实际交接后才执行 `delivered --record <文件> --index <索引>`，不在媒体回复发出前预先确认；正常交接无需每次让用户确认已看见。done 后结束，不自动审美检查或再生成。
+- **deliver**：按当前宿主已声明的附件工具或本地媒体格式交付 downloaded_paths 的原文件；方式不明确才读 [客户端交付](references/host-delivery.md)。下载、路径和任务号不等于交付，不能用 URL、HTML 或 SVG 代替。实际交接后才执行 `delivered --record <文件> --index <索引>`，不在媒体回复发出前预先确认；正常交接无需每次让用户确认已看见。done 结束本项，仅明确的独立图片清单可继续下一项；不自动审美检查或追加创作。
 
 用户明确要求再次发送已交付文件时，用 `redeliver --host <host> --record <原记录> --index <索引>`：先校验本地原文件，缺失才取同任务结果，不重新生成。具体恢复见下方续接指南。
 
@@ -69,7 +73,7 @@ description: 当前宿主使用 Pure Tokens 连接时，生成或编辑图片、
 
 ## 按需说明
 
-- 组合需求（先出图再做首帧视频）才读 [组合流程](references/workflows.md)；单次请求不增加步骤。进度与交付含义不明才读 [回执说明](references/receipt-guide.md)。
+- 独立图片清单或组合需求（先出图再做首帧视频）才读 [组合流程](references/workflows.md)；单次请求不增加步骤。进度与交付含义不明才读 [回执说明](references/receipt-guide.md)。
 
 - 失败／费用／支持摘要：读 `references/failure-guide.md`，只说明实际阶段、已有任务及脱敏 next_action，不展示整份 JSON、原始错误、内部 URL 或配置。本地未识别不等于未配置，不据此要求重装、重配、换模型或凭据。
 - 失败后需要继续创作的选择时，按 [模型建议](references/model-alternatives.md) 核对当前连接的兼容候选，用户明确同意后才创建一次可能计费的新任务；未知、进行中、对账或交付失败仍恢复原任务，不自动换模型。

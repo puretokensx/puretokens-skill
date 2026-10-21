@@ -54,6 +54,55 @@
       "deliveredAfterAttachment": true,
       "attachmentModel": "gpt-image-2.5-flare"
     },
+    "image-existing-icons": {
+      "skills": ["puretokens-image"],
+      "selectionOptional": true,
+      "postCount": 0,
+      "maxAsks": 0,
+      "allowedCommands": [],
+      "requiredCommands": [],
+      "attachmentRequired": false,
+      "sayAny": ["无法", "不能", "缺少", "不可用"],
+      "forbiddenSay": ["已获取", "已附上", "已生成", "全部完成"]
+    },
+    "image-distinct-assets": {
+      "skills": ["puretokens-image"],
+      "postCount": 3,
+      "maxAsks": 0,
+      "maxReads": 4,
+      "allowedCommands": ["submit", "wait", "resume", "content", "delivered"],
+      "requiredCommands": ["submit", "content", "delivered"],
+      "requiredReferences": ["skills/puretokens-image/SKILL.md", "skills/puretokens-image/references/profiles/gpt-image-2.5-flare.json", "skills/puretokens-image/references/workflows.md"],
+      "attachmentRequired": true,
+      "attachmentCount": 3,
+      "attachmentModel": "gpt-image-2.5-flare",
+      "independentAssets": ["红色茶壶", "蓝色陶瓷杯", "绿色玻璃瓶"],
+      "stopOnAssetError": true
+    },
+    "image-list-interrupted": {
+      "skills": ["puretokens-image"],
+      "postCount": 2,
+      "maxAsks": 0,
+      "allowedCommands": ["submit", "wait", "resume", "content", "delivered"],
+      "requiredCommands": ["submit", "content", "delivered"],
+      "attachmentRequired": true,
+      "attachmentCount": 1,
+      "attachmentModel": "gpt-image-2.5-flare",
+      "independentAssets": ["红色茶壶", "蓝色陶瓷杯", "绿色玻璃瓶"],
+      "stopOnAssetError": true,
+      "sayAny": ["未知", "未确认", "无法确认"],
+      "forbiddenSay": ["全部完成", "没有提交", "没扣费"]
+    },
+    "image-combined-design": {
+      "skills": ["puretokens-image"],
+      "postCount": 1,
+      "maxAsks": 0,
+      "allowedCommands": ["submit", "wait", "resume", "content", "delivered"],
+      "requiredCommands": ["submit", "content"],
+      "attachmentRequired": true,
+      "attachmentModel": "gpt-image-2.5-flare",
+      "combinedSubjects": ["红色茶壶", "蓝色陶瓷杯", "绿色玻璃瓶"]
+    },
     "unknown-submission": {
       "skills": ["puretokens-image"],
       "postCount": 1,

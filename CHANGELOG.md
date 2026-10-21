@@ -4,6 +4,12 @@
 
 # Changelog
 
+## 0.19.7 (Unreleased)
+
+- Keep separately requested images as independent deliverables, with a prompt, task record and attachment for each brief; do not substitute a collage or same-prompt variations.
+- Separate existing icon/image lookup from paid generation, and preserve requests for one composed image.
+- Preserve delivered list items after interruption and add offline regression cases for intent, per-item handoff and uncertain submissions.
+
 ## 0.19.6 - 2026-10-21
 
 - Add TRAE installation and read-only Switch connection support, stopping safely when the client edition or saved connection is ambiguous.

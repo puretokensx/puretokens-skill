@@ -78,7 +78,23 @@
     ],
     "sameTaskOnly": true,
     "neverAutoResubmit": true,
-    "afterConfirmedDelivery": "return_one_completion_receipt_and_end_turn_without_quality_review_history_search_or_new_media_submission",
+    "afterConfirmedDelivery": "finish_this_task_without_extra_generation_then_continue_only_the_remaining_explicitly_authorized_asset_list",
+    "outputIntent": {
+      "existingResourcesDoNotAuthorizeGeneration": true,
+      "existingResourceLookupUsesOnlyAvailableHostTools": true,
+      "groupingFollowsExplicitUserDeliverablesNotSubjectCount": true,
+      "sameBriefVariants": "one_prompt_with_profile_limited_n",
+      "independentImages": {
+        "requiresExplicitFiniteGenerationScope": true,
+        "onePromptAndUniqueRecordPerBrief": true,
+        "neverMapDifferentBriefsToN": true,
+        "noRedundantFirstItemQuestion": true,
+        "deliverBeforeNextSubmission": true,
+        "stopOnFailureUnknownOrExhaustedPending": true,
+        "resumeWithoutRegeneratingDeliveredItems": true,
+        "completionRequiresEveryRequestedAttachment": true
+      }
+    },
     "deliveryReceipt": "report_a_local_path_or_attachment_only_when_confirmed_by_the_host_otherwise_report_native_byte_handoff_without_inventing_a_location"
   },
   "taskIdentity": {

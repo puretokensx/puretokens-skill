@@ -109,6 +109,12 @@ own progress and delivery; a later failure never restarts earlier tasks. These
 workflows do not compose, edit or mix a finished video. Simple requests do not load
 the workflow guide or add preflight calls.
 
+Output grouping follows the request: existing brand icons are resource lookup, not
+permission to generate lookalikes. Explicitly requested separate image briefs use
+independent prompts, task records and attachments in order, not one collage or a
+shared `n` value. Same-brief variations can use the selected model's supported `n`.
+An interrupted list preserves delivered items and never automatically resubmits.
+
 ## Jev text evaluation
 
 Ask “Use Jev to classify this ticket as billing, technical, or other” or “Use Jev to judge urgency and score impact against these three levels.” The new `puretokens-evaluate` Skill uses one synchronous native request to the fixed `/typesafe/v1/systemone` endpoint. It reuses the current host's Pure Tokens connection; no TypeSafe SDK or additional key is needed. Independent questions over the same text share one request.

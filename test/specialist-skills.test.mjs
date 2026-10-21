@@ -96,6 +96,7 @@ test("media routing prioritizes Pure Tokens specialists before generic media Ski
   const directContract = JSON.parse(await readFile(path.join(repositoryRoot, "references", "direct-api-execution-contract.json"), "utf8"));
   assert.deepEqual(directContract.mediaRouting, {
     imageAndVideoRequestsPreferPureTokensSpecialists: true,
+    existingResourceLookupDoesNotAuthorizeGeneration: true,
     imageSkill: "puretokens-image",
     videoSkill: "puretokens-video",
     priority: "when_current_host_connection_uses_puretokens_select_the_matching_puretokens_specialist_before_generic_imagegen_imagen_or_video_skills",

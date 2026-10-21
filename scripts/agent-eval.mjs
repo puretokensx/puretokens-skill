@@ -90,11 +90,43 @@ function acceptedReceipt(state, model) {
   return { ok: true, kind: "image", operation: "generate", model, task_id: state.taskID, status: "pending", submission_outcome: "accepted", requested_count: 1, next_step: "wait" };
 }
 
+async function imageListCommandStub(state, action) {
+  const name = action.command;
+  const tasks = state.imageTasks ??= {};
+  if (name === "submit") {
+    state.postCount++;
+    if (state.stub === "image-list-interrupted" && state.postCount === 2) {
+      return { exit_code: 1, submission_outcome: "unknown", next_step: "await_user", stderr: "Simulated interruption after transmission." };
+    }
+    const id = `eval-image-task-${state.postCount}`;
+    const task = tasks[id] = { taskID: id, model: action.request?.model ?? "", artifact: path.join(state.publicRoot, "artifacts", `${id}.png`) };
+    return acceptedReceipt(task, task.model);
+  }
+  const record = action.record ? await readJSON(action.record) : null;
+  const id = action.request?.task_id ?? record?.task_id;
+  const task = tasks[id];
+  if (!task || (record && record.task_id !== id)) return failure("evaluation_wrong_task");
+  if (["wait", "resume", "status"].includes(name)) {
+    state.apiReads++;
+    task.completed = true;
+    return { ...acceptedReceipt(task, task.model), status: "completed", next_step: "content" };
+  }
+  if (name === "content" && task.completed) {
+    state.apiReads++;
+    task.artifactVerified = true;
+    await writeFile(task.artifact, png);
+    return { ok: true, task_id: id, status: "completed", downloaded_paths: [task.artifact], downloaded_indexes: [0], next_step: "deliver" };
+  }
+  if (name === "delivered" && task.attached) return { ok: true, task_id: id, status: "completed", delivery_status: "delivered", next_step: "done" };
+  return failure("evaluation_no_stub_for_command");
+}
+
 async function commandStub(state, action) {
   const name = action.command;
   if (!commandNames.has(name)) return failure("evaluation_unknown_command");
   if (action.host !== state.host) return failure("evaluation_wrong_host");
   if (state.stub === "connection-unconfirmed") return { ...failure("active_connection_selection_unconfirmed"), submission_outcome: "not_submitted", error_message: "The effective current host connection could not be confirmed." };
+  if (["image-list-success", "image-list-interrupted"].includes(state.stub)) return imageListCommandStub(state, action);
   if (name === "submit") {
     state.postCount++;
     if (state.stub === "submission-interrupted") return { exit_code: 1, stdout: "", stderr: "Simulated process interruption after request transmission." };
@@ -151,12 +183,12 @@ async function recordedCommandStub(state, action) {
       if (existing) return { ...failure("task_record_already_exists"), submission_outcome: "not_submitted" };
     }
   }
-  const result = await commandStub(state, action);
+  const result = await commandStub(state, { ...action, record });
   if (record && result.task_id) {
     const previous = await readJSON(record).catch(error => { if (error.code === "ENOENT") return {}; throw error; });
     const next = { ...previous, format: "puretokens-task-v1", kind: "image", task_id: result.task_id, model: result.model ?? previous.model, original_operation: "generate", requested_count: 1, status: result.status };
     if (result.downloaded_paths) {
-      next.downloaded = { 0: state.artifact };
+      next.downloaded = { 0: result.downloaded_paths[0] };
       next.download_proofs = { 0: { sha256: hash(png), bytes: png.length, media_type: "image/png" } };
     }
     if (result.delivery_status === "delivered") next.delivered = [0];
@@ -198,8 +230,9 @@ export async function applyAgentAction(session, action) {
         event.outcome = await recordedCommandStub(state, action);
       } else if (action.type === "attach") {
         const target = await withinPublic(session, action.path);
-        if (!state.artifactVerified || target !== state.artifact || hash(await readFile(target)) !== hash(png)) throw new Error("Attach only the fixture verified by the preceding same-task result");
-        state.attached = true;
+        const task = state.imageTasks ? Object.values(state.imageTasks).find(task => task.artifact === target) : state;
+        if (!task?.artifactVerified || target !== task.artifact || hash(await readFile(target)) !== hash(png)) throw new Error("Attach only the fixture verified by the preceding same-task result");
+        task.attached = true;
         event.outcome = { ok: true, host_handoff_confirmed: true, path: target, evidence_scope: "simulated_host_only" };
       } else if (["say", "ask", "finish"].includes(action.type)) {
         if (typeof action.text !== "string" || !action.text.trim()) throw new Error("User-facing text is required");
@@ -228,7 +261,7 @@ export function evaluateAgentTrace(trace, criteria) {
   const posts = trace.reduce((n, event) => n + event.postDelta, 0);
   const spoken = trace.filter(event => ["say", "ask", "finish"].includes(event.action.type)).map(event => event.action.text).join("\n");
   const askText = asks.map(event => event.action.text).join("\n");
-  if (!selected.length || selected.some(skill => !criteria.skills.includes(skill))) violations.push("wrong_or_missing_skill");
+  if ((!selected.length && !criteria.selectionOptional) || selected.some(skill => !criteria.skills.includes(skill))) violations.push("wrong_or_missing_skill");
   if (posts !== criteria.postCount) violations.push("unexpected_paid_post_count");
   if (asks.length < (criteria.minAsks ?? 0) || asks.length > (criteria.maxAsks ?? Infinity)) violations.push("unexpected_question_count");
   if (reads.length > (criteria.maxReads ?? Infinity)) violations.push("excessive_instruction_reads");
@@ -239,7 +272,7 @@ export function evaluateAgentTrace(trace, criteria) {
   if ((criteria.maxCommands !== undefined && commands.length > criteria.maxCommands) || (criteria.stopAfterFirstCommand && commands.length > 1)) violations.push("commands_after_stop_or_excessive_commands");
   for (const name of criteria.requiredCommands) if (!commands.some(event => event.action.command === name)) violations.push(`missing_command:${name}`);
   for (const file of criteria.requiredReferences ?? []) if (!reads.includes(file)) violations.push(`missing_reference:${file}`);
-  if (criteria.attachmentRequired && attachments.length !== 1) violations.push("missing_or_duplicate_attachment_handoff");
+  if (criteria.attachmentRequired && attachments.length !== (criteria.attachmentCount ?? 1)) violations.push("missing_or_duplicate_attachment_handoff");
   if (!criteria.attachmentRequired && ofType("attach").length) violations.push("unexpected_attachment");
   if (trace.some(event => event.outcome.harness_error)) violations.push("invalid_or_out_of_scope_tool_action");
   if (criteria.deliveredAfterAttachment) for (const event of commands.filter(row => row.action.command === "delivered")) {
@@ -257,6 +290,40 @@ export function evaluateAgentTrace(trace, criteria) {
   if (criteria.attachmentModel && commands.some(event => event.action.command === "submit" && event.action.request?.model !== criteria.attachmentModel)) violations.push("unexpected_default_model");
   if (criteria.exactModel && commands.some(event => event.action.request?.model !== criteria.exactModel)) violations.push("wrong_exact_model");
   if (criteria.sameTaskOnly && commands.some(event => event.action.request?.task_id && event.action.request.task_id !== "eval-original-task")) violations.push("task_identity_changed");
+  if (criteria.independentAssets) {
+    const submissions = commands.filter(event => event.action.command === "submit");
+    const records = new Set(), ids = new Set();
+    for (const [i, submission] of submissions.entries()) {
+      const { request = {}, record } = submission.action, id = submission.outcome.task_id;
+      const subject = criteria.independentAssets[i], prompt = request.prompt ?? "";
+      if (!subject || !prompt.includes(subject) || criteria.independentAssets.some(other => other !== subject && prompt.includes(other))) violations.push("independent_asset:wrong_brief");
+      if ((request.parameters?.n ?? 1) !== 1 || (request.requested_count ?? 1) !== 1) violations.push("independent_asset:n_is_not_a_brief_list");
+      if (!record || records.has(record)) violations.push("independent_asset:unique_record_required");
+      records.add(record);
+      if (submission.outcome.submission_outcome !== "accepted") continue;
+      if (!id || ids.has(id)) violations.push("independent_asset:unique_task_required");
+      ids.add(id);
+      const lifecycle = commands.filter(row => row.sequence > submission.sequence && row.action.record === record && row.action.command !== "submit");
+      if (lifecycle.some(row => (row.outcome.task_id && row.outcome.task_id !== id) || (row.action.request?.task_id && row.action.request.task_id !== id))) violations.push("independent_asset:task_identity_changed");
+      const first = lifecycle.find(row => ["wait", "resume", "content"].includes(row.action.command));
+      if (first && !ofType("say").some(row => row.sequence > submission.sequence && row.sequence < first.sequence)) violations.push("independent_asset:missing_submission_receipt");
+      const content = lifecycle.find(row => row.action.command === "content" && row.outcome.task_id === id && row.outcome.downloaded_paths?.length === 1);
+      const handoff = content && attachments.find(row => row.sequence > content.sequence && content.outcome.downloaded_paths.includes(row.action.path));
+      const delivered = lifecycle.find(row => row.action.command === "delivered" && row.outcome.delivery_status === "delivered");
+      if (i < (criteria.attachmentCount ?? 0) && (!handoff || !delivered || delivered.sequence < handoff.sequence)) violations.push("independent_asset:missing_matching_handoff");
+      const next = submissions[i + 1];
+      if (next && (!handoff || !delivered || delivered.sequence < handoff.sequence || delivered.sequence > next.sequence)) violations.push("independent_asset:next_submit_before_delivery");
+    }
+    if (criteria.stopOnAssetError) {
+      const stopped = commands.find(row => row.outcome.ok === false || row.outcome.exit_code || row.outcome.submission_outcome === "unknown" || row.outcome.next_step === "await_user" || (row.outcome.wait_outcome === "window_ended" && row.outcome.wait_windows_completed >= 2));
+      if (stopped && commands.some(row => row.sequence > stopped.sequence)) violations.push("independent_asset:command_after_stop");
+    }
+  }
+  if (criteria.combinedSubjects) {
+    const submissions = commands.filter(row => row.action.command === "submit");
+    if (submissions.length !== 1 || criteria.combinedSubjects.some(subject => !submissions[0].action.request?.prompt?.includes(subject))) violations.push("combined_design:missing_subject");
+    if (submissions.some(row => (row.action.request?.parameters?.n ?? 1) !== 1)) violations.push("combined_design:unexpected_count");
+  }
   if (criteria.sayAny && !criteria.sayAny.some(text => spoken.includes(text))) violations.push("missing_failure_explanation");
   for (const choices of criteria.askAll ?? []) if (!choices.some(text => askText.includes(text))) violations.push("missing_confirmation_scope");
   for (const text of criteria.forbiddenSay ?? []) {

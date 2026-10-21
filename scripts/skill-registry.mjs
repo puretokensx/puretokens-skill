@@ -222,6 +222,7 @@ function validateDirectApiExecutionContract(errors, contract, hostSupport) {
   }
   const mediaRouting = contract.mediaRouting;
   if (!mediaRouting || mediaRouting.imageAndVideoRequestsPreferPureTokensSpecialists !== true ||
+    mediaRouting.existingResourceLookupDoesNotAuthorizeGeneration !== true ||
     mediaRouting.imageSkill !== "puretokens-image" || mediaRouting.videoSkill !== "puretokens-video" ||
     mediaRouting.priority !== mediaRoutingPriority ||
     mediaRouting.afterSpecialistSelection !== "never_fall_back_to_a_generic_media_skill" ||
@@ -596,8 +597,14 @@ function validateExecutionContract(errors, directory, contract) {
       mediaInput.untransportableNativeReferenceMustNeverBeConvertedToTextPrompt !== true ||
       mediaInput.whenNativeReferenceTransportUnavailable !== "stop_before_post_when_no_declared_image_edit_multipart_operation_or_no_native_byte_delivery_and_require_public_https_url_or_explicit_new_text_only_request" ||
       mediaInput.requestScope !== "current_user_request_only_no_unrelated_skill_history_workspace_search_or_quality_review" ||
-      contract.result?.afterConfirmedDelivery !== "return_one_completion_receipt_and_end_turn_without_quality_review_history_search_or_new_media_submission") {
-      errors.push(`${label} must fail closed for untransportable native reference attachments and end after confirmed delivery`);
+      contract.result?.afterConfirmedDelivery !== "finish_this_task_without_extra_generation_then_continue_only_the_remaining_explicitly_authorized_asset_list") {
+      errors.push(`${label} must fail closed for untransportable native references and finish each task without abandoning the remaining authorized list`);
+    }
+    const intent = contract.result?.outputIntent, assets = intent?.independentImages;
+    if (intent?.existingResourcesDoNotAuthorizeGeneration !== true || intent.existingResourceLookupUsesOnlyAvailableHostTools !== true ||
+      intent.groupingFollowsExplicitUserDeliverablesNotSubjectCount !== true || intent.sameBriefVariants !== "one_prompt_with_profile_limited_n" ||
+      !assets || ["requiresExplicitFiniteGenerationScope", "onePromptAndUniqueRecordPerBrief", "neverMapDifferentBriefsToN", "noRedundantFirstItemQuestion", "deliverBeforeNextSubmission", "stopOnFailureUnknownOrExhaustedPending", "resumeWithoutRegeneratingDeliveredItems", "completionRequiresEveryRequestedAttachment"].some(key => assets[key] !== true)) {
+      errors.push(`${label} must preserve resource lookup, composed images and finite independent image briefs as different intents`);
     }
     validateTaskIdentityStateAndSubmissionFailure(errors, label, contract, true);
     validateImageRetrieval(errors, label, contract);

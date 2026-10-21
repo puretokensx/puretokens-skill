@@ -24,7 +24,8 @@ node scripts/agent-eval.mjs prepare --scenario image-short-path
 返回唯一 `session`、`publicTask`、`publicWorkspace`。`--variant 1` 选择同题另一种自然表达。
 题目 ID 见 `agent-evaluation-scenarios.json`。产品帮助覆盖 `product-introduction`、
 `product-getting-started`，并用 `explicit-connection-check`、`explicit-public-identity`
-检查明确诊断意图的分流。其余题目覆盖生成、同任务恢复和失败引导。
+检查明确诊断意图的分流。图片意图覆盖现有品牌图标、多个独立创作、一张多主体海报，
+以及清单第二项提交中断。其余题目覆盖生成、同任务恢复和失败引导。
 
 把以下任务交给不继承历史结论的独立 Agent，替换两个绝对路径；不要附加隐藏规则或预期答案：
 
@@ -55,6 +56,9 @@ node scripts/agent-eval.mjs prepare --scenario image-short-path
 
 `command.record` 可为临时工作区内的明确 JSON 任务文件；`index` 表示原任务索引。
 无需复制／读取真实媒体：图片结果是 harness 产生的固定小型 PNG。
+独立创作题目给每项分配不同的任务 ID、记录与文件路径；固定 PNG 不验证画面质量。
+判定器按项核对 prompt 对应、`n`、独立记录、回执与实际模拟附件交接，拒绝拼图替代、
+串任务、漏交、提前提交下一项及中断后继续提交。手写通过轨迹仍只是测试判定器，不是 LLM 验收。
 动作锁将同一会话的并行只读动作排队写入轨迹，超过 5 秒明确停止；不同会话互不干扰。不要把一次会话给多个 Agent 同时执行。
 
 受测 Agent 完成后，维护者执行：

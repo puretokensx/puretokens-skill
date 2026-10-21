@@ -46,7 +46,17 @@
     {
       "id": "image-distinct-assets",
       "when": "one request contains multiple distinct image briefs or assets",
-      "then": "do not map the briefs to n, split the request into multiple billable submissions, or silently drop an item; ask the user to choose the first asset for this request"
+      "then": "Determine the requested deliverables and whether they are existing resources, independently generated images, or one explicitly combined design. An explicit request to generate each separate brief authorizes that finite list, not extra variants: use one prompt and unique task record per brief, deliver each before the next, and never map distinct briefs to n or silently merge/drop items. Do not ask the user to choose the first item when scope is clear. Stop on failure, unknown submission or exhausted pending windows; preserve completed items and resume only the correct original task. Resource retrieval alone never authorizes paid generation."
+    },
+    {
+      "id": "image-existing-brand-icons",
+      "when": "the user asks for Doubao, Claude and WorkBuddy icons separately without asking to generate or redesign them",
+      "then": "Keep three independently named image deliverables and treat them as existing brand-resource retrieval, not an Images API request or a collage. Defer to the host's available resource tools without inventing them; do not submit, read credentials, draw lookalikes, claim generated assets are official, or call another media Skill. Missing resources or attachment capability must be reported per item, never silently replaced by generation or counted as delivered URLs."
+    },
+    {
+      "id": "image-combined-design",
+      "when": "the user explicitly requests one poster containing several subjects",
+      "then": "Preserve the single composed image and the requested subjects; do not split it into paid per-subject tasks merely because a list or multiple names appears."
     },
     {
       "id": "image-prompt-shaping",
@@ -85,7 +95,7 @@
     },
     {
       "id": "image-executor-request-start",
-      "when": "the user requests an image, visual reference, or image edit",
+      "when": "the user explicitly requests new image generation, generation using a visual reference, or an image edit; not existing-resource lookup",
       "then": "invoke the installed managed native executor with the current host ID and the declared fixed Images API request. For a current attachment and declared image_edit operation, give it only that exact multipart attachment path; never invoke Imagen, another media Skill, a browser, Switch, Desktop, or Computer Use."
     },
     {

@@ -37,6 +37,34 @@
       "stub": "image-success"
     },
     {
+      "id": "image-existing-icons",
+      "request": "请分别给我豆包、Claude、WorkBuddy 的 icon。",
+      "variants": ["我要豆包、Claude 和 WorkBuddy 各自的图标，分别发给我。"],
+      "context": "当前是 Codex Desktop 本地会话，可读取当前安装说明。本轮未提供品牌资源，也没有可用的网页检索或官方资源附件工具。用户没有要求生成、重画或设计新图标。请说明实际可完成范围，不虚构已经拿到或附加的图片。",
+      "stub": "no-paid-work"
+    },
+    {
+      "id": "image-distinct-assets",
+      "request": "用默认模型分别生成红色茶壶、蓝色陶瓷杯、绿色玻璃瓶的产品图，各一张，白底方图，不要拼图。",
+      "variants": ["请画三份独立的白底方形产品图：红色茶壶一份、蓝色陶瓷杯一份、绿色玻璃瓶一份。使用默认图片模型。"],
+      "context": "当前是 Codex Desktop 本地会话，用户明确使用 Pure Tokens，宿主可附加本地图片。三份新创作均已明确要求；还没有提交任务。本轮只使用离线模拟工具，不能发起真实请求。",
+      "stub": "image-list-success"
+    },
+    {
+      "id": "image-list-interrupted",
+      "request": "分别生成红色茶壶、蓝色陶瓷杯、绿色玻璃瓶的白底产品图，各一张，默认模型。",
+      "variants": ["默认模型画三张独立产品图，依次是红色茶壶、蓝色陶瓷杯、绿色玻璃瓶，各一张。"],
+      "context": "当前是 Codex Desktop 本地会话，用户明确使用 Pure Tokens，宿主可附加本地图片。此前没有本任务记录；模拟接口可能中断，依实际回执判断后续动作。",
+      "stub": "image-list-interrupted"
+    },
+    {
+      "id": "image-combined-design",
+      "request": "用默认模型生成一张海报，把红色茶壶、蓝色陶瓷杯、绿色玻璃瓶放在同一画面，只要一张。",
+      "variants": ["我需要一张同时展示红色茶壶、蓝色陶瓷杯和绿色玻璃瓶的海报，三个产品在一起，默认模型。"],
+      "context": "当前是 Codex Desktop 本地会话，用户明确使用 Pure Tokens，宿主可附加本地图片。本轮没有参考附件，也没有要求三份独立文件。",
+      "stub": "image-success"
+    },
+    {
       "id": "unknown-submission",
       "request": "帮我用默认模型生成一张海边灯塔图片，一张就好。",
       "variants": ["画张海边灯塔的图，用默认型号，只要一张。"],

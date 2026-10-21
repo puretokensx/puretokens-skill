@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "name": "puretokens-image",
-  "version": "0.19.6",
+  "version": "0.19.7",
   "entry": "SKILL.md",
   "displayName": "Pure Tokens Image",
-  "description": "Primary image Skill for the current Pure Tokens connection: image generation, profile-gated editing and same-task recovery before generic imagegen or Imagen. Image understanding, OCR, screenshot diagnosis, prompt-only writing and model questions do not authorize generation.",
+  "description": "Primary image Skill for the current Pure Tokens connection: image generation, profile-gated editing and same-task recovery before generic imagegen or Imagen. Existing icon/image retrieval, image understanding, OCR, screenshot diagnosis, prompt-only writing and model questions do not authorize generation.",
   "modelIndex": "references/model-index.json",
   "executionContract": "references/execution-contract.json",
   "taskReceipt": "references/task-receipt.json",
@@ -141,9 +141,11 @@
     "untransportableNativeReferenceAttachmentsFailClosed": true,
     "neverConvertsUntransportableAttachmentsToPrompt": true,
     "currentRequestScopeOnly": true,
-    "endsAfterConfirmedMediaDelivery": true,
+    "endsEachTaskAfterConfirmedMediaDelivery": true,
     "usesIntentAwarePromptPreparation": true,
-    "doesNotSplitDistinctImageAssets": true,
+    "preservesExplicitIndependentImageDeliverables": true,
+    "separatesExistingResourceLookupFromGeneration": true,
+    "usesOnePromptAndRecordPerAuthorizedImageBrief": true,
     "usesSafeStructuredFailureReceipts": true,
     "neverAutoResubmitAfterError": true,
     "neverAutoSwitchModelAfterError": true,
@@ -162,5 +164,5 @@
     "supportsOptionalContinuationRecord": true,
     "userReceiptIsConcise": true
   },
-  "sourceSha256": "aa7d1eefca7e52397e5fb97f91c088579dcf68d46b648bb362926d8b035137e6"
+  "sourceSha256": "3a7bea41d0f4aaee0c7d629b748116697e7786a4dd2ccd5bd1374b3e5da74b50"
 }

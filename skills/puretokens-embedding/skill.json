@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "puretokens-embedding",
-  "version": "0.19.6",
+  "version": "0.19.7",
   "entry": "SKILL.md",
   "displayName": "Pure Tokens Embedding",
   "description": "Embed explicitly supplied texts into a new JSONL file through the current Pure Tokens connection.",

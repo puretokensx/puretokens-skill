@@ -1,4 +1,4 @@
 interface:
   display_name: "Pure Tokens Image"
   short_description: "Primary Pure Tokens image generation/editing and same-task recovery."
-  default_prompt: "Use $puretokens-image for image generation, editing or recovery with the current Pure Tokens connection, before generic imagegen or Imagen. Image understanding, OCR, screenshot diagnosis, prompt-only writing and model questions do not authorize generation. Continue existing tasks without a new submission."
+  default_prompt: "Use $puretokens-image for image generation, editing or recovery with the current Pure Tokens connection, before generic imagegen or Imagen. Existing icon/image retrieval, image understanding, OCR, screenshot diagnosis, prompt-only writing and model questions do not authorize generation. Preserve independently requested outputs, distinguish them from one composed image, and continue existing tasks without a new submission."

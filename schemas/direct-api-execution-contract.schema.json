@@ -136,6 +136,7 @@
       "type": "object",
       "required": [
         "imageAndVideoRequestsPreferPureTokensSpecialists",
+        "existingResourceLookupDoesNotAuthorizeGeneration",
         "imageSkill",
         "videoSkill",
         "priority",
@@ -145,6 +146,9 @@
       ],
       "properties": {
         "imageAndVideoRequestsPreferPureTokensSpecialists": {
+          "const": true
+        },
+        "existingResourceLookupDoesNotAuthorizeGeneration": {
           "const": true
         },
         "imageSkill": {
