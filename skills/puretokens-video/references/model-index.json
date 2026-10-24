@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-index.schema.json",
   "schemaVersion": 1,
   "capability": "video",
-  "catalogUpdatedAt": "2026-10-21",
-  "catalogCapturedAt": "2026-10-21T02:29:21.846Z",
+  "catalogUpdatedAt": "2026-10-24",
+  "catalogCapturedAt": "2026-10-24T11:09:36.781Z",
   "defaultModel": "MiniMax-H3",
   "models": [
     {
@@ -17,6 +17,18 @@
       "id": "grok-imagine-video-1.5",
       "aliases": [],
       "profile": "profiles/grok-imagine-video-1.5.json"
+    },
+    {
+      "id": "kling-v3",
+      "aliases": [],
+      "profile": "profiles/kling-v3.json",
+      "supportScope": "reviewed_source"
+    },
+    {
+      "id": "kling-v3-turbo",
+      "aliases": [],
+      "profile": "profiles/kling-v3-turbo.json",
+      "supportScope": "reviewed_source"
     },
     {
       "id": "MiniMax-H3",
@@ -53,6 +65,36 @@
       "id": "seedance-2.5",
       "aliases": [],
       "profile": "profiles/seedance-2.5.json"
+    },
+    {
+      "id": "Super Vega 1.0-lite",
+      "aliases": [],
+      "profile": "profiles/Super Vega 1.0-lite.json",
+      "supportScope": "reviewed_source"
+    },
+    {
+      "id": "Super Vega 1.0-pro",
+      "aliases": [],
+      "profile": "profiles/Super Vega 1.0-pro.json",
+      "supportScope": "reviewed_source"
+    },
+    {
+      "id": "Super Vega 1.0-pro-fast",
+      "aliases": [],
+      "profile": "profiles/Super Vega 1.0-pro-fast.json",
+      "supportScope": "reviewed_source"
+    },
+    {
+      "id": "Super Vega 1.0-pro-mini",
+      "aliases": [],
+      "profile": "profiles/Super Vega 1.0-pro-mini.json",
+      "supportScope": "reviewed_source"
+    },
+    {
+      "id": "Super Vega 1.5-pro",
+      "aliases": [],
+      "profile": "profiles/Super Vega 1.5-pro.json",
+      "supportScope": "reviewed_source"
     },
     {
       "id": "veo_fast",
@@ -92,51 +134,9 @@
       "profile": "profiles/wan3.0-video-prime.json"
     },
     {
-      "id": "kling-v3",
-      "aliases": [],
-      "profile": "profiles/kling-v3.json",
-      "supportScope": "reviewed_source"
-    },
-    {
-      "id": "kling-v3-turbo",
-      "aliases": [],
-      "profile": "profiles/kling-v3-turbo.json",
-      "supportScope": "reviewed_source"
-    },
-    {
       "id": "viduq4-preview",
       "aliases": [],
       "profile": "profiles/viduq4-preview.json",
-      "supportScope": "reviewed_source"
-    },
-    {
-      "id": "Super Vega 1.0-lite",
-      "aliases": [],
-      "profile": "profiles/Super Vega 1.0-lite.json",
-      "supportScope": "reviewed_source"
-    },
-    {
-      "id": "Super Vega 1.0-pro",
-      "aliases": [],
-      "profile": "profiles/Super Vega 1.0-pro.json",
-      "supportScope": "reviewed_source"
-    },
-    {
-      "id": "Super Vega 1.0-pro-fast",
-      "aliases": [],
-      "profile": "profiles/Super Vega 1.0-pro-fast.json",
-      "supportScope": "reviewed_source"
-    },
-    {
-      "id": "Super Vega 1.0-pro-mini",
-      "aliases": [],
-      "profile": "profiles/Super Vega 1.0-pro-mini.json",
-      "supportScope": "reviewed_source"
-    },
-    {
-      "id": "Super Vega 1.5-pro",
-      "aliases": [],
-      "profile": "profiles/Super Vega 1.5-pro.json",
       "supportScope": "reviewed_source"
     }
   ]

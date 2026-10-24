@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "puretokens-audio",
-  "version": "0.19.7",
+  "version": "0.19.8",
   "entry": "SKILL.md",
   "displayName": "Pure Tokens Audio",
   "description": "Use the current Pure Tokens connection to synthesize speech, transcribe a recording, generate sound or music, or change a recording to an explicitly permitted voice.",

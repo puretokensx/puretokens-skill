@@ -172,7 +172,11 @@ Jev、音频、向量和重排需要相应 API 权限，不需要将专用模型
 | VS Code | `~/.copilot/skills` | 默认本地 profile；0.18.7 支持同 Key 的单连接多模型 |
 | Octop | 明确指定当前工作区的 `.octop/skills` | 只读本地 SQLite 连接；不假设全局 Skill 安装目录 |
 
-四个新增适配器的夹具覆盖不等于真实客户端媒体验收。Hermes、EvoX 支持文档声明的绝对数据目录覆盖；Octop 使用 `--host octop --target <绝对工作区>/.octop/skills`（PowerShell：`-HostId octop -Target <绝对工作区>/.octop/skills`），不枚举代理、不写全局 Skill 包数据库。Cursor 未注册为 Skill 宿主。
+适配器的夹具覆盖不等于真实客户端媒体验收。Hermes、EvoX 支持文档声明的绝对数据目录覆盖；Octop 使用 `--host octop --target <绝对工作区>/.octop/skills`（PowerShell：`-HostId octop -Target <绝对工作区>/.octop/skills`），不枚举代理、不写全局 Skill 包数据库。Cursor 未注册为 Skill 宿主。
+
+Switch 当前源码目录包含 23 个客户端，Skills 注册 19 个宿主。DeepSeek Bot
+独立于两个 Harness 宿主，目前与 Paseo、Rakazo、OpenMausBot 一样没有受支持
+的 Skills 适配器。在 Switch 配置成功不代表可以直接执行 Skill。
 
 宿主列表以 `references/host-support.json` 为唯一契约。表中为默认目录；Claude／WorkBuddy 支持明确配置目录覆盖，Pi 支持不含父级跳转的绝对 `PI_CODING_AGENT_DIR`，DSH 支持本地 Harness 明确设置的 `DSH_HOME`。Gemini 如已有较高优先级的 `.agents/skills` 安装，会更新该目录并报告重复副本。不会依据 provider 名判断。
 
@@ -199,7 +203,7 @@ Claude Desktop 请选择本地 Code 会话并使用宿主 ID `claude-desktop`；
 <!-- media-model-catalog:start -->
 ## 媒体模型清单
 
-已与基础模型目录同步：2026-10-21T02:29:21.846Z。
+已与基础模型目录同步：2026-10-24T11:09:36.781Z。
 
 这份清单用于安装后的模型选择，不是每次请求的认证检查。普通生成只读选中 profile；仅明确查询、profile 缺口或拒绝诊断时读取实时目录。经审查的本地兼容补充定义单独注明来源。
 
@@ -220,10 +224,10 @@ README 只从基础目录中带有明确图片/视频能力的模型生成，不
 | `nano-banana-2` | Google | `nano banana 2` | 图片生成 | `用 nano-banana-2 生成一张图片。` |
 | `nano-banana-2-lite` | Google | 仅精确 ID | 图片生成 | `用 nano-banana-2-lite 生成一张图片。` |
 | `nano-banana-pro` | Google | `nano banana pro` | 图片生成 | `用 nano-banana-pro 生成一张图片。` |
-| `qwen-image-3.0` | Qwen | 仅精确 ID | 图片生成 | `用 qwen-image-3.0 生成一张图片。` |
-| `qwen-image-3.0-pro` | Qwen | 仅精确 ID | 图片生成 | `用 qwen-image-3.0-pro 生成一张图片。` |
-| `wan2.7-image` | Qwen | 仅精确 ID | 图片生成 | `用 wan2.7-image 生成一张图片。` |
-| `wan2.7-image-pro` | Qwen | 仅精确 ID | 图片生成 | `用 wan2.7-image-pro 生成一张图片。` |
+| `qwen-image-3.0` | Alibaba | 仅精确 ID | 图片生成 | `用 qwen-image-3.0 生成一张图片。` |
+| `qwen-image-3.0-pro` | Alibaba | 仅精确 ID | 图片生成 | `用 qwen-image-3.0-pro 生成一张图片。` |
+| `wan2.7-image` | Alibaba | 仅精确 ID | 图片生成 | `用 wan2.7-image 生成一张图片。` |
+| `wan2.7-image-pro` | Alibaba | 仅精确 ID | 图片生成 | `用 wan2.7-image-pro 生成一张图片。` |
 
 ### 视频模型
 
@@ -231,6 +235,8 @@ README 只从基础目录中带有明确图片/视频能力的模型生成，不
 | --- | --- | --- | --- | --- |
 | `grok-imagine-video` | xAI | `grok video` | 视频生成 | `用 grok-imagine-video 生成一条视频。` |
 | `grok-imagine-video-1.5` | xAI | 仅精确 ID | 视频生成 | `用 grok-imagine-video-1.5 生成一条短视频。` |
+| `kling-v3` | Kling | 仅精确 ID | 视频生成 | `用 kling-v3 生成一条短视频。` |
+| `kling-v3-turbo` | Kling | 仅精确 ID | 视频生成 | `用 kling-v3-turbo 生成一条短视频。` |
 | `MiniMax-H3` | MiniMax | 仅精确 ID | 视频生成 | `用 MiniMax-H3 生成一条短视频。` |
 | `muse-video` | Meta | 仅精确 ID | 视频生成 | `用 muse-video 生成一条短视频。` |
 | `omni` | Google | 仅精确 ID | 视频生成 | `用 omni 生成一条短视频。` |
@@ -238,13 +244,18 @@ README 只从基础目录中带有明确图片/视频能力的模型生成，不
 | `seedance-2.0-fast` | ByteDance | 仅精确 ID | 视频生成 | `用 seedance-2.0-fast 生成一条视频。` |
 | `seedance-2.0-mini` | ByteDance | 仅精确 ID | 视频生成 | `用 seedance-2.0-mini 生成一条视频。` |
 | `seedance-2.5` | ByteDance | 仅精确 ID | 视频生成 | `用 seedance-2.5 生成一条视频。` |
+| `Super Vega 1.0-lite` | Tencent Cloud | 仅精确 ID | 视频生成 | `用 Super Vega 1.0-lite 生成一条短视频。` |
+| `Super Vega 1.0-pro` | Tencent Cloud | 仅精确 ID | 视频生成 | `用 Super Vega 1.0-pro 生成一条短视频。` |
+| `Super Vega 1.0-pro-fast` | Tencent Cloud | 仅精确 ID | 视频生成 | `用 Super Vega 1.0-pro-fast 生成一条短视频。` |
+| `Super Vega 1.0-pro-mini` | Tencent Cloud | 仅精确 ID | 视频生成 | `用 Super Vega 1.0-pro-mini 生成一条短视频。` |
+| `Super Vega 1.5-pro` | Tencent Cloud | 仅精确 ID | 视频生成 | `用 Super Vega 1.5-pro 生成一条短视频。` |
 | `veo_fast` | Google | 仅精确 ID | 视频生成 | `用 veo_fast 生成一条短视频。` |
 | `veo_lite` | Google | 仅精确 ID | 视频生成 | `用 veo_lite 生成一条短视频。` |
 | `veo_quan` | Google | 仅精确 ID | 视频生成 | `用 veo_quan 生成一条短视频。` |
 | `viduq3-pro` | Vidu | 仅精确 ID | 视频生成 | `用 viduq3-pro 生成一条短视频。` |
 | `viduq3-turbo` | Vidu | 仅精确 ID | 视频生成 | `用 viduq3-turbo 生成一条短视频。` |
-| `wan3.0-video` | Qwen | 仅精确 ID | 视频生成 | `用 wan3.0-video 生成一条短视频。` |
-| `wan3.0-video-prime` | Qwen | 仅精确 ID | 视频生成 | `用 wan3.0-video-prime 生成一条短视频。` |
+| `wan3.0-video` | Alibaba | 仅精确 ID | 视频生成 | `用 wan3.0-video 生成一条短视频。` |
+| `wan3.0-video-prime` | Alibaba | 仅精确 ID | 视频生成 | `用 wan3.0-video-prime 生成一条短视频。` |
 
 <!-- media-model-catalog:end -->
 

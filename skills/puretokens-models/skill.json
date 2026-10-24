@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "puretokens-models",
-  "version": "0.19.7",
+  "version": "0.19.8",
   "entry": "SKILL.md",
   "displayName": "Pure Tokens Models",
   "description": "Inspect fixed-Pure-Tokens media capabilities and parameters, or explicitly look up reviewed audio or Jev evaluation models in the authenticated directory. Query live public group membership separately from current-Key permission.",

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "puretokens-update",
-  "version": "0.19.7",
+  "version": "0.19.8",
   "entry": "SKILL.md",
   "displayName": "Pure Tokens Update",
   "description": "Explain Pure Tokens and getting started locally, or explicitly install, upgrade and verify Skills.",

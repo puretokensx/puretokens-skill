@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "client": "grok-build",
+  "platform": "windows",
+  "client_version": "0.1.0",
+  "states": {
+    "original": { "files": { "home/.grok/config.toml": "[models]\r\ndefault = \"grok-3\"\r\n" } },
+    "configured": { "files": { "home/.grok/config.toml": "[models]\r\ndefault = \"pts-grok-3\"\r\n[model.pts-grok-3]\r\nmodel = \"grok-3\"\r\nbase_url = \"https://api.puretokensx.com/v1\"\r\nname = \"grok-3\"\r\napi_key = \"pts-token\"\r\n" } },
+    "corrupt": { "files": { "home/.grok/config.toml": "[invalid" }, "expected": "reject_without_write" },
+    "concurrent": { "base_files": { "home/.grok/config.toml": "[models]\r\ndefault = \"grok-3\"\r\n" }, "external_files": { "home/.grok/config.toml": "[models]\r\ndefault = \"grok-4\"\r\n" }, "expected": "abort_preserve_external" }
+  }
+}

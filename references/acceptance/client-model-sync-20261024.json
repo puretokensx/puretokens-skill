@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-24",
+  "candidateVersion": "0.19.8",
+  "publishedVersionObserved": "0.19.6",
+  "publishedAtObserved": "2026-10-21T03:06:53Z",
+  "scope": "Source compatibility refresh and isolated synthetic tests only. Not a release approval, authenticated permission check or real-host delivery acceptance.",
+  "sources": {
+    "skillsBaseCommit": "3000dd61da9357fbb11f25e4aabcb887aa2fa294",
+    "switchCommit": "878bf0248d3bc1e90a2169094166032c972118f0",
+    "switchWorkingTreeIncluded": true,
+    "webCommit": "d80c6922479f7324becb116422f3c1bf0d4ef77e",
+    "webWorkingTreeIncluded": true,
+    "webMetadataSha256": "5675956b9c2c24e18d17054f7e0c9d08794a25bc2da49c6d12508a1746cb9b9b",
+    "deepseekBotRepository": "https://github.com/Fei2411/DeepSeek-Bot",
+    "deepseekBotCommit": "1bebe826f74e9a72cabafd3b80602b05af867b38",
+    "deepseekBotSourceBoundary": "README describes a shared capability library assigned per Bot. Switch's independent writer and per-Bot model selection do not establish the current execution connection or native result delivery."
+  },
+  "catalog": {
+    "source": "https://console.puretokensx.com/api/product/docs/model-catalog",
+    "capturedAt": "2026-10-24T11:09:36.685Z",
+    "responseDate": "Sat, 24 Oct 2026 11:09:34 GMT",
+    "sha256": "4397e9656f866815362e014e9583cdbcbb46c46d9125b213c1b148b7cb68a6c6",
+    "bytes": 521087,
+    "total": 129,
+    "explicitMediaModels": 38,
+    "image": 15,
+    "video": 23,
+    "newDedicatedDeclarations": ["kling-v3", "kling-v3-turbo", "Super Vega 1.0-lite", "Super Vega 1.0-pro", "Super Vega 1.0-pro-fast", "Super Vega 1.0-pro-mini", "Super Vega 1.5-pro"],
+    "removedMediaIds": [],
+    "providerDisplayChanges": ["qwen-image-3.0", "qwen-image-3.0-pro", "wan2.7-image", "wan2.7-image-pro", "wan3.0-video", "wan3.0-video-prime"],
+    "installedImages": 15,
+    "installedVideos": 24,
+    "reviewedSourceOnlyNotListed": ["viduq4-preview"],
+    "profileComparison": {
+      "profilesCheckedAgainstBaseCommit": 57,
+      "parameterSchemaChanges": [],
+      "sourceReviewChanges": []
+    },
+    "reviewedAudioVisible": 18,
+    "reviewedEvaluationVisible": 3,
+    "reviewedEmbeddingRerankVisible": 3,
+    "visibilityBoundary": "Anonymous catalog membership only, not current Key groups, authenticated permissions, route health, paid calls or attachment delivery."
+  },
+  "defaults": {"image": "gpt-image-2.5-flare", "video": "MiniMax-H3"},
+  "clients": {
+    "switchSourceDirectoryCount": 23,
+    "registeredSkillHosts": 19,
+    "directSkillUnsupported": ["deepseek-bot", "paseo", "rakazo", "openmausbot"],
+    "claudeDesktop": "Default-first inferenceModels without inferenceDefaultModel. Credential selection remains the active UUID profile, independent of model order.",
+    "grokBuild": "Exact model name display; models.default still selects the connection. Names never identify credentials.",
+    "vscode": "Unchanged native customendpoint shape; one supported group with equal inline credentials in memory only. Different Keys, groups and overrides stop.",
+    "trae": "Switch installation identity changes do not permit the executor to select the first of several desktop state stores. Existing ambiguity guard remains.",
+    "deepseekBot": {
+      "status": "unsupported",
+      "switchWriterFiles": ["crates/client-adapters/deepseek-bot/src/lib.rs", "crates/client-adapters/deepseek-bot/src/paths.rs", "apps/desktop/src/features/client-config/model/client-skill-support.ts"],
+      "requiredBeforeEnablement": ["Verified Skill discovery and per-Bot execution binding", "Effective current-Bot connection and supported session-override contract", "Minimal endpoint-first credential adapter with ambiguity rejection", "Native file and text result handoff", "Explicitly authorized real-host dedicated API and delivery acceptance"],
+      "forbiddenShortcut": "Do not reuse deepseek-harness/dsh-desktop host IDs or infer the active Bot from a saved default."
+    }
+  },
+  "regressions": {
+    "switchWriterFixtures": "test/fixtures/switch-client-configs/{claude-desktop,grok-build}/{macos,windows}.json",
+    "fixtureOrigin": "Byte-identical copies of Switch tests/fixtures/client-configs at the source identity above; all credentials synthetic. No external checkout or temporary environment variable needed in CI.",
+    "fixtureSha256": {
+      "claude-desktop/macos.json": "3ae9bb3b00cee988b5394151470eb516b88ac860a25086c1eba2fad1b4add2fe",
+      "claude-desktop/windows.json": "40efb69e53b2cd4abdae0c50dcbd22a9eb1e3ae3118b5b03353638fcdf42b97c",
+      "grok-build/macos.json": "b6d434dacb8c5353ed8996d1f8032b05fc7b781ebe77af16807b456ea8a39192",
+      "grok-build/windows.json": "2dc74b69ae52bc2127b6b1875881f3b2c88e42b62ccb085fba8e6834a3ecc0f8"
+    },
+    "existingSharedFixtures": "VS Code and TRAE fixture bytes still match Switch. Existing ambiguity and multi-Key tests pass in the engineering gate.",
+    "goTest": "runtime/executor/switch_desktop_writer_test.go",
+    "passedWriterSubcases": 18,
+    "writerScope": "Current and legacy shapes, reordered model list, foreign/missing active selection, read-only files and sanitized failures on macOS/Windows path-shaped fixtures. Not Windows runtime or real-client proof.",
+    "modelTest": "test/reviewed-video-contract.test.mjs",
+    "fullEngineeringGate": {
+      "command": "npm run check",
+      "status": "passed_in_isolated_source_copy",
+      "goTestsAndVet": "passed",
+      "nodeTests": 190,
+      "passed": 186,
+      "failed": 0,
+      "skipped": 4,
+      "skipReason": "PowerShell unavailable on this macOS host; Windows execution not established.",
+      "sourceEquivalence": "441 tracked and candidate files were byte-compared with the original worktree; no differences before this evidence-only update.",
+      "initialWorktreeRun": "Two archive tests rejected ignored skills/.DS_Store Finder metadata. The original metadata was preserved; the complete gate was rerun on an isolated copy containing repository and candidate files only. No packaging guard was relaxed."
+    },
+    "releaseFreshnessGate": {
+      "command": "npm run release:validate",
+      "status": "passed_for_version_bumped_candidate",
+      "artifacts": 6,
+      "reproducibleBuildVerification": "passed",
+      "boundary": "Not publication approval or a stable release; the original worktree's ignored Finder file is not release input. Use a clean pinned source checkout for packaging."
+    },
+    "isolatedInstallAndPackage": {
+      "packageCommand": "npm run release:package",
+      "packageStatus": "six_platform_draft_archives_verified",
+      "archiveContents": "Each platform archive contains ten Skills, exactly one matching executor and only current-system scripts; no fixture, cache or source checkout.",
+      "offlineSmoke": "Extracted the darwin-arm64 candidate into a temporary home; ran source sync, verify-installed and the installed executor --version. Verified ten 0.19.8 Skills, all referenced image/video profiles, updated host guidance and one executor. Temporary installation removed afterward.",
+      "imageProfiles": 15,
+      "videoProfiles": 24,
+      "init": "Deferred: target-only offline smoke supplies no host or credentials.",
+      "networkRequests": 0,
+      "realHostLoadingOrAttachmentProof": false
+    }
+  },
+  "sideEffects": {
+    "changedRepositories": ["puretokens-skill"],
+    "realCredentialsRead": false,
+    "clientConfigurationChanged": false,
+    "paidRequests": 0,
+    "pushed": false,
+    "published": false,
+    "realHostAcceptancePromoted": false
+  }
+}

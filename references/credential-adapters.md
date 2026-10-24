@@ -122,6 +122,22 @@ keys and excessive depth, YAML additionally rejects aliases and multiple
 documents. Unsupported effective overrides stop without environment credential
 fallback. No fixture establishes the active conversation or real media delivery.
 
+## Switch writer compatibility - 2026-10-24
+
+Claude Desktop selects its gateway profile by `_meta.json.appliedId`, not the
+chat-model list. Switch now puts the default first in `inferenceModels` and
+omits `inferenceDefaultModel`; both current and legacy shapes remain readable.
+Grok Build continues to select by `models.default`; exact or branded `name`
+values do not affect credentials. Committed synthetic macOS/Windows writer
+fixtures cover selection failures and verify that these readers never write.
+They do not prove a current chat selection or real dedicated API delivery.
+
+DeepSeek Bot (`deepseek-bot`) has no registered adapter. Its per-Bot selection
+and `DS_BOT_HOME`/shell-selected storage are separate from both Harness hosts.
+Do not read its files or borrow another host ID; implementation requires a
+verified current-Bot binding, minimal credential contract, Skill discovery and
+native result handoff. See `switch-skill-compatibility.md`.
+
 ## Official DeepSeek Harness — 2026-10-03
 
 The `deepseek-harness` adapter is independent from `dsh-desktop`. Reviewed official source revision: `deepseek-ai/deepseek-harness@da00f7f5358f2949383b35c14f548bc20187d80c`, especially `apps/desktop/src/paths.ts`, `packages/boot/app-boot/src/profile-context.ts`, `packages/credentials/credentials-local/src/index.ts`, `packages/llm/llm-pi-ai/src/{index,auth}.ts` and `docs/subsystems/skills.md`. Switch writer: `crates/client-adapters/deepseek-harness/src/lib.rs`.

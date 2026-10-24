@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "client": "claude-desktop",
+  "platform": "macos",
+  "client_version": "1.24012.9",
+  "installation": { "evidence": "registered_bundle", "bundle_id": "com.anthropic.claudefordesktop", "app_version": "1.46388.4", "configuration_required": false, "windows_package_probe": false },
+  "configuration_input": {
+    "compatible_model_ids": ["claude-haiku-4.5", "claude-sonnet-4.6", "claude-opus-4.6", "claude-sonnet-4.6"],
+    "default_model_id": "claude-sonnet-4.6"
+  },
+  "states": {
+    "original": { "files": { "home/Library/Application Support/Claude-3p/claude_desktop_config.json": "{\n  \"mcpServers\": { \"user\": { \"command\": \"keep\" } }\n}\n" } },
+    "configured": { "files": { "home/Library/Application Support/Claude-3p/claude_desktop_config.json": "{\n  \"deploymentMode\": \"3p\"\n}\n", "home/Library/Application Support/Claude-3p/configLibrary/_meta.json": "{\n  \"appliedId\": \"70757265-746f-4000-8000-636c61756465\"\n}\n", "home/Library/Application Support/Claude-3p/configLibrary/70757265-746f-4000-8000-636c61756465.json": "{\n  \"inferenceProvider\": \"gateway\",\n  \"inferenceCredentialKind\": \"static\",\n  \"inferenceGatewayAuthScheme\": \"bearer\",\n  \"inferenceGatewayBaseUrl\": \"https://api.puretokensx.com\",\n  \"inferenceGatewayApiKey\": \"pts-token\",\n  \"inferenceModels\": [{ \"name\": \"claude-sonnet-4.6\", \"labelOverride\": \"claude-sonnet-4.6\" }, { \"name\": \"claude-haiku-4.5\", \"labelOverride\": \"claude-haiku-4.5\" }, { \"name\": \"claude-opus-4.6\", \"labelOverride\": \"claude-opus-4.6\" }]\n}\n" } },
+    "legacy_default": { "files": { "home/Library/Application Support/Claude-3p/configLibrary/70757265-746f-4000-8000-636c61756465.json": "{\n  \"inferenceProvider\": \"gateway\",\n  \"inferenceCredentialKind\": \"static\",\n  \"inferenceGatewayAuthScheme\": \"bearer\",\n  \"inferenceGatewayBaseUrl\": \"https://api.puretokensx.com\",\n  \"inferenceGatewayApiKey\": \"pts-token\",\n  \"inferenceModels\": [{ \"name\": \"claude-haiku-4.5\" }, { \"name\": \"claude-sonnet-4.6\" }, { \"name\": \"claude-opus-4.6\" }],\n  \"inferenceDefaultModel\": \"claude-sonnet-4.6\"\n}\n" }, "expected": "reapply_default_first_without_unknown_key" },
+    "corrupt": { "files": { "home/Library/Application Support/Claude-3p/configLibrary/70757265-746f-4000-8000-636c61756465.json": "{" }, "expected": "reject_without_write" },
+    "concurrent": { "base_files": { "home/Library/Application Support/Claude-3p/claude_desktop_config.json": "{}\n" }, "external_files": { "home/Library/Application Support/Claude-3p/claude_desktop_config.json": "{\"mcpServers\":{\"user\":{}}}\n" }, "expected": "abort_preserve_external" }
+  }
+}

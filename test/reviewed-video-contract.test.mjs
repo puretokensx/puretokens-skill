@@ -29,7 +29,9 @@ test("reviewed video profiles preserve source scope separately from the public s
       assert.equal(operation.request.contentType, "application/json");
     }
   }
-  for (const id of ["MiniMax-H3", "viduq3-pro", "viduq3-turbo"]) {
+  for (const id of ["MiniMax-H3", "viduq3-pro", "viduq3-turbo",
+    "kling-v3", "kling-v3-turbo", "Super Vega 1.0-lite", "Super Vega 1.0-pro",
+    "Super Vega 1.0-pro-fast", "Super Vega 1.0-pro-mini", "Super Vega 1.5-pro"]) {
     const live = catalog.models.find(row => row.id === id);
     const installed = await read(`skills/puretokens-video/references/profiles/${id}.json`);
     assert.ok(live, "current public schemas must remain in the captured catalog");
@@ -38,6 +40,9 @@ test("reviewed video profiles preserve source scope separately from the public s
       "installed and embedded reviewed restrictions must survive partial live declarations");
     assert.equal(index.models.filter(row => row.id === id).length, 1);
   }
+  assert.ok(!catalog.models.some(row => row.id === "viduq4-preview"),
+    "source-only Vidu Q4 must not be invented in the public snapshot");
+  assert.equal(index.models.filter(row => row.id === "viduq4-preview").length, 1);
   assert.equal(index.defaultModel, "MiniMax-H3");
 });
 

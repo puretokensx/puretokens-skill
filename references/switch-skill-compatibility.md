@@ -1,14 +1,14 @@
 # Switch × Skills 专用模型兼容矩阵
 
-核对时间：2026-10-21（Asia/Shanghai）。本表描述 **0.19.6** 的分发实现，包含 TRAE 与新增模型适配；
+核对时间：2026-10-24（Asia/Shanghai）。当前源码候选为 **0.19.8**；已发布实现边界为 **0.19.6**，包含 TRAE 与新增模型适配。
 发布身份以同名正式标签及经过校验的 `release-manifest.json` 为准，共 11 个发布附件。
 0.19.5包含 Grok 限制与向量／重排 Skill，其发布身份与历史批准归档保留。
-当前 `host-acceptance.json` 属于 0.19.6，本次维护者发布决定单独记录，
+当前 `host-acceptance.json` 属于 0.19.8，尚无本候选的发布批准；
 不继承旧版批准、不把待验收项改为通过。安装／更新流程不增加内部验收记录提示。
 
-本轮 Switch 源码基线为 `e347ec7` 加当前工作区，Web 为 `155d6c1` 加当前工作区；
+本轮 Switch 源码基线为 `878bf024` 加当前工作区，Web 为 `d80c6922` 加当前工作区；
 源码和本地验证不代表这两个项目的新版本已经部署。音频／Jev指令自 0.18.7
-起已分发；本轮配套 Switch 源码补齐 Jev、音频、向量与重排引导。示例不等于
+起已分发；Switch 已有 Jev、音频、向量与重排引导，本轮不修改其配置。示例不等于
 已执行、接口上线或真实宿主交付验收，正式安装入口仍取已发布稳定版本。
 
 目标链路：Switch 选择分组并应用 **聊天连接** → 用户单独安装 Skills →
@@ -33,9 +33,9 @@
 ③中的夹具只证明所选分组并集及刷新逻辑，**没有读取或验证任何用户真实 Key**。
 ①和⑤必须在同一客户端／系统／架构／会话模式上验收，不能拿安装器或文件校验替代。
 
-当前 Switch／Web 源码公开目录为 22 个客户端；Skills 注册 19 个安装宿主、
-19 个凭据夹具适配器（含 0.19.6 的 TRAE）。新纳入目录的 Rakazo／OpenMausBot 不因此获得直接
-Skill 支持。目录成员不代表线上已部署。
+当前 Switch 源码目录为 23 个客户端；Skills 注册 19 个安装宿主、
+19 个凭据夹具适配器（含 0.19.6 的 TRAE）。DeepSeek Bot、Paseo、Rakazo、
+OpenMausBot 不因此获得直接 Skill 支持。目录成员不代表线上已部署。
 
 下表以 0.19.6 正式发布为分发边界；向量／重排的具体任务和输出见下文。
 各行 ② 的精确路径及选择限制见
@@ -64,6 +64,7 @@ Skill 支持。目录成员不代表线上已部署。
 | **VS Code 多模型** (`vscode`) | **发布** [待,夹,夹,夹,待] | **发布** [待,夹,夹,夹,待] | 发布 [待,夹,夹,夹,待] | 发布 [待,夹,夹,夹,待] | 发布 [待,夹,夹,夹,待] | 发布 [待,夹,夹,夹,待] |
 | Octop 本地工作区 (`octop`) | 发布 [待,夹,夹,夹,待] | 发布 [待,夹,夹,夹,待] | 发布 [待,夹,夹,夹,待] | 发布 [待,夹,夹,夹,待] | 发布 [待,夹,夹,夹,待] | 发布 [待,夹,夹,夹,待] |
 | **TRAE / TRAE SOLO** (`trae`) | 发布 [待,夹,待,夹,待] | 发布 [待,夹,待,夹,待] | 发布 [待,夹,待,夹,待] | 发布 [待,夹,待,夹,待] | 发布 [待,夹,待,夹,待] | 发布 [待,夹,待,夹,待] |
+| DeepSeek Bot (`deepseek-bot`) | 不 [不,不,待,不,不] | 不 [不,不,待,不,不] | 不 [不,不,待,不,不] | 不 [不,不,待,不,不] | 不 [不,不,待,不,不] | 不 [不,不,待,不,不] |
 | Paseo (`paseo`) | 不 [待,不,待,不,不] | 不 [待,不,待,不,不] | 不 [待,不,待,不,不] | 不 [待,不,待,不,不] | 不 [不,不,待,不,不] | 不 [不,不,待,不,不] |
 | Rakazo (`rakazo`) | 不 [不,不,待,不,不] | 不 [不,不,待,不,不] | 不 [不,不,待,不,不] | 不 [不,不,待,不,不] | 不 [不,不,待,不,不] | 不 [不,不,待,不,不] |
 | OpenMausBot (`openmausbot`) | 不 [不,不,待,不,不] | 不 [不,不,待,不,不] | 不 [不,不,待,不,不] | 不 [不,不,待,不,不] | 不 [不,不,待,不,不] | 不 [不,不,待,不,不] |
@@ -74,6 +75,27 @@ Switch writer 对应文件、模拟权限拒绝和四类专用路径。上表向
 ②③表示共享连接／分组机制的夹具覆盖，④表示专用执行器的离线 API 夹具，
 不是每个客户端都完成了真实调用。
 Cursor 当前不在 Skill 注册表及 Switch 当前可用配置入口内，六类均不支持。
+
+## 2026-10-24 客户端增量与边界
+
+- Claude Desktop writer 已去掉 `inferenceDefaultModel`，默认模型置于
+  `inferenceModels[0]`。执行器仍按 `_meta.json.appliedId` 选择唯一 gateway
+  profile，不以模型顺序推断连接；新旧数组形状、重排、无效当前选择有仓库内夹具。
+- Grok Build 的 `name` 只含模型 ID；执行器仍以 `models.default` 取连接，
+  新旧显示名不参与认证。VS Code 配置形状及同组同 Key 守卫保持不变。
+- TRAE 的 Switch 安装身份选择不扩展 Skills 范围；执行器遇到多个桌面
+  状态库仍停止，不按 Switch 优先级取首项。
+- DeepSeek Bot 是独立社区客户端，不是 DSH Desktop 或官方 Harness。
+  Switch 通过 `DS_BOT_HOME`、shell `locations.json.dataDir` 或 `~/.ds-bot`
+  定位 `profiles/ds-bot/cordis.patch.yml` 及同 home 的 `.credentials.yaml`；
+  shell 根可由 `DS_BOT_SHELL_DATA` 指定。这只是 writer 契约，不授权 Skills
+  读取这些文件。当前各 Bot 独立选模型，不能从保存的默认值猜当前 Bot 连接。
+  接入前须独立定义 Skill 加载与绑定、当前会话有效连接及覆盖拒绝、凭据
+  最小读取和真实结果交付，再实现安装器／适配器及验收；暂不注册宿主。
+
+来源、合成配置摘要及本轮验证见
+[2026-10-24 脱敏证据](acceptance/client-model-sync-20261024.json)。
+本轮只同步 Skills；Switch 与 Web 的现有工作区改动均保留。
 
 ## 官方 DeepSeek Harness 新增范围
 
@@ -94,6 +116,11 @@ Skills 注册 19 个宿主，19 个有凭据夹具；0.19.6 包含 TRAE 适配�
 - 真实调用仍受 Key 状态、额度、渠道和网关专用路由约束。不能以目录可见、
   模型安装 profile、聊天可用或 init 成功证明专用 POST 有权限。普通生成
   不加目录预查；鉴权失败停止，不轮换 Key、不更换模型、不自动重提。
+- 2026-10-24 匿名目录含 129 个模型，38 个明确媒体声明（15 图片、23 视频）。
+  Kling V3/Turbo 和五款 Super Vega 新增专用声明，但已有独立审核适配；
+  安装 profile 仍为 15 图片／24 视频，参数边界不变。`viduq4-preview`
+  仍不在公开目录。当前默认图片为 `gpt-image-2.5-flare`、视频为 `MiniMax-H3`；
+  下方 2026-10-18 记录中的旧默认仅为历史。
 - 2026-10-18 12:14 UTC 上线后匿名目录有 114 个模型，其中 30 个图片／视频模型（15 图片、15 视频）；相比同日较早快照，新增 `wan3.0-video`、`wan3.0-video-prime`，移出 `grok-imagine-image-2.0`，同步 Grok 新画幅。默认图片 `gpt-image-2.5-flare`、默认视频 `minimax_h3` 保持。完整变化及独立负向限制见[当前审查](media-parameter-review.md)和[脱敏证据](acceptance/client-model-sync-20261018.json)。目录可见不证明某个 Key 有权调用；安装选项变化不改写已有任务 ID 或自动替换用户精确选择。新配置及多分组名单仍须由用户在 Switch 重新应用，不能把公开新增当作已有 Key 权限已刷新。
 - 图片和视频仍按异步任务协议：提交一次、先回执、再独立等待／取原任务；
   所选profile声明multipart时，图片编辑才发送当前附件原字节至 `/v1/images/edits`；仅声明JSON URL的型号不接受本地附件，不自动上传托管。
@@ -120,7 +147,7 @@ Wan 两款视频模型按目录声明使用 JSON 参考或独立 multipart 附�
 | 能力 | 精确 ID 例子／权威来源 | 专用入口 | 交付 |
 | --- | --- | --- | --- |
 | 图片 | `gpt-image-2.5-flare`（默认）；已安装 image profile | `/v1/images/generations`、multipart `/v1/images/edits` | 同任务图片字节，再真实宿主附件 |
-| 视频 | `minimax_h3`（默认）、`grok-imagine-video-1.5`；video profile | `/v1/videos`、声明的 `/v1/videos/edits` | 同任务 MP4/WebM，再实际播放／附件 |
+| 视频 | `MiniMax-H3`（默认）、`grok-imagine-video-1.5`；video profile | `/v1/videos`、声明的 `/v1/videos/edits` | 同任务 MP4/WebM，再实际播放／附件 |
 | 配音／转写／声音 | `stepaudio-2.5-tts`、`stepaudio-2.5-asr`、`stepaudio-3-gen-preview`；[音频合同](audio-execution-contract.md) | `/v1/audio/speech`、`/v1/audio/transcriptions`、`/v1/audio/generate` | 同步音频字节或最终 text |
 | 音乐 | `stepaudio-3-music-preview`；音频合同 | `/v1/audio/music/submit`，仅原任务 status/content | 异步 MP3/WAV，非同步音频命令 |
 | ElevenLabs 音频源码增量 | 9个精确 ID，见音频合同；含 `music_v2_5`、`eleven_multilingual_sts_v2` | 配音／转写同上；同步音乐及变声 `/v1/audio/generate` | 同步 MP3／转写 text；不使用异步音乐任务 |

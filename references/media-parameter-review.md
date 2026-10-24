@@ -1,6 +1,29 @@
 # Media Parameter Review
 
-## Current review - 2026-10-21
+## Current review - 2026-10-24
+
+The anonymous production catalog now lists 129 models, with 38 explicit media
+declarations (15 image, 23 video). Kling V3/Turbo and the five reviewed Super
+Vega IDs now declare dedicated video schemas. They already have reviewed
+profiles: this refresh does not add another adapter or relax their bounds.
+Six Qwen/Wan provider display values now say Alibaba. No prior media ID was
+removed in this refresh.
+
+Installed selections remain 15 image and 24 video profiles. All parameter
+schemas and source-review metadata stay unchanged; `viduq4-preview` remains
+reviewed source-only and absent from the public listing. Defaults remain exact
+`gpt-image-2.5-flare` and `MiniMax-H3`. All 18 reviewed audio, three Jev and
+three embedding/rerank IDs remain visible, without new protocol claims.
+Public visibility is not current Key permission, route health or host delivery.
+
+Switch's current source directory has 23 clients; Skills still registers 19.
+DeepSeek Bot is separate from both Harness hosts and remains unsupported.
+Claude Desktop's default-first model array and Grok Build's exact display
+names do not change credential selection; committed writer fixtures cover
+the new shapes and rejection of invalid active selections. See
+`acceptance/client-model-sync-20261024.json` for source identities and tests.
+
+## Historical review - 2026-10-21
 
 Production follow-up at 02:27:05 UTC: the anonymous catalog now lists 124 models,
 including 31 explicitly declared media models (15 image, 16 video). Remove

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "0.19.7",
-  "checkedAt": "2026-10-21",
+  "version": "0.19.8",
+  "checkedAt": "2026-10-24",
   "method": "Isolated credential, API-wire and native output fixture coverage only. Real-host loading, model-group permission, paid dedicated API and attachment/playback acceptance remain pending for this candidate. Previous publication decisions remain version-bound in references/acceptance/0.19.6-host-acceptance.json and references/acceptance/0.19.5-host-acceptance.json; neither approves this candidate.",
   "guide": "references/host-acceptance-guide.md",
   "evidence": [],

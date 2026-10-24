@@ -201,6 +201,11 @@ requires `--host octop --target <absolute-workspace>/.octop/skills` (PowerShell:
 `-HostId octop -Target <absolute-workspace>/.octop/skills`); do not enumerate
 agents or write the global skill-package database. Cursor is not registered.
 
+Switch's current source directory lists 23 clients; Skills registers 19 hosts.
+DeepSeek Bot is distinct from both Harness hosts and has no supported Skills
+adapter, as is also the case for Paseo, Rakazo and OpenMausBot. Configuring
+these clients in Switch does not enable direct Skill execution.
+
 `references/host-support.json` defines the registered hosts. The table shows defaults; Claude/WorkBuddy honor explicit configuration-directory overrides, Pi honors an absolute `PI_CODING_AGENT_DIR` without parent traversal, and DSH honors the local Harness's explicit `DSH_HOME`. Gemini updates an existing higher-priority `.agents/skills` installation and reports managed duplicates. Provider labels never determine support.
 
 Registration, installation, authenticated API access and complete media delivery are distinct. Real-host evidence records the client/OS/shell versions, architecture and execution mode; only a complete case set establishes image opening, video playback and attachment handoff for that exact environment. Consult `references/host-acceptance.json` for current per-case evidence; partial passes are not complete media acceptance. Local results do not accept WSL, remote or sandbox modes. See `references/host-acceptance-guide.md` for the procedure.
@@ -222,7 +227,7 @@ The selected installed profile governs ordinary requests. An explicit authentica
 <!-- media-model-catalog:start -->
 ## Media model catalog
 
-Synchronized with the base model catalog: 2026-10-21T02:29:21.846Z.
+Synchronized with the base model catalog: 2026-10-24T11:09:36.781Z.
 
 This list is an installed selection aid, not a per-request authorization check. Ordinary generation reads only the selected profile; live discovery is limited to explicit requests, profile gaps or rejection diagnosis. Reviewed local compatibility supplements are separately sourced.
 
@@ -243,10 +248,10 @@ README is generated only from base-catalog models with explicit image/video capa
 | `nano-banana-2` | Google | `nano banana 2` | Image generation | `Use nano-banana-2 to generate an image.` |
 | `nano-banana-2-lite` | Google | Exact ID only | Image generation | `Use nano-banana-2-lite to generate an image.` |
 | `nano-banana-pro` | Google | `nano banana pro` | Image generation | `Use nano-banana-pro to generate an image.` |
-| `qwen-image-3.0` | Qwen | Exact ID only | Image generation | `Use qwen-image-3.0 to generate an image.` |
-| `qwen-image-3.0-pro` | Qwen | Exact ID only | Image generation | `Use qwen-image-3.0-pro to generate an image.` |
-| `wan2.7-image` | Qwen | Exact ID only | Image generation | `Use wan2.7-image to generate an image.` |
-| `wan2.7-image-pro` | Qwen | Exact ID only | Image generation | `Use wan2.7-image-pro to generate an image.` |
+| `qwen-image-3.0` | Alibaba | Exact ID only | Image generation | `Use qwen-image-3.0 to generate an image.` |
+| `qwen-image-3.0-pro` | Alibaba | Exact ID only | Image generation | `Use qwen-image-3.0-pro to generate an image.` |
+| `wan2.7-image` | Alibaba | Exact ID only | Image generation | `Use wan2.7-image to generate an image.` |
+| `wan2.7-image-pro` | Alibaba | Exact ID only | Image generation | `Use wan2.7-image-pro to generate an image.` |
 
 ### Video models
 
@@ -254,6 +259,8 @@ README is generated only from base-catalog models with explicit image/video capa
 | --- | --- | --- | --- | --- |
 | `grok-imagine-video` | xAI | `grok video` | Video generation | `Use grok-imagine-video to generate a video.` |
 | `grok-imagine-video-1.5` | xAI | Exact ID only | Video generation | `Use grok-imagine-video-1.5 to generate a short video.` |
+| `kling-v3` | Kling | Exact ID only | Video generation | `Use kling-v3 to generate a short video.` |
+| `kling-v3-turbo` | Kling | Exact ID only | Video generation | `Use kling-v3-turbo to generate a short video.` |
 | `MiniMax-H3` | MiniMax | Exact ID only | Video generation | `Use MiniMax-H3 to generate a short video.` |
 | `muse-video` | Meta | Exact ID only | Video generation | `Use muse-video to generate a short video.` |
 | `omni` | Google | Exact ID only | Video generation | `Use omni to generate a short video.` |
@@ -261,13 +268,18 @@ README is generated only from base-catalog models with explicit image/video capa
 | `seedance-2.0-fast` | ByteDance | Exact ID only | Video generation | `Use seedance-2.0-fast to generate a video.` |
 | `seedance-2.0-mini` | ByteDance | Exact ID only | Video generation | `Use seedance-2.0-mini to generate a video.` |
 | `seedance-2.5` | ByteDance | Exact ID only | Video generation | `Use seedance-2.5 to generate a video.` |
+| `Super Vega 1.0-lite` | Tencent Cloud | Exact ID only | Video generation | `Use Super Vega 1.0-lite to generate a short video.` |
+| `Super Vega 1.0-pro` | Tencent Cloud | Exact ID only | Video generation | `Use Super Vega 1.0-pro to generate a short video.` |
+| `Super Vega 1.0-pro-fast` | Tencent Cloud | Exact ID only | Video generation | `Use Super Vega 1.0-pro-fast to generate a short video.` |
+| `Super Vega 1.0-pro-mini` | Tencent Cloud | Exact ID only | Video generation | `Use Super Vega 1.0-pro-mini to generate a short video.` |
+| `Super Vega 1.5-pro` | Tencent Cloud | Exact ID only | Video generation | `Use Super Vega 1.5-pro to generate a short video.` |
 | `veo_fast` | Google | Exact ID only | Video generation | `Use veo_fast to generate a short video.` |
 | `veo_lite` | Google | Exact ID only | Video generation | `Use veo_lite to generate a short video.` |
 | `veo_quan` | Google | Exact ID only | Video generation | `Use veo_quan to generate a short video.` |
 | `viduq3-pro` | Vidu | Exact ID only | Video generation | `Use viduq3-pro to generate a short video.` |
 | `viduq3-turbo` | Vidu | Exact ID only | Video generation | `Use viduq3-turbo to generate a short video.` |
-| `wan3.0-video` | Qwen | Exact ID only | Video generation | `Use wan3.0-video to generate a short video.` |
-| `wan3.0-video-prime` | Qwen | Exact ID only | Video generation | `Use wan3.0-video-prime to generate a short video.` |
+| `wan3.0-video` | Alibaba | Exact ID only | Video generation | `Use wan3.0-video to generate a short video.` |
+| `wan3.0-video-prime` | Alibaba | Exact ID only | Video generation | `Use wan3.0-video-prime to generate a short video.` |
 
 <!-- media-model-catalog:end -->
 

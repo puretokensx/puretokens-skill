@@ -4,6 +4,12 @@
 
 # 更新日志
 
+## 0.19.8（未发布）
+
+- 同步线上 Kling V3/Turbo 和 Super Vega 的专用媒体声明，保留已审核参数限制及当前默认模型。
+- 固化 Claude Desktop 模型顺序、Grok Build 显示名的 macOS／Windows Switch writer 夹具，覆盖无效当前选择及只读行为，不依赖其他仓库。
+- 对齐 Switch 的 23 个客户端与 Skills 的 19 个宿主，单列尚不支持的 DeepSeek Bot 与 Harness 边界，修正安装说明。
+
 ## 0.19.7（未发布）
 
 - 按用户要求分别交付不同图片，每项独立生成、记录和附加，不用拼图或同主题变体代替。

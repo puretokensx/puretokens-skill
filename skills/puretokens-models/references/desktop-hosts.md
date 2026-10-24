@@ -22,6 +22,18 @@ Use `--host deepseek-harness` only in official DeepSeek Harness's default local 
 
 The adapter reads the default Desktop Cordis patch and the selected version-1 credential reference. Higher-priority home patches, custom composition, multiple matching connections, model route/auth overrides and inherited credential overrides stop. CLI/remote sessions or session-specific provider selection not represented by this default profile are unsupported: stop before invoking the executor; never substitute another host. Saved default selection is not proof of current chat identity. API permission and native attachment handoff remain pending real-host acceptance.
 
+## DeepSeek Bot
+
+Switch's `deepseek-bot` is a separate community client, not `deepseek-harness`
+or `dsh-desktop`. It currently has no registered Skills host, installation
+target or credential adapter. Do not pass either Harness host ID or read its
+connection as a substitute. Switch configuration alone does not enable Skills.
+
+Its per-Bot model selection must be bound to the current execution session
+before an adapter can be enabled. Skill discovery, effective connection and
+native result delivery still need independent implementation and acceptance;
+a saved default or successful chat does not establish those capabilities.
+
 ## MiniMax Code Desktop
 
 Use `--host minimax-code` only in MiniMax Code Desktop 3.1.0 macOS/Windows local conversations confirmed to use the saved default connection. CLI profiles, remote execution and session/request-specific model selection are unsupported. Desktop priority is explicit request → session override → saved default; a saved default does not identify an overridden conversation. If that binding is unknown, stop before the executor. Never borrow the official MiniMax login or another host's connection.
@@ -61,7 +73,7 @@ After verifying the endpoint, the executor checks the matching native API-key en
 
 Installation selects `OPENCODE_CONFIG_DIR/skills` when explicitly set, otherwise `XDG_CONFIG_HOME/opencode/skills`, defaulting to `~/.config/opencode/skills`. These overrides must be absolute without parent traversal. A user-specified absolute target remains available; it does not establish host discovery.
 
-Doctor checks the loaded root, selected/global OpenCode roots and the documented `~/.agents/skills` and `~/.claude/skills` compatibility roots. It inspects only the eight managed Skill names and the executor, not credentials in those shared roots. It does not enumerate projects or arbitrary `skills.paths`. Duplicate detection does not establish which copy the host selected and never deletes copies. Verify the actual loaded Skill location and version in a fresh local session; installing new bytes alone does not prove that OpenCode loaded them.
+Doctor checks the loaded root, selected/global OpenCode roots and the documented `~/.agents/skills` and `~/.claude/skills` compatibility roots. It inspects only the ten managed Skill names and the executor, not credentials in those shared roots. It does not enumerate projects or arbitrary `skills.paths`. Duplicate detection does not establish which copy the host selected and never deletes copies. Verify the actual loaded Skill location and version in a fresh local session; installing new bytes alone does not prove that OpenCode loaded them.
 
 ## Pi
 
