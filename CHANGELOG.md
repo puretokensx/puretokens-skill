@@ -4,17 +4,12 @@
 
 # Changelog
 
-## 0.19.8 (Unreleased)
+## 0.19.8 - 2026-10-24
 
 - Synchronize the production media catalog with the dedicated Kling V3/Turbo and Super Vega declarations, preserving reviewed parameter limits and current defaults.
-- Add self-contained macOS/Windows Switch writer regressions for Claude Desktop model ordering and Grok Build display names, including invalid selections and read-only behavior.
-- Align the 23-client Switch inventory with the 19 supported Skill hosts; explicitly separate unsupported DeepSeek Bot from the Harness hosts and correct installation guidance.
-
-## 0.19.7 (Unreleased)
-
-- Keep separately requested images as independent deliverables, with a prompt, task record and attachment for each brief; do not substitute a collage or same-prompt variations.
+- Update installation and connection guidance for the current Switch clients, including Claude Desktop and Grok Build, and distinguish DeepSeek Bot from supported Harness hosts.
+- Keep separately requested images as independent deliverables, with a prompt, task record and attachment for each brief; preserve completed items after interruption instead of substituting a collage or repeating delivered work.
 - Separate existing icon/image lookup from paid generation, and preserve requests for one composed image.
-- Preserve delivered list items after interruption and add offline regression cases for intent, per-item handoff and uncertain submissions.
 
 ## 0.19.6 - 2026-10-21
 
