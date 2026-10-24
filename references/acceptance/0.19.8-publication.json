@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "version": "0.19.8",
+  "checkedAt": "2026-10-24",
+  "sourceCommit": "c25c11d44a12f8677c4fa695b5cb08be0f8811b7",
+  "tag": "v0.19.8",
+  "releaseId": 422706123,
+  "publishedAt": "2026-10-24T12:02:03Z",
+  "releaseUrl": "https://github.com/puretokensx/puretokens-skill/releases/tag/v0.19.8",
+  "channel": "latest-stable",
+  "localValidation": {
+    "source": "Clean isolated clone pinned to sourceCommit; ignored Finder metadata in the original worktree was not copied, modified or included.",
+    "engineeringGate": "passed",
+    "nodeTests": { "total": 190, "passed": 186, "failed": 0, "skipped": 4 },
+    "skipReason": "PowerShell unavailable locally; Windows installation and distribution fixtures passed separately in CI.",
+    "goTestsAndVet": "passed",
+    "releaseFreshnessAndImmutability": "passed",
+    "sixPlatformReproducibleBuilds": "passed",
+    "publishableArchives": "passed"
+  },
+  "githubActions": {
+    "mainChecks": { "runId": 40091152727, "conclusion": "success" },
+    "tagChecks": { "runId": 40091684474, "conclusion": "success" },
+    "stablePublication": { "runId": 40091704158, "conclusion": "success" },
+    "platforms": ["ubuntu-latest", "macos-latest", "windows-latest"],
+    "windowsInstallationAndDistribution": "passed",
+    "actionsQuotaBlockedThisRelease": false,
+    "manualPublicationFallbackUsed": false
+  },
+  "publishedAssets": {
+    "count": 11,
+    "platformArchives": 6,
+    "systemScripts": 4,
+    "manifestSha256": "d33b14cc30ec18ce8c714acca90b21a8c5bc7ddbccf8f9d056f73785d347e4d9",
+    "uploadedDraftReadback": "passed_in_publication_workflow",
+    "anonymousLatestDownloads": "passed_in_publication_workflow_and_local_postpublication_check",
+    "verificationCommand": "node scripts/validate-platform-releases.mjs --publishable --directory <anonymous-downloads>",
+    "sourceCommitMatched": true,
+    "archiveContents": "Ten Skills, exactly one platform executor and only current-system scripts in each archive."
+  },
+  "publicInstallation": {
+    "platform": "darwin-arm64",
+    "environment": "Fresh temporary HOME and explicit target; no host connection selected.",
+    "entrypoint": "Anonymous latest stable puretokens-skill-fetch.sh install --target <isolated-target>",
+    "status": "passed",
+    "installedSkills": 10,
+    "installedVersion": "0.19.8",
+    "elevenManagedInventories": "verified",
+    "sameVersionUpdate": "Verified fast-path receipt, unchanged file hashes and modification times; no platform archive download or init.",
+    "temporaryDownloadCleanup": "verified",
+    "init": "deferred_without_host_selection"
+  },
+  "boundaries": {
+    "changedRepositories": ["puretokens-skill"],
+    "clientConfigurationChanged": false,
+    "realClientCredentialsRead": false,
+    "paidRequests": 0,
+    "realHostAcceptancePromoted": false,
+    "pendingHostOSSummaryChecks": 172,
+    "note": "Publication and isolated installation do not prove real-host loading, authentication, billing or native result delivery. Version-bound approval remains in host-acceptance.json; no pending evidence changed to passed."
+  }
+}
