@@ -4,6 +4,8 @@
 
 # Pure Tokens Skills
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
 Official Skills for checking a Pure Tokens connection, balance and model catalog, generating images, videos or audio, evaluating text with Jev, and producing text embeddings or relevance rankings.
 
 Version 0.19.0 restores stable downloads from `puretokensx/puretokens-skill` and adds local installation recovery, model alternatives, live group guidance and product help.
@@ -363,3 +365,8 @@ ZCode: `--host zcode`; an absolute `ZCODE_DATA_BASE_DIR` selects `<base>/.zcode/
 Maintainer build verification uses the exact toolchain in `runtime/executor/build-config.json`. `npm run executor:build` records source/build input identities and six artifacts; `npm run validate` checks them. `npm run release:validate` also rebuilds all six platforms into temporary directories and compares bytes. End users need neither Go nor Node.
 
 Verified output reuse requires an explicit task record with matching file SHA-256, byte count and media type. Legacy records can resume the same task, but files without proofs must be preserved and fetched again into another output directory. Native image/video handoff remains a separate real-host acceptance item.
+
+## License
+
+MIT — see [LICENSE](./LICENSE). This license covers the skill text and code in
+this repository only; it does not cover the Pure Tokens product or service.
