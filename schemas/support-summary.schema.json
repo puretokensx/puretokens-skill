@@ -106,6 +106,18 @@
       "minimum": 100,
       "maximum": 599
     },
+    "transport_error_code": {
+      "enum": [
+        "api_request_timeout",
+        "api_request_cancelled",
+        "api_dns_failed",
+        "api_tls_failed",
+        "api_network_permission_denied",
+        "api_connection_failed",
+        "api_transport_failed"
+      ],
+      "description": "Typed local error from the latest HTTP attempt without a response. Never raw error text, an API rejection, or evidence of non-acceptance or billing."
+    },
     "request_id": {
       "type": "string",
       "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
@@ -199,6 +211,13 @@
     },
     "local_error_code": {
       "enum": [
+        "api_request_timeout",
+        "api_request_cancelled",
+        "api_dns_failed",
+        "api_tls_failed",
+        "api_network_permission_denied",
+        "api_connection_failed",
+        "api_transport_failed",
         "active_connection_endpoint_missing",
         "active_connection_endpoint_unsupported",
         "active_connection_not_puretokens",
@@ -263,6 +282,23 @@
   },
   "additionalProperties": false,
   "allOf": [
+    {
+      "if": {
+        "required": ["transport_error_code"]
+      },
+      "then": {
+        "required": ["request_phase"],
+        "properties": {
+          "api_request_attempted": { "const": true }
+        },
+        "not": {
+          "anyOf": [
+            { "required": ["http_status"] },
+            { "required": ["request_id"] }
+          ]
+        }
+      }
+    },
     {
       "if": {
         "properties": {

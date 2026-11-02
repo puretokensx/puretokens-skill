@@ -470,6 +470,21 @@ func TestContractExamples(t *testing.T) {
 		capture("evaluation-model-receipt", "model-query-receipt.schema.json", output.Bytes())
 	})
 
+	t.Run("submission transport diagnostics", func(t *testing.T) {
+		for _, scenario := range transportDiagnosticCases() {
+			var output bytes.Buffer
+			writer := &supportReceiptWriter{output: &output, command: "submit", host: "codex", timings: newCommandTimings()}
+			svc := service{baseURL: apiOrigin, support: writer, client: &http.Client{Transport: pollingFixtureTransport(func(*http.Request) (*http.Response, error) {
+				return nil, scenario.err
+			})}}
+			err := executePreparedTask(writer, svc, taskRequest{Kind: "video", Operation: "generate", Model: "fixture", Prompt: "fixture"})
+			if err == nil || decodeReceipt(t, &output).LocalErrorCode != scenario.code {
+				t.Fatal("transport classification missing")
+			}
+			capture("transport-"+scenario.name, "executor-receipt.schema.json", output.Bytes())
+		}
+	})
+
 	t.Run("submission identity diagnostics", func(t *testing.T) {
 		for _, scenario := range submissionIdentityCases() {
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

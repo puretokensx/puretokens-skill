@@ -49,6 +49,20 @@
 本地连接未确认不等于未配置，不要求用户重装、粘贴 Key 或切换客户端。
 需要私密支持时仅提供原回执已有的 support 块；不补采配置、提示词、媒体、路径或原始日志。
 
+### 提交没有 HTTP 响应
+
+`support.transport_error_code` 是本次 HTTP 调用的本地类型诊断，不是服务端错误码。
+`api_request_timeout` 为超时，`api_request_cancelled` 为取消，`api_dns_failed` 为解析失败或超时，
+`api_tls_failed` 为 TLS／证书错误，`api_network_permission_denied` 为网络操作被系统拒绝，
+`api_connection_failed` 为连接失败／中断，`api_transport_failed` 为未能细分的传输错误。
+仅说明已观测类别，不猜代理、网络故障责任方或服务端负载；不关闭证书校验、绕过沙盒，
+也不一概要求完全访问权限。按回执 next_action 给出针对性处理，保留原任务记录。
+
+`api_request_attempted=true` 只说明已调用 HTTP 客户端，不证明到达服务器。
+提交 `unknown` 时，即使是 DNS／TLS 错误，也不能承诺未受理／未扣费，不自动重发或换模型。
+没有 `http_status` 不是“HTTP 0”，也不能说接口返回了空任务编号。旧回执缺少类型诊断时，
+原因仍未知；不能靠对话总耗时倒推超时。`observed_at` 是回执时间，不是提交开始时间。
+
 ## 仅在用户询问耗时时
 
 可选 `timings_ms` 是本次命令的本地毫秒计时。`total` 截止回执快照，

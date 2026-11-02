@@ -600,11 +600,12 @@ func executePreparedTask(output io.Writer, svc service, request taskRequest) err
 	}
 	response, status, retryAfter, apiCode, apiMessage, err := svc.request(context.Background(), http.MethodPost, path, body, contentType)
 	if err != nil || status < 200 || status >= 300 {
-		result := mergeFailure(taskReceipt(request, "", ""), apiFailure("submission", status, retryAfter, apiCode, apiMessage, "Review the returned error before changing this request."))
+		result := mergeFailure(taskReceipt(request, "", ""), withTransportFailure(apiFailure("submission", status, retryAfter, apiCode, apiMessage, "Review the returned error before changing this request."), err))
 		result.SubmissionOutcome = "rejected"
 		if err != nil || status >= 500 || (status >= 300 && status < 400) {
 			result.SubmissionOutcome = "unknown"
-			result.NextAction = "Submission may have started. Do not automatically repeat the POST or infer billing; ask the user before creating another task."
+			// guideFailure appends the unknown-submission boundary without
+			// replacing the actionable local transport diagnosis.
 		}
 		if status >= 200 && status < 300 && errors.Is(err, errAPIResponseUnreadable) {
 			result = mergeFailure(result, taskIdentityFailure("submission", "task_response_unreadable", status))
@@ -895,7 +896,7 @@ func pollAndDeliver(output io.Writer, svc service, request taskRequest, result r
 		result.RetryAfterSecs = 0
 		body, status, retry, code, message, err := svc.request(ctx, http.MethodGet, statusPath(request.Kind, result.TaskID), nil, "")
 		if err != nil || status < 200 || status >= 300 {
-			failure := apiFailure("status", status, retry, code, message, "Keep this task ID. Continue this same task when the API is available; do not resubmit.")
+			failure := withTransportFailure(apiFailure("status", status, retry, code, message, "Keep this task ID. Continue this same task when the API is available; do not resubmit."), err)
 			if status >= 200 && status < 300 && errors.Is(err, errAPIResponseUnreadable) {
 				failure = taskIdentityFailure("status", "task_response_unreadable", status)
 			}
@@ -1127,6 +1128,9 @@ func (svc service) requestWithBearer(ctx context.Context, method, path string, b
 	response, err := fixedClient(svc.client).Do(req)
 	svc.support.observeResponse(response)
 	if err != nil {
+		if response == nil && svc.support != nil {
+			svc.support.transportErrorCode = transportErrorCode(err)
+		}
 		return nil, 0, 0, "", "", err
 	}
 	defer response.Body.Close()

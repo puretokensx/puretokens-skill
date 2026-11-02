@@ -15,15 +15,16 @@ var canonicalRequestID = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4
 // One invocation's evidence, never a credential store or a task record. The
 // latest HTTP attempt replaces the previous one, even if it got no response.
 type supportReceiptWriter struct {
-	output          io.Writer
-	host            string
-	command         string
-	attempted       bool
-	requestPhase    string
-	requestID       string
-	httpStatus      int
-	operationsEvent string
-	timings         *commandTimings
+	output             io.Writer
+	host               string
+	command            string
+	attempted          bool
+	requestPhase       string
+	requestID          string
+	httpStatus         int
+	transportErrorCode string
+	operationsEvent    string
+	timings            *commandTimings
 }
 
 func (writer *supportReceiptWriter) Write(data []byte) (int, error) {
@@ -36,6 +37,7 @@ func (writer *supportReceiptWriter) beginRequest(method, path string) {
 	}
 	writer.attempted = true
 	writer.requestID, writer.requestPhase, writer.httpStatus = "", "", 0
+	writer.transportErrorCode = ""
 	path, _, _ = strings.Cut(path, "?")
 	switch {
 	case path == "/v1":
@@ -120,6 +122,9 @@ func (writer *supportReceiptWriter) summary(document map[string]json.RawMessage)
 	}
 	if writer.attempted {
 		summary["request_phase"] = writer.requestPhase
+		if writer.transportErrorCode != "" {
+			summary["transport_error_code"] = writer.transportErrorCode
+		}
 	}
 	if writer.httpStatus >= 100 && writer.httpStatus <= 599 {
 		summary["http_status"] = writer.httpStatus
@@ -172,6 +177,8 @@ func (writer *supportReceiptWriter) summary(document map[string]json.RawMessage)
 }
 
 var supportLocalErrorCodes = map[string]bool{
+	"api_request_timeout": true, "api_request_cancelled": true, "api_dns_failed": true,
+	"api_tls_failed": true, "api_network_permission_denied": true, "api_connection_failed": true, "api_transport_failed": true,
 	"active_connection_endpoint_missing": true, "active_connection_endpoint_unsupported": true,
 	"active_connection_not_puretokens": true, "active_connection_unavailable": true,
 	"active_connection_credential_missing": true, "active_connection_format_unsupported": true,

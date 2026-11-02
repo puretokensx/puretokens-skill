@@ -216,7 +216,7 @@ func executeExistingTask(command string, input io.Reader, output io.Writer, svc 
 	}
 	body, status, retry, code, message, err := svc.request(context.Background(), http.MethodGet, statusPath(request.Kind, result.TaskID), nil, "")
 	if err != nil || status < 200 || status >= 300 {
-		failure := apiFailure("status", status, retry, code, message, "Keep this task ID; continue the same task later.")
+		failure := withTransportFailure(apiFailure("status", status, retry, code, message, "Keep this task ID; continue the same task later."), err)
 		if status >= 200 && status < 300 && errors.Is(err, errAPIResponseUnreadable) {
 			failure = taskIdentityFailure("status", "task_response_unreadable", status)
 		}

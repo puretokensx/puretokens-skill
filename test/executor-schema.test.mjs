@@ -254,6 +254,30 @@ test("support summaries reject private data and invented network evidence", () =
   assert.deepEqual(validators.get("support-summary.schema.json")(response), []);
 });
 
+test("transport summaries preserve uncertainty without inventing HTTP evidence", () => {
+  const summary = example("support-transport-timeout");
+  assert.equal(summary.transport_error_code, "api_request_timeout");
+  assert.equal(summary.local_error_code, "api_request_timeout");
+  assert.equal(summary.api_request_attempted, true);
+  assert.equal(summary.request_phase, "submission");
+  assert.equal(summary.submission_outcome, "unknown");
+  assert.equal(summary.next_step, "await_user");
+  assert.deepEqual(validators.get("support-summary.schema.json")(summary), []);
+  for (const addition of [
+    { transport_error_code: "private-error-text" }, { api_request_attempted: false },
+    { http_status: 200 }, { http_status: 503 },
+    { request_id: "55a3d6e3-42dd-4e67-8b08-e5c6058b2f99" },
+    { raw_error: "private-host" }, { timings_ms: { request: 90000 } }
+  ]) rejects("support-summary.schema.json", { ...summary, ...addition });
+  const missingPhase = structuredClone(summary);
+  delete missingPhase.request_phase;
+  rejects("support-summary.schema.json", missingPhase, "required");
+  const legacy = structuredClone(summary);
+  delete legacy.transport_error_code;
+  delete legacy.local_error_code;
+  assert.deepEqual(validators.get("support-summary.schema.json")(legacy), [], "old summaries remain valid but unclassified");
+});
+
 test("task records reject credentials, raw inputs and invalid progress", () => {
   const record = example("record-5-delivered-artifact");
   assert.deepEqual(record.delivered, [0, 1]);
