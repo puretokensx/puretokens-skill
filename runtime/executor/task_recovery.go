@@ -149,9 +149,15 @@ func contentFailure(err error, status, retry int, code, message string) receipt 
 	}
 	result.LocalErrorCode = "media_download_incomplete"
 	result.ErrorMessage = "The media download did not finish or could not be validated."
-	result.NextAction = "Keep this task ID. Check network access and free disk space, then retrieve this same index again."
+	result.NextAction = "Keep this task ID and any verified local file. Inspect the existing receipt before offering another same-task retrieval; the cause is not yet classified."
 	var network net.Error
 	switch {
+	case errors.Is(err, errContentResponseTimeout):
+		result.LocalErrorCode = "media_content_response_timeout"
+		result.ErrorMessage = "The content request exceeded its response-wait limit before response headers were available. This does not identify the slow network or server component."
+	case errors.Is(err, errContentIdleTimeout):
+		result.LocalErrorCode = "media_download_stalled"
+		result.ErrorMessage = "The content response stopped providing bytes within the allowed read interval. No validated download is available from this attempt."
 	case errors.Is(err, errMediaTooLarge):
 		result.LocalErrorCode = "media_size_limit_exceeded"
 		result.ErrorMessage = "The content response exceeds the supported media size limit."
@@ -163,14 +169,14 @@ func contentFailure(err error, status, retry int, code, message string) receipt 
 	case errors.Is(err, os.ErrPermission):
 		result.LocalErrorCode = "output_permission_denied"
 		result.ErrorMessage = "The selected output directory is not writable."
-		result.NextAction = "Choose a writable output directory and retrieve this same task index."
+		result.NextAction = "Ask the user to choose a writable output directory before offering another same-task retrieval."
 	case errors.As(err, &network) && network.Timeout():
 		result.LocalErrorCode = "media_download_timeout"
-		result.ErrorMessage = "The media download exceeded its separate 10-minute transfer limit."
+		result.ErrorMessage = "The content request or transfer timed out. The overall transfer budget is at most 10 minutes; this error does not establish the elapsed time or cause."
 	case strings.Contains(err.Error(), "existing output"), strings.Contains(err.Error(), "finalize media"):
 		result.LocalErrorCode = "output_file_conflict"
 		result.ErrorMessage = "An existing or incomplete output file prevents safe delivery."
-		result.NextAction = "Choose another output directory and retrieve this same task index. Existing files were preserved."
+		result.NextAction = "Existing files were preserved. Verify a recorded same-task file locally first; otherwise ask the user to choose another output directory before another retrieval."
 	case strings.Contains(err.Error(), "invalid media"):
 		result.LocalErrorCode = "invalid_media_content"
 		result.ErrorMessage = "The content response is not a supported native media file."

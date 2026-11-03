@@ -61,6 +61,8 @@ A video task has one output, index 0. Attach the returned `downloaded_paths` fil
 
 ## Continuation record
 
+Content retrieval waits at most 90 seconds for response headers, stops a blocked body read after 30 seconds without bytes, and retains a 10-minute total transfer ceiling. Byte progress resets only the read-idle budget, not the overall ceiling. A content failure returns `await_user`: stop automatic content/resume attempts and offer a same-task/index retrieval only on explicit user request. Reuse verified local files instead of downloading again. Never claim bytes are moving merely because a command is running.
+
 Use `--record <absolute-task-json>` in an explicit workspace/user location by default for video. Choose before submitting; an existing unrecorded task may continue with `--request` alone, never a second submission to switch modes. Choose the output location with `content --output-dir <existing-absolute-directory>`; it can also be retained from an explicit submission output_dir. The record contains task ID, kind, model, original operation, requested count, validated safe parameters, progress and per-index download proofs (`sha256`, `bytes`, `media_type`); no prompt, credentials, reference URL or media bytes. Do not edit it by hand.
 
 ```text

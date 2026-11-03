@@ -26,7 +26,7 @@ func newCommandTimings() *commandTimings {
 
 func timingPhaseAllowed(phase string) bool {
 	switch phase {
-	case "preparation", "catalog", "request", "wait", "download", "verification":
+	case "preparation", "catalog", "request", "wait", "content_response", "download", "verification":
 		return true
 	}
 	return false

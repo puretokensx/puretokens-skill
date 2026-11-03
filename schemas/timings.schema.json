@@ -33,10 +33,15 @@
       "minimum": 0,
       "description": "Foreground same-task waiting inside this command."
     },
+    "content_response": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Content request until response headers or request failure, including connection and server/network wait. Not proof of server-only preparation or media-byte progress."
+    },
     "download": {
       "type": "integer",
       "minimum": 0,
-      "description": "Native media transfer and streaming disk writes; excludes separately measured local verification."
+      "description": "Content response body handling and streaming disk writes after headers, including byte-read waits; excludes separately measured response wait and local verification. It does not prove continuous byte progress."
     },
     "verification": {
       "type": "integer",

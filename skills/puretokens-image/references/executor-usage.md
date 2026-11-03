@@ -57,6 +57,8 @@ For multiple images, preserve the accepted count and retrieve indexes 0..n-1. At
 
 ## Continuation record
 
+Content retrieval waits at most 90 seconds for response headers, stops a blocked body read after 30 seconds without bytes, and retains a 10-minute total transfer ceiling. Byte progress resets only the read-idle budget, not the overall ceiling. A content failure returns `await_user`: stop automatic content/resume attempts and offer a same-task/index retrieval only on explicit user request. Reuse verified local files instead of downloading again. Never claim bytes are moving merely because a command is running.
+
 Use `--record <absolute-task-json>` in an explicit workspace/user location for videos, multiple outputs or cross-session recovery. A short single-image flow may use `--request` alone. Choose before submitting. Both modes submit exactly once; do not create a second task to switch modes. Choose the output location with `content --output-dir <existing-absolute-directory>`; it can also be retained from an explicit submission output_dir. The record contains task ID, kind, model, original operation, requested count, validated safe parameters, progress and per-index download proofs (`sha256`, `bytes`, `media_type`); no prompt, credentials, reference URL or media bytes. Do not edit it by hand.
 
 ```text

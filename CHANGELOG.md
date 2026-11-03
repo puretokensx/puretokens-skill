@@ -6,6 +6,8 @@
 
 ## Unreleased
 
+- Bound same-task media retrieval to a 90-second response-header wait and a 30-second body-read idle interval while retaining the 10-minute total transfer ceiling. Preserve timeout errors during media-prefix reads, separate response waiting from body timing, and explicitly stop automatic retries after download failures. No new submissions, credentials or transports are introduced.
+
 - Align MiniMax installer directory trimming with credential resolution and preserve pending CLI legacy migration without creating a new default root. Extend per-host dedicated-call fixtures to embeddings/rerank and verify local audio/evaluation/retrieval results; real-host delivery remains pending.
 - Align Oh My Pi named profiles, validated configuration roots and explicit ordered YAML overlays across installation, doctor and credential resolution. Add profile isolation, no-fallback and dedicated-route fixtures; reject unconfirmed project dotenv selection. Real-host acceptance remains pending.
 - Add source-only Oh My Pi and MiniMax Code CLI saved-default adapters, independent installation entries and strict unsupported-scope handling. Real-host acceptance remains separate.

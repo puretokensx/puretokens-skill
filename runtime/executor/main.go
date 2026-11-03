@@ -129,16 +129,18 @@ type service struct {
 	profilesRoot string
 	host         string
 
-	baseURL           string
-	client            *http.Client
-	token             string
-	downloadTimeout   time.Duration
-	musicFormat       string
-	now               func() time.Time
-	wait              func(context.Context, time.Duration) bool
-	downloadProofs    map[string]downloadProof
-	localRecoveryOnly bool
-	support           *supportReceiptWriter
+	baseURL                 string
+	client                  *http.Client
+	token                   string
+	downloadTimeout         time.Duration
+	downloadResponseTimeout time.Duration
+	downloadIdleTimeout     time.Duration
+	musicFormat             string
+	now                     func() time.Time
+	wait                    func(context.Context, time.Duration) bool
+	downloadProofs          map[string]downloadProof
+	localRecoveryOnly       bool
+	support                 *supportReceiptWriter
 }
 
 func main() {
@@ -1177,8 +1179,10 @@ func (svc service) download(ctx context.Context, path, kind, outputDir string) (
 		}
 	}
 
-	finishTiming := svc.timePhase("download")
-	defer finishTiming()
+	finishResponse := svc.timePhase("content_response")
+	defer finishResponse()
+	ctx, cancel := context.WithCancelCause(ctx)
+	defer cancel(nil)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, svc.baseURL+path, nil)
 	if err != nil {
 		return "", 0, 0, "", "", err
@@ -1187,14 +1191,26 @@ func (svc service) download(ctx context.Context, path, kind, outputDir string) (
 	client := fixedClient(svc.client)
 	client.Timeout = svc.contentTimeout()
 	svc.support.beginRequest(http.MethodGet, path)
+	stopResponse := contentDeadline(cancel, svc.contentResponseBudget(), errContentResponseTimeout)
 	response, err := client.Do(req)
+	stopResponse()
+	finishResponse()
 	svc.support.observeResponse(response)
+	if response != nil {
+		defer response.Body.Close()
+	}
+	if cause := context.Cause(ctx); cause != nil {
+		err = cause
+	}
 	if err != nil {
 		return "", 0, 0, "", "", err
 	}
-	defer response.Body.Close()
+	finishTiming := svc.timePhase("download")
+	defer finishTiming()
+	reader := bufio.NewReader(&contentProgressReader{reader: response.Body, ctx: ctx, cancel: cancel,
+		budget: svc.contentIdleBudget(), remaining: svc.contentIdleBudget()})
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
-		body, _ := io.ReadAll(io.LimitReader(response.Body, maxResponseBytes))
+		body, _ := io.ReadAll(io.LimitReader(reader, maxResponseBytes))
 		code, message := publicAPIError(sanitizeResponseJSON(body, svc.token))
 		return "", response.StatusCode, retryAfter(response), code, message, errors.New("content request rejected")
 	}
@@ -1218,8 +1234,10 @@ func (svc service) download(ctx context.Context, path, kind, outputDir string) (
 	if directory == "" {
 		return "", response.StatusCode, 0, "", "", errors.New("explicit output directory required")
 	}
-	reader := bufio.NewReader(response.Body)
-	prefix, _ := reader.Peek(512)
+	prefix, prefixErr := reader.Peek(512)
+	if prefixErr != nil && !errors.Is(prefixErr, io.EOF) {
+		return "", response.StatusCode, retryAfter(response), "", "", prefixErr
+	}
 	if !validMediaPrefix(prefix, contentType) {
 		return "", response.StatusCode, 0, "", "", errInvalidMedia
 	}

@@ -339,6 +339,24 @@ test("invocation timings are measured phases without private or unobserved label
   }
 });
 
+test("content stage diagnostics remain safe and require explicit continuation", () => {
+  for (const [stage, code] of [["response", "media_content_response_timeout"], ["body", "media_download_stalled"]]) {
+    const result = example(`content-stage-${stage}`);
+    assert.equal(result.local_error_code, code);
+    assert.equal(result.support.local_error_code, code);
+    assert.equal(result.next_step, "await_user");
+    assert.match(result.next_action, /Stop automatic retrieval/);
+    assert.match(result.next_action, /explicit user request/);
+    assert.equal(result.timings_ms.content_response, 7);
+    assert.equal(result.timings_ms.download, stage === "body" ? 11 : undefined);
+    assert.equal(result.support.timings_ms, undefined);
+  }
+  const complete = example("content-stage-complete");
+  assert.equal(complete.next_step, "deliver");
+  assert.equal(complete.timings_ms.content_response, 7);
+  assert.equal(complete.timings_ms.download, 11);
+});
+
 test("audio construction diagnostics identify only the invalid field and reviewed limit", () => {
   const voice = example("audio-diagnostic-unknown-voice");
   const limit = example("audio-diagnostic-unicode-limit");

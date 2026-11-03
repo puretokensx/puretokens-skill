@@ -192,6 +192,7 @@ var supportLocalErrorCodes = map[string]bool{
 	"task_record_unavailable": true, "retry_wait_required": true, "output_directory_unavailable": true,
 	"original_count_unknown": true, "media_download_incomplete": true, "media_size_limit_exceeded": true,
 	"invalid_media_content": true, "output_permission_denied": true, "media_download_timeout": true, "output_file_conflict": true,
+	"media_content_response_timeout": true, "media_download_stalled": true,
 	"api_response_unreadable": true, "api_network_unavailable": true, "api_identity_rejected": true,
 	"api_identity_unreadable": true, "credential_unverified": true, "api_identity_unconfirmed": true,
 	"task_response_unreadable": true, "task_id_missing": true, "task_id_invalid": true,

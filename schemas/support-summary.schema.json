@@ -248,6 +248,8 @@
         "invalid_media_content",
         "output_permission_denied",
         "media_download_timeout",
+        "media_content_response_timeout",
+        "media_download_stalled",
         "output_file_conflict",
         "api_response_unreadable",
         "api_network_unavailable",

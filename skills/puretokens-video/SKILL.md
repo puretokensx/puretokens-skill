@@ -66,6 +66,7 @@ Grok 编辑限制：`grok-imagine-video-1.5`／`grok-imagine-video-1.5-preview` 
 - **wait**：有记录用 `resume --host <host> --record <文件>`，否则用 `wait --host <host> --request <同任务文件>`。每窗口最多 7 次读取／300 秒，含网络与等待；遵守 retry_not_before 和 Retry-After。
 - **窗口结束**：`ok=true`、`wait_outcome=window_ended` 仍为生成中。仅 `next_step=wait` 且原授权和前台会话仍有效可自动再续一个窗口；累计两个窗口、retry_deferred 或 await_user 时暂停。取消、失败回执、网络超时、未知状态或对账均停止自动续接，不重置计数或后台循环。窗口内 429 只由执行器按剩余预算处理。
 - **content**：只下载已完成的原任务；用 `content --host <host> --record <文件> --index 0 --output-dir <现有绝对目录>`，无记录用含 completed 状态和确认数量的同任务请求。视频只有索引 0。
+- **取回停止**：响应等待最多 90 秒，读取连续 30 秒无字节进展即停止，总预算最多 10 分钟。失败或 `await_user` 后不自动重跑 content／resume、不加 sleep 循环；保留原任务，用户明确要求后才再取同一索引。无字节进度证据不声称“正在缓慢传输”。
 - **deliver**：按当前宿主已声明的附件工具或本地媒体格式交付 downloaded_paths 的原文件；方式不明确才读 [客户端交付](references/host-delivery.md)。下载、路径和任务号不等于交付，不能用 URL、HTML 或 SVG 代替。实际交接后才执行 `delivered --record <文件> --index 0`，不在媒体回复发出前预先确认；正常交接无需每次让用户确认已看见。done 后结束，不自动审美检查或再生成。
 
 用户明确要求再次发送已交付文件时，用 `redeliver --host <host> --record <原记录> --index <索引>`：先校验本地原文件，缺失才取同任务结果，不重新生成。具体恢复见下方续接指南。

@@ -232,6 +232,14 @@
     "noBackgroundPollingOrQueue": true,
     "readContentOnlyAfterTerminalSuccess": true,
     "oneInFlightContentReadPerTask": true,
+    "contentReadBudgets": {
+      "responseHeadersSeconds": 90,
+      "bodyReadIdleSeconds": 30,
+      "totalTransferSeconds": 600,
+      "idleReset": "only_received_bytes_reset_network_read_budget_local_disk_and_verification_excluded",
+      "failure": "await_user_no_automatic_content_or_resume_retry_preserve_original_task_index",
+      "timings": "exclusive_content_response_download_verification_invocation_only_not_server_or_host_handoff"
+    },
     "sequentialImageContentIndexes": true,
     "handoffNativeBytesBeforeNextRead": true,
     "doesNotPersistMediaBytesInSkillStateOrLogs": true,

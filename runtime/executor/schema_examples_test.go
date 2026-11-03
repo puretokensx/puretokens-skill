@@ -24,6 +24,10 @@ type schemaExample struct {
 	Document json.RawMessage `json:"document"`
 }
 
+type contentSchemaErrorReader struct{}
+
+func (contentSchemaErrorReader) Read([]byte) (int, error) { return 0, errContentIdleTimeout }
+
 // Node consumes actual JSON emitted by the executor, not hand-maintained
 // replicas of its structs. Every request uses local fixtures and local mocks.
 // The test also runs its behavioral checks when invoked directly by go test.
@@ -51,6 +55,33 @@ func TestContractExamples(t *testing.T) {
 		}
 		capture(name, schema, data)
 	}
+
+	t.Run("content response and byte stalls", func(t *testing.T) {
+		for _, stage := range []string{"response", "body", "complete"} {
+			var output bytes.Buffer
+			clock, advance := timingClockFixture()
+			writer := &supportReceiptWriter{output: &output, command: "content", host: "codex", timings: clock}
+			calls := 0
+			svc := service{baseURL: "https://fixture.invalid", support: writer, client: &http.Client{Transport: evaluationTransport(func(*http.Request) (*http.Response, error) {
+				calls++
+				advance(7 * time.Millisecond)
+				if stage == "response" {
+					return nil, errContentResponseTimeout
+				}
+				var body io.Reader = bytes.NewReader(fixturePNG(t))
+				if stage == "body" {
+					body = contentSchemaErrorReader{}
+				}
+				return &http.Response{StatusCode: 200, Header: http.Header{"Content-Type": {"image/png"}}, Body: &timingBody{reader: body, advance: advance}}, nil
+			})}}
+			request := taskRequest{Kind: "image", Operation: "continue", TaskID: "fixture-task", TaskStatus: "completed", RequestedCount: 1, OutputDir: t.TempDir()}
+			err := deliverTask(writer, svc, request, taskReceipt(request, request.TaskID, "completed"))
+			if (err == nil) != (stage == "complete") || calls != 1 {
+				t.Fatalf("unexpected content outcome: %v calls=%d", err, calls)
+			}
+			capture("content-stage-"+stage, "executor-receipt.schema.json", output.Bytes())
+		}
+	})
 
 	t.Run("ElevenLabs dedicated audio", func(t *testing.T) {
 		for model, operation := range map[string]string{
