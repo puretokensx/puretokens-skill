@@ -6,7 +6,7 @@ Oh My Pi uses `--host oh-my-pi` and `~/.omp/agent/skills` (or absolute `PI_CODIN
 
 MiniMax Code CLI (`mcode`) uses `--host minimax-code-cli`; Desktop retains `--host minimax-code`. CLI resolves `MINIMAX_DATA_DIR`, then `MAVIS_DATA_DIR`, then `~/.minimax`, without Desktop preferences. Its installer loads `<root>/skills`. Only a confirmed local saved-default conversation is supported; profiles and unrepresented overrides stop. Both CLI entries are source-only; standalone installation still fetches the published stable release, which does not yet contain them. Do not promise an update can install unreleased bytes.
 
-Claude Desktop direct profiles retain existing support, but Switch loopback model-mapping mode does not. The local mapper token is not a Pure Tokens API Key. Antigravity CLI's process-only Key also has no supported file adapter. Both stop without another host, transport or credential fallback.
+Claude Desktop direct profiles retain existing support, but Switch loopback model-mapping mode does not. The local mapper token is not a Pure Tokens API Key. The recognized mapped profile reports `active_connection_endpoint_unsupported` with no API request: this is a connection-mode limitation, not an installation failure. Do not reinstall, export a Key or add a local authorization protocol. Antigravity CLI's process-only Key also has no supported file adapter. Both stop without another host, transport or credential fallback.
 
 Use the current host ID for every executor command, including init, balance, models and media. Installation and credential fixtures do not prove real API or attachment delivery.
 

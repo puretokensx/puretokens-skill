@@ -9,7 +9,7 @@
 - Add source-only Oh My Pi and MiniMax Code CLI saved-default adapters, independent installation entries and strict unsupported-scope handling. Real-host acceptance remains separate.
 - Accept the strict legacy flat DSH credential-reference store without migration or environment fallback.
 - Synchronize Wan 3.0 video aspect ratios with the production catalog; keep the current image and video defaults.
-- Clarify that Claude Desktop loopback mapping and Antigravity process-only credentials do not support direct Skills authentication.
+- Clarify that Claude Desktop loopback mapping and Antigravity process-only credentials do not support direct Skills authentication. Recognized mapped profiles stop locally with a specific explanation instead of implying an installation failure; no credential exchange or media proxy is added.
 
 ## 0.19.8 - 2026-10-24
 

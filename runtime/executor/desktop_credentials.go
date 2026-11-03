@@ -74,7 +74,11 @@ func credentialFromClaudeDesktopRoot(root string) (string, error) {
 		jsonString(profile["inferenceGatewayAuthScheme"]) != "bearer" {
 		return "", desktopSelectionFailure()
 	}
-	return matchingCredential(jsonString(profile["inferenceGatewayBaseUrl"]), jsonString(profile["inferenceGatewayApiKey"]), "", "/", "/v1", "/v1/")
+	endpoint := jsonString(profile["inferenceGatewayBaseUrl"])
+	if endpoint == "http://127.0.0.1:15722/claude-desktop" {
+		return "", credentialFailure("active_connection_endpoint_unsupported", "Claude Desktop model mapping uses a local chat token, not a credential for the fixed Pure Tokens dedicated APIs. This is not an installation failure; reinstalling Skills cannot change this connection mode. No credential authentication or API request was performed.", "")
+	}
+	return matchingCredential(endpoint, jsonString(profile["inferenceGatewayApiKey"]), "", "/", "/v1", "/v1/")
 }
 
 func desktopSelectionFailure() error {

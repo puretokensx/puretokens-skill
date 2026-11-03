@@ -46,6 +46,30 @@ func TestClaudeDesktopActiveProfile(t *testing.T) {
 	}
 }
 
+func TestClaudeDesktopMappingExplainsCredentialBoundary(t *testing.T) {
+	root := claudeDesktopFixture(t)
+	desktopFixtureFile(t, root, "configLibrary/"+fixtureDesktopProfile+".json", `{"inferenceProvider":"gateway","inferenceCredentialKind":"static","inferenceGatewayAuthScheme":"bearer","inferenceGatewayBaseUrl":"http://127.0.0.1:15722/claude-desktop","inferenceGatewayApiKey":"pts-local-12345678-1234-4000-8000-123456789abc"}`)
+	token, err := credentialFromClaudeDesktopRoot(root)
+	if err == nil || token != "" {
+		t.Fatal("mapped chat token must not authorize fixed public APIs")
+	}
+	result := initCredentialFailure(err)
+	if result.ConfigurationStatus != "active_connection_endpoint_unsupported" || result.APIRequestExecuted || result.CredentialVerified {
+		t.Fatal("mapping must stop locally with a supported diagnostic")
+	}
+	if !strings.Contains(result.Message, "local chat token") || !strings.Contains(result.Message, "not an installation failure") {
+		t.Fatal("mapping diagnostic must explain why reinstalling cannot fix authorization")
+	}
+	for _, secret := range []string{root, "127.0.0.1", "pts-local-", "synthetic"} {
+		if strings.Contains(result.Message+result.NextAction, secret) {
+			t.Fatal("mapping diagnostic exposed connection data")
+		}
+	}
+	if !strings.Contains(result.NextAction, "never automatically resubmit") {
+		t.Fatal("mapping must preserve the existing no-retry guidance")
+	}
+}
+
 func TestClaudeDesktopRejectsInactiveUnsafeAndUnsupportedProfiles(t *testing.T) {
 	for _, tc := range []struct{ file, body string }{
 		{"claude_desktop_config.json", `{"deploymentMode":"consumer"}`},

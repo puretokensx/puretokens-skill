@@ -47,6 +47,28 @@ for these source changes.
   distributed-version gate: changed source cannot ship again as 0.19.8.
   No version bump, tag, push, publication or old approval reuse occurred.
 
+## Mapping simplification, 2026-11-03
+
+The uncommitted mapped-credential exchange experiment was withdrawn in both
+repositories. There is no credential endpoint, encryption protocol, new Key file
+or dedicated-API proxy. Existing chat mapping and the prior client/model sync
+remain intact. The Skills change is limited to a specific local diagnostic for
+the exact documented mapped endpoint, using the existing
+`active_connection_endpoint_unsupported` status without an API request.
+Switch labels this mode as requiring a direct connection, not source-only support.
+
+The new diagnostic regression failed before the change and passed afterward.
+Switch's focused UI suite passed 56 tests and its current-contract suite passed
+32 tests. The restored chat mapper passed all 7 tests, including unchanged-stream
+continuity and rejection of credential-export and dedicated-API routes. Generated
+guidance is synchronized. All six executor targets were rebuilt and their embedded
+identities and hashes verified. Final `npm run check` passed: Go tests and vet,
+then 193 Node cases with 189 passed, 4 PowerShell-only skips and 0 failures.
+An earlier packaged-binary check ran before the platform rebuild completed and
+failed on the old proof; the final gate verified the completed artifact set.
+
+This deliberately does not claim to enable dedicated APIs in mapped mode.
+
 ## Remaining acceptance
 
 Real Skill loading, effective-session confirmation, actual Key group permissions,
