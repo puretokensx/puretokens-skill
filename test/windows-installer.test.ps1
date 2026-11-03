@@ -4,14 +4,14 @@ $root = Join-Path ([IO.Path]::GetTempPath()) ('pt-installer-test-' + [Guid]::New
 $target = Join-Path $root 'skills'
 $installer = Join-Path $repository 'runtime/puretokens-skill-install.ps1'
 $savedEnvironment = @{}
-foreach ($name in @('USERPROFILE', 'HOME', 'CODEX_HOME', 'APPDATA', 'LOCALAPPDATA', 'HERMES_HOME', 'EVOX_AGENT_DIR', 'EVOX_CODING_AGENT_DIR', 'OCTOP_HOME', 'DSH_HOME', 'CLAUDE_CONFIG_DIR', 'ZCODE_DATA_BASE_DIR', 'KIMI_CODE_HOME', 'QODER_CONFIG_DIR', 'QODER_CLI_HOME', 'QODER_CONFIG_DIR_NAME', 'PI_CODING_AGENT_DIR', 'XDG_CONFIG_HOME', 'OPENCODE_CONFIG_DIR', 'MINIMAX_DATA_DIR', 'MAVIS_DATA_DIR', 'MAVIS_PROFILE', 'MINIMAX_PROFILE', 'AGENTARCHON_PROFILE', 'AGENTARCHON_DATA_DIR', '__MAVIS_RUNTIME_PROFILE', '__MAVIS_RUNTIME_DATA_DIR')) { $savedEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, 'Process') }
+foreach ($name in @('USERPROFILE', 'HOME', 'CODEX_HOME', 'APPDATA', 'LOCALAPPDATA', 'HERMES_HOME', 'EVOX_AGENT_DIR', 'EVOX_CODING_AGENT_DIR', 'OCTOP_HOME', 'DSH_HOME', 'CLAUDE_CONFIG_DIR', 'ZCODE_DATA_BASE_DIR', 'KIMI_CODE_HOME', 'QODER_CONFIG_DIR', 'QODER_CLI_HOME', 'QODER_CONFIG_DIR_NAME', 'PI_CODING_AGENT_DIR', 'XDG_CONFIG_HOME', 'OPENCODE_CONFIG_DIR', 'PI_CONFIG_DIR', 'PI_CONFIG_FILES', 'PI_PROFILE', 'OMP_PROFILE', 'OMP_CONFIG_DIR', 'OMP_CODING_AGENT_DIR', 'MINIMAX_DATA_DIR', 'MAVIS_DATA_DIR', 'MAVIS_PROFILE', 'MINIMAX_PROFILE', 'AGENTARCHON_PROFILE', 'AGENTARCHON_DATA_DIR', '__MAVIS_RUNTIME_PROFILE', '__MAVIS_RUNTIME_DATA_DIR')) { $savedEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, 'Process') }
 try {
   New-Item -ItemType Directory $root | Out-Null
   $env:USERPROFILE = Join-Path $root 'home'
   $env:HOME = $env:USERPROFILE
   $env:CODEX_HOME = Join-Path $env:USERPROFILE '.codex'
   $env:LOCALAPPDATA = Join-Path $env:USERPROFILE 'local'
-  foreach ($variable in @('MINIMAX_DATA_DIR', 'MAVIS_DATA_DIR', 'MAVIS_PROFILE', 'MINIMAX_PROFILE', 'AGENTARCHON_PROFILE', 'AGENTARCHON_DATA_DIR', '__MAVIS_RUNTIME_PROFILE', '__MAVIS_RUNTIME_DATA_DIR')) { [Environment]::SetEnvironmentVariable($variable, '', 'Process') }
+  foreach ($variable in @('PI_CONFIG_DIR', 'PI_CONFIG_FILES', 'PI_PROFILE', 'OMP_PROFILE', 'OMP_CONFIG_DIR', 'OMP_CODING_AGENT_DIR', 'MINIMAX_DATA_DIR', 'MAVIS_DATA_DIR', 'MAVIS_PROFILE', 'MINIMAX_PROFILE', 'AGENTARCHON_PROFILE', 'AGENTARCHON_DATA_DIR', '__MAVIS_RUNTIME_PROFILE', '__MAVIS_RUNTIME_DATA_DIR')) { [Environment]::SetEnvironmentVariable($variable, '', 'Process') }
   $env:HERMES_HOME = ''
   $env:EVOX_AGENT_DIR = ''
   $env:EVOX_CODING_AGENT_DIR = ''
@@ -28,8 +28,8 @@ try {
     }
     & $command.Source -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repository 'test/support/installer-local-failures.ps1')
     if ($LASTEXITCODE -ne 0) { throw "$engine local failure regression" }
-    foreach ($newHost in @('kimi-code', 'qoder', 'pi', 'hermes', 'evox', 'deepseek-harness', 'minimax-code')) {
-      $variable = switch ($newHost) { 'kimi-code' { 'KIMI_CODE_HOME' }; 'qoder' { 'QODER_CONFIG_DIR' }; 'pi' { 'PI_CODING_AGENT_DIR' }; 'hermes' { 'HERMES_HOME' }; 'evox' { 'EVOX_AGENT_DIR' }; 'deepseek-harness' { 'DSH_HOME' }; 'minimax-code' { 'MINIMAX_DATA_DIR' } }
+    foreach ($newHost in @('kimi-code', 'qoder', 'pi', 'hermes', 'evox', 'deepseek-harness', 'minimax-code', 'oh-my-pi', 'minimax-code-cli')) {
+      $variable = switch ($newHost) { 'kimi-code' { 'KIMI_CODE_HOME' }; 'qoder' { 'QODER_CONFIG_DIR' }; 'pi' { 'PI_CODING_AGENT_DIR' }; 'hermes' { 'HERMES_HOME' }; 'evox' { 'EVOX_AGENT_DIR' }; 'deepseek-harness' { 'DSH_HOME' }; 'minimax-code' { 'MINIMAX_DATA_DIR' }; 'oh-my-pi' { 'PI_CODING_AGENT_DIR' }; 'minimax-code-cli' { 'MINIMAX_DATA_DIR' } }
       $hostRoot = Join-Path $root ("$newHost $engine " + [char]0x7528 + [char]0x6237 + " spaces")
       [Environment]::SetEnvironmentVariable($variable, $hostRoot, 'Process')
       $location = & $command.Source -NoProfile -ExecutionPolicy Bypass -File $installer locate -HostId $newHost
@@ -42,6 +42,18 @@ try {
       & $command.Source -NoProfile -ExecutionPolicy Bypass -File $installer locate -HostId $newHost *> $null
       if ($LASTEXITCODE -eq 0) { throw "$engine accepted relative new host directory" }
       [Environment]::SetEnvironmentVariable($variable, '', 'Process')
+    }
+    foreach ($suffix in @('', '\', '\.', '\.\.\')) {
+      $env:PI_CODING_AGENT_DIR = (Join-Path $env:USERPROFILE '.pi\agent') + $suffix
+      & $command.Source -NoProfile -ExecutionPolicy Bypass -File $installer locate -HostId oh-my-pi -Target $target *> $null
+      if ($LASTEXITCODE -eq 0) { throw "$engine accepted the Pi root for Oh My Pi" }
+    }
+    $env:PI_CODING_AGENT_DIR = ''
+    foreach ($case in @(@('oh-my-pi', 'OMP_PROFILE'), @('minimax-code-cli', 'MINIMAX_PROFILE'))) {
+      [Environment]::SetEnvironmentVariable($case[1], 'named', 'Process')
+      & $command.Source -NoProfile -ExecutionPolicy Bypass -File $installer locate -HostId $case[0] -Target $target *> $null
+      if ($LASTEXITCODE -eq 0) { throw "$engine accepted an unsupported host profile with an explicit target" }
+      [Environment]::SetEnvironmentVariable($case[1], '', 'Process')
     }
     $location = & $command.Source -NoProfile -ExecutionPolicy Bypass -File $installer locate -HostId hermes
     if ($LASTEXITCODE -ne 0 -or $location -ne (Join-Path $env:LOCALAPPDATA 'hermes\skills')) { throw "$engine Hermes default mismatch" }

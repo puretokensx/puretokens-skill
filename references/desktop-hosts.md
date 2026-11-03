@@ -1,5 +1,13 @@
 # Desktop host execution
 
+## New CLI and mapped-connection scopes (unreleased, 2026-11-03)
+
+Oh My Pi uses `--host oh-my-pi` and `~/.omp/agent/skills` (or absolute `PI_CODING_AGENT_DIR/skills`), never the Pi entry. Only a confirmed local saved-default connection is supported. Named profiles, project/config/session/runtime/extension overrides, compatibility-provider selection and dotenv scopes are unsupported. Before invoking the executor, confirm the effective session uses the saved global default; absence of a visible override is not proof. Do not inspect other client configuration to establish that scope.
+
+MiniMax Code CLI (`mcode`) uses `--host minimax-code-cli`; Desktop retains `--host minimax-code`. CLI resolves `MINIMAX_DATA_DIR`, then `MAVIS_DATA_DIR`, then `~/.minimax`, without Desktop preferences. Its installer loads `<root>/skills`. Only a confirmed local saved-default conversation is supported; profiles and unrepresented overrides stop. Both CLI entries are source-only; standalone installation still fetches the published stable release, which does not yet contain them. Do not promise an update can install unreleased bytes.
+
+Claude Desktop direct profiles retain existing support, but Switch loopback model-mapping mode does not. The local mapper token is not a Pure Tokens API Key. Antigravity CLI's process-only Key also has no supported file adapter. Both stop without another host, transport or credential fallback.
+
 Use the current host ID for every executor command, including init, balance, models and media. Installation and credential fixtures do not prove real API or attachment delivery.
 
 ## Claude Desktop
@@ -14,7 +22,7 @@ Use --host dsh-desktop. The local Harness discovers DSH_HOME/skills. Without an 
 
 Project .dsh/skills, project .agents/skills and custom roots can shadow user skills. Check the loaded SKILL.md location; doctor checks the selected user root and the documented shared Agents root, not arbitrary project/plugin roots. Use the local session's attachment handoff after content; downloaded_awaiting_host_delivery is not a successful handoff.
 
-DSH settings select agent-default-model.provider/model and llm-pi-ai.providers.<selected>. Its apiKeyEnv references exactly one entry in the sibling version-1 .credentials.yaml refs mapping. The executor checks the selected endpoint before reading that file; no process-environment credential fallback.
+DSH settings select agent-default-model.provider/model and llm-pi-ai.providers.<selected>. Its apiKeyEnv references exactly one entry in the sibling version-1 .credentials.yaml refs mapping or a strictly validated legacy flat mapping. Flat values must all be nonempty strings with POSIX reference names; reserved version/refs/records fields, mixed layouts and missing references stop. The executor checks the selected endpoint before reading that file; no process-environment credential fallback or migration.
 
 ## Official DeepSeek Harness
 

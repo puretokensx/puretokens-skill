@@ -56,7 +56,7 @@ EOF
     [ "$parent_id" -gt 1 ] && [ "$parent_id" != "$process_id" ] || break
     process_id=$parent_id
   done
-  fail "stage=detect_host error_code=current_host_unconfirmed installation_status=not_started installed_files_changed=false next_step=confirm_current_client; confirm this client's host ID and run once with --host <id>. Supported IDs: claude-code, codex, workbuddy, gemini-cli, grok-build, opencode, trae, claude-desktop, dsh-desktop, deepseek-harness, minimax-code, zcode, kimi-code, qoder, pi, hermes, evox, vscode, octop. No network request or installation write was made."
+  fail "stage=detect_host error_code=current_host_unconfirmed installation_status=not_started installed_files_changed=false next_step=confirm_current_client; confirm this client's host ID and run once with --host <id>. Supported IDs: claude-code, codex, workbuddy, gemini-cli, grok-build, opencode, trae, claude-desktop, dsh-desktop, deepseek-harness, minimax-code, zcode, kimi-code, qoder, pi, hermes, evox, vscode, octop, oh-my-pi, minimax-code-cli. No network request or installation write was made."
 }
 command_name=${1:-}
 case "$command_name" in detect-host|check-update|install|update|repair) ;; *) fail "use detect-host, check-update, install, update or explicitly requested repair; --host and --target are optional when the current launcher can be identified" ;; esac

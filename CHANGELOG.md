@@ -4,6 +4,13 @@
 
 # Changelog
 
+## Unreleased
+
+- Add source-only Oh My Pi and MiniMax Code CLI saved-default adapters, independent installation entries and strict unsupported-scope handling. Real-host acceptance remains separate.
+- Accept the strict legacy flat DSH credential-reference store without migration or environment fallback.
+- Synchronize Wan 3.0 video aspect ratios with the production catalog; keep the current image and video defaults.
+- Clarify that Claude Desktop loopback mapping and Antigravity process-only credentials do not support direct Skills authentication.
+
 ## 0.19.8 - 2026-10-24
 
 - Synchronize the production media catalog with the dedicated Kling V3/Turbo and Super Vega declarations, preserving reviewed parameter limits and current defaults.

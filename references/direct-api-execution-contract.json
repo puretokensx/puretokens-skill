@@ -23,7 +23,9 @@
       "hermes",
       "evox",
       "vscode",
-      "octop"
+      "octop",
+      "oh-my-pi",
+      "minimax-code-cli"
     ],
     "credentialUse": "in_memory_only_for_fixed_puretokens_api_requests",
     "credentialSourceMustMatchFixedPureTokensEndpoint": true,
@@ -74,7 +76,9 @@
     "hermes",
     "evox",
     "vscode",
-    "octop"
+    "octop",
+    "oh-my-pi",
+    "minimax-code-cli"
   ],
   "executorCredentialAdapterHosts": [
     "claude-code",
@@ -95,7 +99,9 @@
     "hermes",
     "evox",
     "vscode",
-    "octop"
+    "octop",
+    "oh-my-pi",
+    "minimax-code-cli"
   ],
   "requiredExecutorCapabilities": [
     "fixed_full_url_request",

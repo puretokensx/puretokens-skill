@@ -150,6 +150,39 @@ func TestDSHDesktopRejectsAmbiguityAndNeverFallsBack(t *testing.T) {
 	}
 }
 
+func TestDSHDesktopLegacyFlatReference(t *testing.T) {
+	for _, newline := range []string{"\n", "\r\n"} {
+		root := dshDesktopFixture(t)
+		desktopFixtureFile(t, root, ".credentials.yaml", strings.ReplaceAll("CHOSEN_REF: synthetic-dsh-key\nOTHER_REF: synthetic-other-key\n", "\n", newline))
+		t.Setenv("CHOSEN_REF", "synthetic-wrong-environment-key")
+		token, err := credentialFromDSHDesktopRoot(root)
+		if err != nil || token != "synthetic-dsh-key" {
+			t.Fatal("Switch legacy flat reference did not resolve the selected connection")
+		}
+	}
+}
+
+func TestDSHDesktopRejectsMalformedFlatReferences(t *testing.T) {
+	for _, body := range []string{
+		"CHOSEN_REF: synthetic-key\nrefs: legacy\n",
+		"CHOSEN_REF: synthetic-key\nrecords: legacy\n",
+		"CHOSEN_REF: synthetic-key\nversion: 2\n",
+		"CHOSEN_REF: synthetic-key\nOTHER_REF: {}\n",
+		"CHOSEN_REF: synthetic-key\nOTHER_REF: ''\n",
+		"CHOSEN_REF: synthetic-key\ninvalid-name: synthetic-other\n",
+		"CHOSEN_REF: synthetic-key\n2INVALID: synthetic-other\n",
+		"CHOSEN_REF: first\nCHOSEN_REF: second\n",
+		"OTHER_REF: synthetic-key\n",
+	} {
+		root := dshDesktopFixture(t)
+		desktopFixtureFile(t, root, ".credentials.yaml", body)
+		t.Setenv("CHOSEN_REF", "synthetic-environment-fallback")
+		if token, err := credentialFromDSHDesktopRoot(root); err == nil || token != "" {
+			t.Fatal("ambiguous legacy credential store accepted")
+		}
+	}
+}
+
 func TestDesktopDataRoots(t *testing.T) {
 	home := t.TempDir()
 	appData := filepath.Join(home, "Roaming")

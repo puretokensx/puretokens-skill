@@ -7,7 +7,7 @@ param(
   [Parameter(Mandatory = $false)]
   [string]$Target,
   [Parameter(Mandatory = $false)]
-  [ValidateSet("claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop")]
+  [ValidateSet("claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop", "oh-my-pi", "minimax-code-cli")]
   [Alias("Host")]
   [string]$HostId,
   [Parameter(Mandatory = $false)]
@@ -316,6 +316,27 @@ function Get-TargetForHost([string]$RequestedHost) {
       }
       return (Join-Path $env:USERPROFILE ".zcode\skills")
     }
+    "oh-my-pi" {
+      foreach ($override in @("PI_CONFIG_DIR", "PI_CONFIG_FILES", "OMP_CONFIG_DIR", "OMP_CODING_AGENT_DIR")) {
+        if ([Environment]::GetEnvironmentVariable($override)) { Fail "Oh My Pi config overrides are unsupported" }
+      }
+      foreach ($profile in @($env:OMP_PROFILE, $env:PI_PROFILE)) { if ($profile -and $profile -cne "default") { Fail "Oh My Pi named profiles are unsupported" } }
+      $root = if ($env:PI_CODING_AGENT_DIR) { $env:PI_CODING_AGENT_DIR } else { Join-Path $env:USERPROFILE ".omp/agent" }
+      if ($root -notmatch '^[A-Za-z]:[\\/]' -or ($root -split '[\\/]') -contains '..' -or $root -match '[\x00-\x1f\x7f]') { Fail "Oh My Pi directory must be local and absolute without parent traversal" }
+      if ([IO.Path]::GetFullPath($root).TrimEnd('\', '/') -ieq [IO.Path]::GetFullPath((Join-Path $env:USERPROFILE ".pi/agent")).TrimEnd('\', '/')) { Fail "Oh My Pi cannot use the Pi default root" }
+      foreach ($dotenv in @((Join-Path $env:USERPROFILE ".env"), (Join-Path $env:USERPROFILE ".omp/.env"), (Join-Path $env:USERPROFILE ".omp/agent/.env"), (Join-Path $root ".env"))) {
+        if (Test-Path -LiteralPath $dotenv) { Fail "Oh My Pi dotenv scope is unconfirmed" }
+      }
+      return (Join-Path $root "skills")
+    }
+    "minimax-code-cli" {
+      foreach ($override in @("MAVIS_PROFILE", "MINIMAX_PROFILE", "AGENTARCHON_PROFILE", "AGENTARCHON_DATA_DIR", "__MAVIS_RUNTIME_PROFILE", "__MAVIS_RUNTIME_DATA_DIR")) {
+        if (-not [string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($override))) { Fail "MiniMax CLI profile overrides are unsupported" }
+      }
+      $root = if ($env:MINIMAX_DATA_DIR) { $env:MINIMAX_DATA_DIR } elseif ($env:MAVIS_DATA_DIR) { $env:MAVIS_DATA_DIR } else { Join-Path $env:USERPROFILE ".minimax" }
+      if ($root -notmatch '^[A-Za-z]:[\\/]' -or ($root -split '[\\/]') -contains '..' -or $root -match '[\x00-\x1f\x7f]') { Fail "MiniMax CLI directory must be local and absolute without parent traversal" }
+      return (Join-Path $root "skills")
+    }
     "minimax-code" {
       foreach ($override in @("MAVIS_PROFILE", "MINIMAX_PROFILE", "AGENTARCHON_PROFILE", "AGENTARCHON_DATA_DIR", "__MAVIS_RUNTIME_PROFILE", "__MAVIS_RUNTIME_DATA_DIR")) {
         if (-not [string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($override))) { Fail "MiniMax CLI and runtime profile overrides are unsupported" }
@@ -424,7 +445,7 @@ $updateLock = $null
 try {
   $script:installStage = "select_target"
   if ([string]::IsNullOrWhiteSpace($Target) -and [string]::IsNullOrWhiteSpace($HostId)) { Fail "-Host or -Target is required" }
-  if ($HostId -in @("pi", "hermes", "evox")) { $null = Get-TargetForHost $HostId }
+  if ($HostId -in @("pi", "hermes", "evox", "oh-my-pi", "minimax-code-cli")) { $null = Get-TargetForHost $HostId }
   if ([string]::IsNullOrWhiteSpace($Target)) { $Target = Get-TargetForHost $HostId }
   if ($HostId -eq "octop" -and ($Target -notmatch '^[A-Za-z]:[\\/]' -or ($Target -split '[\\/]') -contains '..' -or $Target -match '[\x00-\x1f\x7f]' -or $Target -notmatch '[\\/]skills$')) {
     Fail "Octop target must be the current local workspace's absolute .octop/skills or skills directory"

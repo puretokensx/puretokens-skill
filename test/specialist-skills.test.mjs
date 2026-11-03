@@ -271,14 +271,14 @@ test("the public install prompt remains extractable in both README files", async
   }
 });
 
-test("host matrix lists nineteen installer hosts and the bounded credential adapters", async () => {
+test("host matrix lists twenty-one source installer hosts and bounded credential adapters", async () => {
   const support = JSON.parse(await readFile(path.join(repositoryRoot, "references", "host-support.json"), "utf8"));
-  assert.deepEqual(support.supported.map((host) => host.id), ["claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop"]);
+  assert.deepEqual(support.supported.map((host) => host.id), ["claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop", "oh-my-pi", "minimax-code-cli"]);
   for (const host of support.supported) {
     assert.equal(host.delivery, "native-installer");
     assert.equal(host.directMediaExecution, "managed-native-executor");
   }
-  assert.deepEqual(support.supported.filter((host) => host.credentialAdapter === "fixture-tested").map((host) => host.id), ["claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop"]);
+  assert.deepEqual(support.supported.filter((host) => host.credentialAdapter === "fixture-tested").map((host) => host.id), ["claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop", "oh-my-pi", "minimax-code-cli"]);
 });
 
 test("source installer synchronizes Skills and exactly one native executor", async (t) => {

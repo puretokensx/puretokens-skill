@@ -21,6 +21,40 @@ func credentialFromMiniMaxCode() (string, error) {
 	return credentialFromMiniMaxCodeRoot(root)
 }
 
+func miniMaxCLIRoot(home string, getenv func(string) string) (string, error) {
+	if !clientAbsoluteRoot(home) {
+		return "", clientFormatFailure()
+	}
+	for _, name := range []string{"MAVIS_PROFILE", "MINIMAX_PROFILE", "AGENTARCHON_PROFILE", "AGENTARCHON_DATA_DIR", "__MAVIS_RUNTIME_PROFILE", "__MAVIS_RUNTIME_DATA_DIR"} {
+		if strings.TrimSpace(getenv(name)) != "" {
+			return "", clientSelectionFailure()
+		}
+	}
+	root := strings.TrimSpace(getenv("MINIMAX_DATA_DIR"))
+	if root == "" {
+		root = strings.TrimSpace(getenv("MAVIS_DATA_DIR"))
+	}
+	if root == "" {
+		root = filepath.Join(home, ".minimax")
+	}
+	if !clientAbsoluteRoot(root) {
+		return "", clientFormatFailure()
+	}
+	return filepath.Clean(root), nil
+}
+
+func credentialFromMiniMaxCodeCLI() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", clientSelectionFailure()
+	}
+	root, err := miniMaxCLIRoot(home, os.Getenv)
+	if err != nil {
+		return "", err
+	}
+	return credentialFromMiniMaxCodeRoot(root)
+}
+
 func miniMaxCodeRoot(goos, home string, getenv func(string) string) (string, error) {
 	if (goos != "darwin" && goos != "windows") || !clientAbsoluteRoot(home) {
 		return "", clientFormatFailure()

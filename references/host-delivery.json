@@ -76,6 +76,8 @@
     { "id": "hermes", "protocols": ["session-native"] },
     { "id": "evox", "protocols": ["session-native"] },
     { "id": "vscode", "protocols": ["vscode-artifacts", "session-native"] },
-    { "id": "octop", "protocols": ["session-native"] }
+    { "id": "octop", "protocols": ["session-native"] },
+    { "id": "oh-my-pi", "protocols": ["session-native"] },
+    { "id": "minimax-code-cli", "protocols": ["session-native"] }
   ]
 }

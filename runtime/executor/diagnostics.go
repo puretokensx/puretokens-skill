@@ -100,6 +100,18 @@ func doctorHostLocations(host, home string, getenv func(string) string) []doctor
 		}
 	case "grok-build":
 		location = filepath.Join(home, ".grok")
+	case "oh-my-pi":
+		root, err := ohMyPiRoot(home, getenv)
+		if err != nil {
+			return nil
+		}
+		return []doctorLocation{{"host_skills", filepath.Join(root, "skills")}}
+	case "minimax-code-cli":
+		root, err := miniMaxCLIRoot(home, getenv)
+		if err != nil {
+			return nil
+		}
+		return []doctorLocation{{"host_skills", filepath.Join(root, "skills")}}
 	case "minimax-code":
 		root, err := miniMaxCodeRoot(runtime.GOOS, home, getenv)
 		if err != nil {
@@ -209,7 +221,7 @@ func collectDoctorAt(loadedRoot, host, home string, getenv func(string) string) 
 		NextAction: "Review the local findings; run the connection checks and verify attachment handoff in the current host.",
 	}
 	switch host {
-	case "claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop":
+	case "claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop", "oh-my-pi", "minimax-code-cli":
 	default:
 		result.Host = "unsupported"
 		result.NextAction = "Choose a supported current host before running diagnostics."

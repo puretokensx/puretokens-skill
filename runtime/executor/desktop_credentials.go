@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
 
 	"go.yaml.in/yaml/v3"
 )
@@ -123,17 +124,29 @@ func credentialFromDSHDesktopRoot(root string) (string, error) {
 	if !found || jsonString(provider["api"]) != "openai-completions" || ref == "" {
 		return "", desktopSelectionFailure()
 	}
-	// apiKeyEnv selects exactly one refs entry in DSH's versioned store. It
-	// does not authorize environment fallback or any other provider's key.
+	// The reference selects one saved entry, never an environment fallback.
 	credentials, err := readDesktopYAML(filepath.Join(root, ".credentials.yaml"))
 	if err != nil {
 		return "", err
 	}
-	if credentials["version"] != 1 {
+	if credentials["version"] == 1 {
+		return matchingCredential(endpoint, jsonString(jsonObject(credentials["refs"])[ref]), "/v1", "/v1/")
+	}
+	// Switch preserves the older flat store for installed Harness runtimes.
+	// Accept its exact shape, not a versioned/mixed or arbitrary YAML document.
+	for name, value := range credentials {
+		if name == "version" || name == "refs" || name == "records" ||
+			!desktopCredentialReference.MatchString(name) || strings.TrimSpace(jsonString(value)) == "" {
+			return "", desktopSelectionFailure()
+		}
+	}
+	if !desktopCredentialReference.MatchString(ref) {
 		return "", desktopSelectionFailure()
 	}
-	return matchingCredential(endpoint, jsonString(jsonObject(credentials["refs"])[ref]), "/v1", "/v1/")
+	return matchingCredential(endpoint, jsonString(credentials[ref]), "/v1", "/v1/")
 }
+
+var desktopCredentialReference = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
 // Use a real YAML parser for quoted/flow/block values. Reject ambiguous or
 // expanding layouts and multiple documents before decoding into values.

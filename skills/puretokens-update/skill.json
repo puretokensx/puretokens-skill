@@ -85,6 +85,14 @@
     "minimaxCode": {
       "manualInstallationSupported": true,
       "globalSkillDirectory": "~/.minimax/skills"
+    },
+    "ohMyPi": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.omp/agent/skills"
+    },
+    "minimaxCodeCli": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.minimax/skills"
     }
   },
   "supportedClients": [
@@ -106,7 +114,9 @@
     "hermes",
     "evox",
     "vscode",
-    "octop"
+    "octop",
+    "oh-my-pi",
+    "minimax-code-cli"
   ],
   "rules": {
     "usesVerifiedStableRelease": true,
@@ -131,5 +141,5 @@
     "supportsReadOnlyDoctor": true,
     "doesNotSubmitMediaOrReadBilling": true
   },
-  "sourceSha256": "e0c2daa905b0e579dc82f9743c9433b71f99f19475846ec920286225ddade98c"
+  "sourceSha256": "cca736a89fd32a40ab629459f2e246b7b1843700e1bd2bed2c7c5e0c2f4a6c77"
 }

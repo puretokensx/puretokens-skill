@@ -84,6 +84,14 @@
     "octop": {
       "manualInstallationSupported": true,
       "workspaceSkillDirectory": ".octop/skills"
+    },
+    "ohMyPi": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.omp/agent/skills"
+    },
+    "minimaxCodeCli": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.minimax/skills"
     }
   },
   "supportedClients": [
@@ -105,7 +113,9 @@
     "hermes",
     "evox",
     "vscode",
-    "octop"
+    "octop",
+    "oh-my-pi",
+    "minimax-code-cli"
   ],
   "rules": {
     "usesFixedPureTokensApiOrigin": true,

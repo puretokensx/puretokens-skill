@@ -6,7 +6,7 @@ param(
   [ValidateSet("detect-host", "check-update", "install", "update", "repair")]
   [string]$Command,
   [Alias("Host")]
-  [ValidateSet("claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop")]
+  [ValidateSet("claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop", "oh-my-pi", "minimax-code-cli")]
   [string]$HostId,
   [string]$Target
 )
@@ -45,7 +45,7 @@ function Get-CurrentHost {
     if ($candidatePid -eq 0 -or $process.ParentProcessId -le 1 -or $process.ParentProcessId -eq $candidatePid) { break }
     $candidatePid = $process.ParentProcessId
   }
-  Fail "stage=detect_host error_code=current_host_unconfirmed installation_status=not_started installed_files_changed=false next_step=confirm_current_client; confirm this client's host ID and run once with -Host <id>. Supported IDs: claude-code, codex, workbuddy, gemini-cli, grok-build, opencode, trae, claude-desktop, dsh-desktop, deepseek-harness, minimax-code, zcode, kimi-code, qoder, pi, hermes, evox, vscode, octop. No network request or installation write was made."
+  Fail "stage=detect_host error_code=current_host_unconfirmed installation_status=not_started installed_files_changed=false next_step=confirm_current_client; confirm this client's host ID and run once with -Host <id>. Supported IDs: claude-code, codex, workbuddy, gemini-cli, grok-build, opencode, trae, claude-desktop, dsh-desktop, deepseek-harness, minimax-code, zcode, kimi-code, qoder, pi, hermes, evox, vscode, octop, oh-my-pi, minimax-code-cli. No network request or installation write was made."
 }
 function Get-OfficialFile([string]$Url, [string]$Destination, [string]$Stage) {
   $status = 0

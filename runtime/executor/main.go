@@ -489,6 +489,10 @@ func credentialForHost(host string) (string, error) {
 		return credentialFromDeepSeekHarness()
 	case "minimax-code":
 		return credentialFromMiniMaxCode()
+	case "minimax-code-cli":
+		return credentialFromMiniMaxCodeCLI()
+	case "oh-my-pi":
+		return credentialFromOhMyPi()
 	case "trae":
 		return credentialFromTrae()
 	case "kimi-code", "qoder", "pi":

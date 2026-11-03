@@ -17,7 +17,7 @@ report_unexpected_failure() {
 trap 'report_unexpected_failure $?' EXIT
 
 usage() {
-  printf '%s\n' "Usage: puretokens-skill-install.sh <check|verify-installed|init|sync|repair|locate> (--host <claude-code|codex|workbuddy|gemini-cli|grok-build|opencode|trae|claude-desktop|dsh-desktop|deepseek-harness|minimax-code|zcode|kimi-code|qoder|pi|hermes|evox|vscode|octop> | --target <absolute-skill-directory>) [--source <absolute-official-source-directory>]"
+  printf '%s\n' "Usage: puretokens-skill-install.sh <check|verify-installed|init|sync|repair|locate> (--host <claude-code|codex|workbuddy|gemini-cli|grok-build|opencode|trae|claude-desktop|dsh-desktop|deepseek-harness|minimax-code|zcode|kimi-code|qoder|pi|hermes|evox|vscode|octop|oh-my-pi|minimax-code-cli> | --target <absolute-skill-directory>) [--source <absolute-official-source-directory>]"
 }
 
 fail() {
@@ -104,6 +104,25 @@ target_for_host() {
   case "$host" in
     claude-code|claude-desktop) printf '%s\n' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" ;;
     kimi-code) printf '%s\n' "${KIMI_CODE_HOME:-$HOME/.kimi-code}/skills" ;;
+    oh-my-pi)
+      [ -z "${PI_CONFIG_DIR:-}${PI_CONFIG_FILES:-}${OMP_CONFIG_DIR:-}${OMP_CODING_AGENT_DIR:-}" ] || fail "Oh My Pi config overrides are unsupported"
+      case "${OMP_PROFILE:-default}" in default|'') ;; *) fail "Oh My Pi named profiles are unsupported" ;; esac
+      case "${PI_PROFILE:-default}" in default|'') ;; *) fail "Oh My Pi named profiles are unsupported" ;; esac
+      client_root=${PI_CODING_AGENT_DIR:-$HOME/.omp/agent}
+      validate_client_root "$client_root"
+      normalized_root=$(printf '%s' "$client_root/" | sed -e 's://*:/:g' -e ':dots' -e 's:/[.]/:/:g' -e 't dots' -e 's:/$::')
+      [ "$normalized_root" != "$HOME/.pi/agent" ] || fail "Oh My Pi cannot use the Pi default root"
+      for dotenv in "$HOME/.env" "$HOME/.omp/.env" "$HOME/.omp/agent/.env" "$client_root/.env"; do
+        [ ! -e "$dotenv" ] && [ ! -L "$dotenv" ] || fail "Oh My Pi dotenv scope is unconfirmed"
+      done
+      printf '%s\n' "$client_root/skills"
+      ;;
+    minimax-code-cli)
+      [ -z "${MAVIS_PROFILE:-}${MINIMAX_PROFILE:-}${AGENTARCHON_PROFILE:-}${AGENTARCHON_DATA_DIR:-}${__MAVIS_RUNTIME_PROFILE:-}${__MAVIS_RUNTIME_DATA_DIR:-}" ] || fail "MiniMax CLI profile overrides are unsupported"
+      client_root=${MINIMAX_DATA_DIR:-${MAVIS_DATA_DIR:-$HOME/.minimax}}
+      validate_client_root "$client_root"
+      printf '%s\n' "$client_root/skills"
+      ;;
     pi)
       pi_root=${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}
       case "$pi_root" in /*) ;; *) fail "Pi agent directory must be absolute" ;; esac
@@ -627,8 +646,8 @@ while [ "$#" -gt 0 ]; do
 done
 
 [ -n "$target" ] || [ -n "$host" ] || fail "--host or --target is required"
-case "$host" in ''|claude-code|codex|workbuddy|gemini-cli|grok-build|opencode|trae|claude-desktop|dsh-desktop|deepseek-harness|minimax-code|zcode|kimi-code|qoder|pi|hermes|evox|vscode|octop) ;; *) fail "unsupported host" ;; esac
-case "$host" in pi|hermes|evox) target_for_host "$host" >/dev/null ;; esac
+case "$host" in ''|claude-code|codex|workbuddy|gemini-cli|grok-build|opencode|trae|claude-desktop|dsh-desktop|deepseek-harness|minimax-code|zcode|kimi-code|qoder|pi|hermes|evox|vscode|octop|oh-my-pi|minimax-code-cli) ;; *) fail "unsupported host" ;; esac
+case "$host" in pi|hermes|evox|oh-my-pi|minimax-code-cli) target_for_host "$host" >/dev/null ;; esac
 if [ "$host" = octop ] && [ -n "$target" ]; then
   validate_client_root "$target"
   case "$target" in */.octop/skills|*/skills) ;; *) fail "Octop target must be the current local workspace's .octop/skills or skills directory" ;; esac

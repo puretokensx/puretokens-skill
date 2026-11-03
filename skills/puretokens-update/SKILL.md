@@ -36,7 +36,7 @@ Windows: powershell.exe -NoProfile -ExecutionPolicy Bypass -File <fetch脚本绝
 
 Windows 的 install／update 使用相同参数形式替换子命令。ExecutionPolicy 只作用于该进程，不修改系统策略；宿主明确阻止执行时停止，不绕过审批。
 
-宿主 ID 为 claude-code、codex、workbuddy、gemini-cli、grok-build、opencode、trae、claude-desktop、dsh-desktop、deepseek-harness、minimax-code、zcode、kimi-code、qoder、pi、hermes、evox、vscode、octop；自动识别不了时才询问。显式选择使用 --host／-Host；自定义路径同时传 --target／-Target 绝对目录并保留 host，Octop 必须指定工作区目标。fetch 固定最新稳定发布清单中的版本、源码提交和 SHA-256，先下载并校验该发布的目录选择器，不复用旧版同目录选择器。普通安装只下载当前系统／架构平台包，不回退 main、源码归档或镜像。维护者明确指定本地官方检出时仍可执行其 sync。
+宿主 ID 为 claude-code、codex、workbuddy、gemini-cli、grok-build、opencode、trae、claude-desktop、dsh-desktop、deepseek-harness、minimax-code、zcode、kimi-code、qoder、pi、hermes、evox、vscode、octop、oh-my-pi、minimax-code-cli；自动识别不了时才询问。显式选择使用 --host／-Host；自定义路径同时传 --target／-Target 绝对目录并保留 host，Octop 必须指定工作区目标。fetch 固定最新稳定发布清单中的版本、源码提交和 SHA-256，先下载并校验该发布的目录选择器，不复用旧版同目录选择器。普通安装只下载当前系统／架构平台包，不回退 main、源码归档或镜像。维护者明确指定本地官方检出时仍可执行其 sync。
 
 check-update 只比较版本，不证明文件完整，也不修改安装或执行 init。同版 install／update 只有在所选发布执行器校验和与全部受管清单（本版本十一份）通过、无未完成事务时，才返回 `already current and verified`：不下载 ZIP、不写入、不 init。缺失、修改或未完成事务必须停止并保留现场，不自动修复。
 

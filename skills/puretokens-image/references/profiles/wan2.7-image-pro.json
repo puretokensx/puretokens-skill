@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
   "schemaVersion": 1,
   "capability": "image",
-  "catalogUpdatedAt": "2026-10-24",
-  "catalogCapturedAt": "2026-10-24T11:09:36.781Z",
+  "catalogUpdatedAt": "2026-11-03",
+  "catalogCapturedAt": "2026-11-03T02:14:24.310Z",
   "id": "wan2.7-image-pro",
   "parameterSchema": {
     "properties": {

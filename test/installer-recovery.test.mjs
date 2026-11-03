@@ -10,6 +10,31 @@ import { repositoryRoot } from "../scripts/skill-registry.mjs";
 const execFile = promisify(execFileCallback);
 const names = ["puretokens-balance", "puretokens-connection", "puretokens-models", "puretokens-image", "puretokens-video", "puretokens-audio", "puretokens-evaluate", "puretokens-embedding", "puretokens-rerank", "puretokens-update"];
 const installer = path.join(repositoryRoot, "runtime/puretokens-skill-install.sh");
+test("new CLI hosts locate and install independently", async t => {
+ const f = await fixture(t);
+ const clean = { ...f.env, PI_CONFIG_DIR: "", PI_CONFIG_FILES: "", PI_PROFILE: "", OMP_PROFILE: "", PI_CODING_AGENT_DIR: "", OMP_CONFIG_DIR: "", OMP_CODING_AGENT_DIR: "", MINIMAX_DATA_DIR: "", MAVIS_DATA_DIR: "", MAVIS_PROFILE: "", MINIMAX_PROFILE: "", AGENTARCHON_PROFILE: "", AGENTARCHON_DATA_DIR: "", __MAVIS_RUNTIME_PROFILE: "", __MAVIS_RUNTIME_DATA_DIR: "" };
+ for (const [host, dir, variable] of [["oh-my-pi", ".omp/agent", "PI_CODING_AGENT_DIR"], ["minimax-code-cli", ".minimax", "MINIMAX_DATA_DIR"]]) {
+  const locate = env => execFile("sh", [installer, "locate", "--host", host], { env });
+  assert.equal((await locate(clean)).stdout.trim(), path.join(clean.HOME, dir, "skills"));
+  const root = path.join(f.root, host + " with spaces");
+  const env = { ...clean, [variable]: root };
+  assert.equal((await locate(env)).stdout.trim(), path.join(root, "skills"));
+  await assert.rejects(locate({ ...clean, [variable]: "relative" }));
+  await execFile("sh", [installer, "sync", "--host", host], { env });
+  for (const name of names) assert.ok(JSON.parse(await readFile(path.join(root, "skills", name, "skill.json"), "utf8")).supportedClients.includes(host));
+ }
+ await assert.rejects(execFile("sh", [installer, "locate", "--host", "oh-my-pi"], { env: { ...clean, OMP_PROFILE: "named" } }));
+ for (const [host, overrides] of [
+  ["oh-my-pi", { OMP_PROFILE: "named" }],
+  ["oh-my-pi", { PI_CONFIG_FILES: path.join(f.root, "overlay.yml") }],
+  ["minimax-code-cli", { MINIMAX_PROFILE: "named" }]
+ ]) {
+  await assert.rejects(execFile("sh", [installer, "locate", "--host", host, "--target", f.target], { env: { ...clean, ...overrides } }));
+ }
+ for (const value of [path.join(clean.HOME, ".pi/agent"), path.join(clean.HOME, ".pi/agent") + "/", path.join(clean.HOME, ".pi") + "/./agent", path.join(clean.HOME, ".pi/agent") + "/.", path.join(clean.HOME, ".pi") + "/././agent/./"]) {
+  await assert.rejects(execFile("sh", [installer, "locate", "--host", "oh-my-pi"], { env: { ...clean, PI_CODING_AGENT_DIR: value } }));
+ }
+});
 test("PowerShell local failures preserve file and init outcomes without exposing private errors", async t => {
  try { await execFile("pwsh", ["-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"]); }
  catch (error) { if (error.code === "ENOENT") { t.skip("PowerShell is unavailable; local failure fixtures remain unverified"); return; } throw error; }

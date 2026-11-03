@@ -30,3 +30,13 @@ test("generic public visibility does not invent a dedicated media schema or chat
   assert.deepEqual(sourceRows({ data: [{ model_name: "MiniMax-H3", vendor_id: 1,
     provider: "MiniMax", model_type: "unknown", supported_endpoint_types: ["openai"] }] }), []);
 });
+
+test("Wan 3.0 installed profiles follow the reviewed production aspect ratios", async () => {
+  const catalog = await read("references/media-model-catalog.json");
+  const ratios = ["16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "adaptive"];
+  for (const id of ["wan3.0-video", "wan3.0-video-prime"]) {
+    const profile = await read(`skills/puretokens-video/references/profiles/${id}.json`);
+    assert.deepEqual(profile.parameterSchema.properties.aspect_ratio.enum, ratios);
+    assert.deepEqual(catalog.models.find(model => model.id === id).parameterSchema.properties.aspect_ratio.enum, ratios);
+  }
+});

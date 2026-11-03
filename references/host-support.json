@@ -72,7 +72,7 @@
       "globalSkillDirectory": "~/.claude/skills",
       "directMediaExecution": "managed-native-executor",
       "credentialAdapter": "fixture-tested",
-      "guidance": "Claude Desktop local Code sessions load Claude Code skills. The executor reads the active Desktop 3P gateway profile, never Claude Code credentials. Cloud/Cowork sandbox access and native attachment delivery require separate real-host acceptance.",
+      "guidance": "Claude Desktop local Code sessions load Claude Code skills. The executor reads the active Desktop 3P gateway profile, never Claude Code credentials. Cloud/Cowork sandbox access and native attachment delivery require separate real-host acceptance. Switch loopback model-mapping mode is unsupported: its local token is not a Pure Tokens API credential.",
       "directorySelection": "CLAUDE_CONFIG_DIR/skills when explicitly configured; otherwise ~/.claude/skills. Shared with Claude Code; select --host claude-desktop for Desktop 3P authentication."
     },
     {
@@ -81,7 +81,7 @@
       "globalSkillDirectory": "~/Library/Application Support/dsh-desktop/harness/skills",
       "directMediaExecution": "managed-native-executor",
       "credentialAdapter": "fixture-tested",
-      "guidance": "Install into the local DSH Harness skills directory. On Windows use %APPDATA%/dsh-desktop/harness/skills. Credential fixtures cover the selected provider and its versioned refs store; real-host API and delivery acceptance remain pending.",
+      "guidance": "Install into the local DSH Harness skills directory. On Windows use %APPDATA%/dsh-desktop/harness/skills. Credential fixtures cover the selected provider and its versioned refs or strictly validated legacy flat store; real-host API and delivery acceptance remain pending.",
       "directorySelection": "DSH_HOME/skills when explicitly supplied by the local Harness; otherwise the desktop application-data harness/skills directory. Project/custom roots may shadow it; doctor reports the documented shared Agents root."
     },
     {
@@ -173,6 +173,24 @@
       "credentialAdapter": "fixture-tested",
       "guidance": "Local Octop SQLite only. Read the saved default connection, or a unique enabled matching service when no default exists, in a read-only WAL-aware transaction. No global Skill directory or current conversation selection is inferred. Real-host acceptance remains pending.",
       "directorySelection": "Explicit absolute --target / -Target for the current local agent workspace's .octop/skills; never enumerate agents or use the global skill-package store. OCTOP_HOME selects only the connection root."
+    },
+    {
+      "id": "oh-my-pi",
+      "delivery": "native-installer",
+      "globalSkillDirectory": "~/.omp/agent/skills",
+      "directMediaExecution": "managed-native-executor",
+      "credentialAdapter": "fixture-tested",
+      "guidance": "Source adapter for Oh My Pi local saved-default sessions only. Config/model YAML, explicit default role and inline credential are fixture-tested. Named profiles, project/session/runtime/config overlays and dotenv scopes are unsupported. Never reuse Pi credentials. Real-host API and native delivery acceptance pending.",
+      "directorySelection": "Absolute PI_CODING_AGENT_DIR/skills, otherwise ~/.omp/agent/skills. PI_CONFIG_DIR, PI_CONFIG_FILES, named profiles and dotenv scopes stop; never select ~/.pi/agent."
+    },
+    {
+      "id": "minimax-code-cli",
+      "delivery": "native-installer",
+      "globalSkillDirectory": "~/.minimax/skills",
+      "directMediaExecution": "managed-native-executor",
+      "credentialAdapter": "fixture-tested",
+      "guidance": "Source adapter for MiniMax Code CLI (mcode) local saved-default sessions only. Separate from minimax-code Desktop; never reads Desktop preferences. Profiles and session/runtime overrides are unsupported. Real-host API and delivery acceptance pending.",
+      "directorySelection": "Absolute MINIMAX_DATA_DIR/skills, then MAVIS_DATA_DIR/skills, otherwise ~/.minimax/skills. Switch uses client ID minimax-code for both modes; Skills must bind explicitly to minimax-code-cli for CLI."
     }
   ]
 }

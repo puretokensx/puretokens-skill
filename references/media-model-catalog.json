@@ -1,10 +1,10 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-10-24",
+  "updatedAt": "2026-11-03",
   "serviceCatalog": {
     "source": "Pure Tokens base model catalog",
     "path": "/api/product/docs/model-catalog",
-    "capturedAt": "2026-10-24T11:09:36.781Z"
+    "capturedAt": "2026-11-03T02:14:24.310Z"
   },
   "availabilityNotice": {
     "en": "This list is an installed selection aid, not a per-request authorization check. Ordinary generation reads only the selected profile; live discovery is limited to explicit requests, profile gaps or rejection diagnosis. Reviewed local compatibility supplements are separately sourced.",
@@ -7228,10 +7228,7 @@
               "1:1",
               "4:3",
               "3:4",
-              "3:2",
-              "2:3",
               "21:9",
-              "9:21",
               "adaptive"
             ],
             "default": "16:9"
@@ -7484,10 +7481,7 @@
               "1:1",
               "4:3",
               "3:4",
-              "3:2",
-              "2:3",
               "21:9",
-              "9:21",
               "adaptive"
             ],
             "default": "16:9"
