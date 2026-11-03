@@ -43,6 +43,23 @@ try {
       if ($LASTEXITCODE -eq 0) { throw "$engine accepted relative new host directory" }
       [Environment]::SetEnvironmentVariable($variable, '', 'Process')
     }
+    $minimaxRoot = Join-Path $root "minimax whitespace $engine"
+    foreach ($hostId in @('minimax-code-cli', 'minimax-code')) {
+      foreach ($useSecondary in @($false, $true)) {
+        $env:MINIMAX_DATA_DIR = if ($useSecondary) { " `t" } else { " `t$minimaxRoot `t" }
+        $env:MAVIS_DATA_DIR = if ($useSecondary) { " `t$minimaxRoot `t" } else { Join-Path $root 'unselected' }
+        $location = & $command.Source -NoProfile -ExecutionPolicy Bypass -File $installer locate -HostId $hostId
+        if ($LASTEXITCODE -ne 0 -or $location -ne (Join-Path $minimaxRoot 'skills')) { throw "$engine MiniMax whitespace selection mismatch" }
+      }
+    }
+    $env:MINIMAX_DATA_DIR = ''
+    $env:MAVIS_DATA_DIR = ''
+    $legacyRoot = Join-Path $env:USERPROFILE '.mavis'
+    New-Item -ItemType Directory $legacyRoot | Out-Null
+    try {
+      & $command.Source -NoProfile -ExecutionPolicy Bypass -File $installer sync -HostId minimax-code-cli *> $null
+      if ($LASTEXITCODE -eq 0 -or (Test-Path -LiteralPath (Join-Path $env:USERPROFILE '.minimax'))) { throw "$engine MiniMax pending migration created a default root" }
+    } finally { Remove-Item -LiteralPath $legacyRoot }
     foreach ($suffix in @('', '\', '\.', '\.\.\')) {
       $env:PI_CODING_AGENT_DIR = (Join-Path $env:USERPROFILE '.pi\agent') + $suffix
       & $command.Source -NoProfile -ExecutionPolicy Bypass -File $installer locate -HostId oh-my-pi -Target $target *> $null

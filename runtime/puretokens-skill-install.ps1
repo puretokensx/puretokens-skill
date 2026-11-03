@@ -351,7 +351,17 @@ function Get-TargetForHost([string]$RequestedHost) {
       foreach ($override in @("MAVIS_PROFILE", "MINIMAX_PROFILE", "AGENTARCHON_PROFILE", "AGENTARCHON_DATA_DIR", "__MAVIS_RUNTIME_PROFILE", "__MAVIS_RUNTIME_DATA_DIR")) {
         if (-not [string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($override))) { Fail "MiniMax CLI profile overrides are unsupported" }
       }
-      $root = if ($env:MINIMAX_DATA_DIR) { $env:MINIMAX_DATA_DIR } elseif ($env:MAVIS_DATA_DIR) { $env:MAVIS_DATA_DIR } else { Join-Path $env:USERPROFILE ".minimax" }
+      $primary = ([string]$env:MINIMAX_DATA_DIR).Trim()
+      $secondary = ([string]$env:MAVIS_DATA_DIR).Trim()
+      $root = if ($primary) { $primary } else { $secondary }
+      if (-not $root) {
+        $root = Join-Path $env:USERPROFILE ".minimax"
+        foreach ($candidate in @($root, (Join-Path $root "config.yaml"))) {
+          $item = Get-Item -LiteralPath $candidate -Force -ErrorAction SilentlyContinue
+          if ($item -and ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) { Fail "MiniMax CLI default directory is unconfirmed" }
+        }
+        if (-not (Test-Path -LiteralPath (Join-Path $root "config.yaml")) -and (Get-Item -LiteralPath (Join-Path $env:USERPROFILE ".mavis") -Force -ErrorAction SilentlyContinue)) { Fail "MiniMax legacy migration is pending; let the client migrate before installing" }
+      }
       if ($root -notmatch '^[A-Za-z]:[\\/]' -or ($root -split '[\\/]') -contains '..' -or $root -match '[\x00-\x1f\x7f]') { Fail "MiniMax CLI directory must be local and absolute without parent traversal" }
       return (Join-Path $root "skills")
     }
@@ -359,7 +369,9 @@ function Get-TargetForHost([string]$RequestedHost) {
       foreach ($override in @("MAVIS_PROFILE", "MINIMAX_PROFILE", "AGENTARCHON_PROFILE", "AGENTARCHON_DATA_DIR", "__MAVIS_RUNTIME_PROFILE", "__MAVIS_RUNTIME_DATA_DIR")) {
         if (-not [string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($override))) { Fail "MiniMax CLI and runtime profile overrides are unsupported" }
       }
-      $root = if ($env:MINIMAX_DATA_DIR) { $env:MINIMAX_DATA_DIR } else { $env:MAVIS_DATA_DIR }
+      $primary = ([string]$env:MINIMAX_DATA_DIR).Trim()
+      $secondary = ([string]$env:MAVIS_DATA_DIR).Trim()
+      $root = if ($primary) { $primary } else { $secondary }
       if ([string]::IsNullOrWhiteSpace($root)) {
         if (-not $env:APPDATA -or -not [IO.Path]::IsPathRooted($env:APPDATA)) { Fail "MiniMax Desktop application directory is unavailable" }
         foreach ($app in @("MiniMax Code", "MiniMax", "MiniMax Agent")) {

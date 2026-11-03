@@ -11,6 +11,16 @@
 
 These changes are source-only until separately released. Fixtures do not prove Skill loading, paid API access or native file delivery. See `acceptance/client-model-sync-20261103.md`.
 
+MiniMax directory follow-up: installers trim the two declared data-directory
+values before applying their precedence, matching the executor and reviewed
+`mcode` 0.7.0 resolver. CLI default-root resolution now shares Desktop's
+legacy-migration guard: when `.minimax/config.yaml` is absent but `.mavis`
+exists, stop before creating an installation or reading a credential. Do not
+follow a linked default config/root, migrate data or borrow Desktop preferences.
+An explicit supported directory remains independent of the legacy default.
+The CLI bundle confirms request/session selection can override `defaultModel`;
+this review does not add profile, session-database or environment-Key support.
+
 Only the native executor reads the documented connection records. It verifies the configured Pure Tokens hostname, HTTPS and path before using the matching credential for a fixed API request. Credentials are not arguments, request-file fields, receipts, logs or persistent executor state. The configured origin never replaces the fixed API origin.
 
 Balance uses the same verified credential on the fixed `https://console.puretokensx.com/api/product/console/api-keys/usage` route used by the official CC Switch integration. This is an API-key route, not a browser-session route. Its public `/api/product/console/status` metadata read carries no credential. The console-origin exception applies only to balance; media, models and connection remain on the fixed API origin.

@@ -103,6 +103,42 @@ This deliberately does not claim to enable dedicated APIs in mapped mode.
   version bump or publication is included. Windows installer execution and
   actual client loading/API/attachment acceptance remain unverified.
 
+## MiniMax directory and six-route follow-up, 2026-11-03
+
+- Read the installed `@minimax-ai/code` 0.7.0 distribution, not user files.
+  `chunks/chunk-4HNPBKOB.js` selects trimmed `MINIMAX_DATA_DIR`, then trimmed
+  `MAVIS_DATA_DIR`; `chunk-MNYDNW2K.js` owns legacy `.mavis` migration and
+  gated runtime profile selection; `chunk-O3CZWGXJ.js` retains session-model
+  precedence. This is static source evidence, not a running host acceptance.
+- SHA-256 evidence, relative to that package:
+  - `package.json`: `b0b59fc707c6c3ec81dcf3faf75739f6d127d40fc9bbe3350b5a055cbab5604b`
+  - `chunks/chunk-4HNPBKOB.js`: `808b86cc3f8ce3a8cae353096f96fd2972c350659fae385b601323eb3495aa7e`
+  - `chunks/chunk-MNYDNW2K.js`: `765e9bf898ee5d6499634bf16999653265a0a6f0e4d73b93c4f811cdad02c0fc`
+  - `chunks/chunk-O3CZWGXJ.js`: `d389a90e3bfaee16196788626bca4416eca5a32d5dc2e8b17f70bd967d6028bb`
+- Fixed installer/executor disagreement on surrounding directory whitespace.
+  CLI default resolution now shares Desktop's pending-migration guard; a
+  linked default path or legacy-only root cannot silently become a fresh
+  installation. Explicit supported roots remain independent. Regression tests
+  failed before the changes and passed afterward using isolated homes.
+- Extended the command-dispatch fixture to all six dedicated capabilities for
+  VS Code, MiniMax Desktop/CLI, Oh My Pi default/profile-overlay, DSH
+  versioned/flat stores, and TRAE international/domestic/SOLO contexts.
+  Each verifies model visibility present/absent/present, exact model and fixed
+  route, selected synthetic Key, 401/403 rejection and a single submission.
+  Audio bytes, ordered vector rows, ranking JSON and typed Jev answers are
+  checked. Jev's `jev-latest` may correctly resolve to a versioned response;
+  this is not a reason to rewrite the selected request ID.
+- DSH and TRAE fixtures also verify that calls do not modify their synthetic
+  credential file/database. No real user store was opened.
+- These fixtures save local files but do not perform client attachment handoff.
+  Windows cases are included, not executed on this macOS machine. No client
+  login/configuration was changed and no paid or production request was made.
+- Rebuilt all six executors and verified their embedded source identities and
+  checksums. `npm run check` passed Go tests/vet and 194 Node tests (190 passed,
+  4 PowerShell-only skips, 0 failures). Additional DSH/TRAE route tests passed
+  afterward, followed by a passing final full Go test/vet run. Switch's
+  existing current-contract documentation suite passed 34 tests.
+
 ## Remaining acceptance
 
 Real Skill loading, effective-session confirmation, actual Key group permissions,

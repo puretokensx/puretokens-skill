@@ -132,6 +132,50 @@ func TestSwitchVSCodeDedicatedPermissionsAndFreshCatalog(t *testing.T) {
 	exerciseDedicatedHostPermissions(t, "vscode", home, "pts-file-fake-not-real")
 }
 
+func TestDSHDesktopDedicatedPermissionsAndFreshCatalog(t *testing.T) {
+	for _, layout := range []string{"versioned", "flat"} {
+		t.Run(layout, func(t *testing.T) {
+			root := dshDesktopFixture(t)
+			t.Setenv("DSH_HOME", root)
+			t.Setenv("CHOSEN_REF", "synthetic-wrong-environment-key")
+			if layout == "flat" {
+				desktopFixtureFile(t, root, ".credentials.yaml", "CHOSEN_REF: synthetic-dsh-key\nOTHER_REF: synthetic-other-key\n")
+			}
+			before, err := os.ReadFile(filepath.Join(root, ".credentials.yaml"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			exerciseDedicatedHostPermissions(t, "dsh-desktop", root, "synthetic-dsh-key")
+			after, err := os.ReadFile(filepath.Join(root, ".credentials.yaml"))
+			if err != nil || !bytes.Equal(before, after) {
+				t.Fatal("dedicated calls changed the host credential store")
+			}
+		})
+	}
+}
+
+func TestTraeDedicatedPermissionsAndFreshCatalog(t *testing.T) {
+	if runtime.GOOS != "darwin" && runtime.GOOS != "windows" {
+		t.Skip("TRAE local desktop adapter supports macOS and Windows")
+	}
+	for _, edition := range []string{"Trae", "Trae CN", "TRAE SOLO"} {
+		t.Run(edition, func(t *testing.T) {
+			home, base := traeFixtureHome(t)
+			file := filepath.Join(base, edition, "User", "globalStorage", "state.vscdb")
+			traeFixtureDatabase(t, file, nil)
+			before, err := os.ReadFile(file)
+			if err != nil {
+				t.Fatal(err)
+			}
+			exerciseDedicatedHostPermissions(t, "trae", home, "fixture-trae-key")
+			after, err := os.ReadFile(file)
+			if err != nil || !bytes.Equal(before, after) {
+				t.Fatal("dedicated calls changed the host database")
+			}
+		})
+	}
+}
+
 func exerciseDedicatedHostPermissions(t *testing.T, host, home, token string) {
 	t.Helper()
 	previous := http.DefaultTransport
@@ -141,6 +185,8 @@ func exerciseDedicatedHostPermissions(t *testing.T, host, home, token string) {
 		{"video", "submit", `{"kind":"video","operation":"generate","model":"grok-imagine-video-1.5","prompt":"synthetic","requested_count":1}`, "/v1/videos", `{"id":"video_fixture","status":"pending"}`},
 		{"audio", "audio", `{"operation":"speech","model":"stepaudio-2.5-tts","input":"synthetic","voice":"cixingnansheng","response_format":"wav"}`, "/v1/audio/speech", ""},
 		{"jev", "evaluate", evaluationInputFixture, "/typesafe/v1/systemone", evaluationOutputFixture},
+		{"embedding", "embedding", `{"model":"qwen3.7-text-embedding","input":["synthetic one","synthetic two"]}`, "/v1/embeddings", embeddingResponseFixture},
+		{"rerank", "rerank", `{"model":"qwen3.7-text-rerank","query":"synthetic query","documents":["synthetic one","synthetic two"]}`, "/v1/rerank", rerankResponseFixture},
 	} {
 		t.Run(spec.name, func(t *testing.T) {
 			var expected map[string]any
@@ -155,7 +201,7 @@ func exerciseDedicatedHostPermissions(t *testing.T, host, home, token string) {
 						t.Error("wrong discovery request")
 					}
 					wantPath := "/v1/media/models"
-					if spec.name == "audio" || spec.name == "jev" {
+					if spec.name != "image" && spec.name != "video" {
 						wantPath = "/v1/models"
 					}
 					if r.URL.String() != apiOrigin+wantPath {
@@ -219,6 +265,12 @@ func exerciseDedicatedHostPermissions(t *testing.T, host, home, token string) {
 				json.Unmarshal([]byte(spec.input), &request)
 				if spec.name == "audio" {
 					request["output_dir"] = t.TempDir()
+				} else if spec.name == "embedding" || spec.name == "rerank" {
+					extension := ".json"
+					if spec.name == "embedding" {
+						extension = ".jsonl"
+					}
+					request["output_file"] = filepath.Join(t.TempDir(), "result"+extension)
 				}
 				body, _ := json.Marshal(request)
 				file := clientFixtureFile(t, home, "request.json", string(body))
@@ -227,8 +279,49 @@ func exerciseDedicatedHostPermissions(t *testing.T, host, home, token string) {
 				if (err == nil) != (status == 200) || !reflect.DeepEqual(calls, []string{"POST " + spec.route}) {
 					t.Fatalf("dedicated authorization or submit-once boundary failed: %s status=%d calls=%v", spec.name, status, calls)
 				}
-				if strings.Contains(out.String(), "fake-not-real") || strings.Contains(out.String(), "private-upstream") {
+				if strings.Contains(out.String(), token) || strings.Contains(out.String(), "fake-not-real") || strings.Contains(out.String(), "private-upstream") {
 					t.Fatal("receipt leaked synthetic private data")
+				}
+				var receipt map[string]any
+				if json.Unmarshal(out.Bytes(), &receipt) != nil {
+					t.Fatal("missing structured receipt")
+				}
+				if status != 200 {
+					if receipt["artifact"] != nil || receipt["result"] != nil {
+						t.Fatal("rejected request offered output")
+					}
+					continue
+				}
+				switch spec.name {
+				case "audio", "embedding", "rerank":
+					artifact := jsonObject(receipt["artifact"])
+					data, err := os.ReadFile(jsonString(artifact["path"]))
+					if err != nil || len(data) == 0 {
+						t.Fatal("successful dedicated command did not save output bytes")
+					}
+					switch spec.name {
+					case "audio":
+						if !bytes.Equal(data, audioWAVFixture()) || receipt["next_step"] != "deliver" {
+							t.Fatal("audio bytes or host handoff instruction changed")
+						}
+					case "embedding":
+						if string(data) != "{\"index\":0,\"dimensions\":2,\"embedding\":[1,0]}\n{\"index\":1,\"dimensions\":2,\"embedding\":[0.5,-0.75]}\n" {
+							t.Fatal("embedding artifact lost input ordering or values")
+						}
+					case "rerank":
+						var ranking map[string]any
+						if json.Unmarshal(data, &ranking) != nil || !reflect.DeepEqual(ranking, receipt["result"]) {
+							t.Fatal("ranking artifact differs from typed result")
+						}
+					}
+				case "jev":
+					result := jsonObject(receipt["result"])
+					answers := jsonObject(result["answers"])
+					if result["model"] != "jev-1.13.0" || receipt["next_step"] != "done" ||
+						jsonObject(answers["department"])["choice"] != "billing" ||
+						jsonObject(answers["severity"])["score"] != 1.1 || jsonObject(answers["urgency"])["noul"] != 0.9 {
+						t.Fatal("evaluation omitted its typed result")
+					}
 				}
 			}
 		})

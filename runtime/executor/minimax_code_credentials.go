@@ -35,7 +35,7 @@ func miniMaxCLIRoot(home string, getenv func(string) string) (string, error) {
 		root = strings.TrimSpace(getenv("MAVIS_DATA_DIR"))
 	}
 	if root == "" {
-		root = filepath.Join(home, ".minimax")
+		return miniMaxDefaultRoot(home)
 	}
 	if !clientAbsoluteRoot(root) {
 		return "", clientFormatFailure()
@@ -128,6 +128,10 @@ func miniMaxCodeRoot(goos, home string, getenv func(string) string) (string, err
 	if selected != "" {
 		return selected, nil
 	}
+	return miniMaxDefaultRoot(home)
+}
+
+func miniMaxDefaultRoot(home string) (string, error) {
 	root := filepath.Join(home, ".minimax")
 	absent, err := miniMaxPathAbsent(filepath.Join(root, "config.yaml"))
 	if err != nil {

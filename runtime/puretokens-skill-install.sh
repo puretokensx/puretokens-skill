@@ -98,6 +98,12 @@ validate_client_root() {
   fi
 }
 
+minimax_explicit_root() {
+  primary=$(printf '%s' "${MINIMAX_DATA_DIR:-}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  secondary=$(printf '%s' "${MAVIS_DATA_DIR:-}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+  printf '%s\n' "${primary:-$secondary}"
+}
+
 validate_omp_config_files() (
   IFS=:; set -f; count=0
   for config_file in ${PI_CONFIG_FILES:-}; do
@@ -150,7 +156,14 @@ target_for_host() {
       ;;
     minimax-code-cli)
       [ -z "${MAVIS_PROFILE:-}${MINIMAX_PROFILE:-}${AGENTARCHON_PROFILE:-}${AGENTARCHON_DATA_DIR:-}${__MAVIS_RUNTIME_PROFILE:-}${__MAVIS_RUNTIME_DATA_DIR:-}" ] || fail "MiniMax CLI profile overrides are unsupported"
-      client_root=${MINIMAX_DATA_DIR:-${MAVIS_DATA_DIR:-$HOME/.minimax}}
+      client_root=$(minimax_explicit_root)
+      if [ -z "$client_root" ]; then
+        [ ! -L "$HOME/.minimax" ] && [ ! -L "$HOME/.minimax/config.yaml" ] || fail "MiniMax CLI default directory is unconfirmed"
+        if [ ! -e "$HOME/.minimax/config.yaml" ] && { [ -e "$HOME/.mavis" ] || [ -L "$HOME/.mavis" ]; }; then
+          fail "MiniMax legacy migration is pending; let the client migrate before installing"
+        fi
+        client_root=$HOME/.minimax
+      fi
       validate_client_root "$client_root"
       printf '%s\n' "$client_root/skills"
       ;;
@@ -187,7 +200,7 @@ target_for_host() {
     minimax-code)
       [ "$(uname -s)" = Darwin ] || fail "MiniMax Code requires local macOS or Windows Desktop"
       [ -z "${MAVIS_PROFILE:-}${MINIMAX_PROFILE:-}${AGENTARCHON_PROFILE:-}${AGENTARCHON_DATA_DIR:-}${__MAVIS_RUNTIME_PROFILE:-}${__MAVIS_RUNTIME_DATA_DIR:-}" ] || fail "MiniMax CLI and runtime profile overrides are unsupported"
-      client_root=${MINIMAX_DATA_DIR:-${MAVIS_DATA_DIR:-}}
+      client_root=$(minimax_explicit_root)
       if [ -z "$client_root" ]; then
         for app in "MiniMax Code" "MiniMax" "MiniMax Agent"; do
           for store in minimax-agent-cn-config.json minimax-agent-config.json; do

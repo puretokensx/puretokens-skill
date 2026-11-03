@@ -212,3 +212,50 @@ func TestMiniMaxCodeDispatcherDoesNotRetryOrBorrowKey(t *testing.T) {
 		t.Fatal("override did not stop before network")
 	}
 }
+
+func TestMiniMaxCLIRootPreservesPendingLegacyMigration(t *testing.T) {
+	for _, variant := range []string{"absent", "legacy", "legacy-link", "current", "current-link", "explicit", "whitespace-explicit", "whitespace-fallback"} {
+		t.Run(variant, func(t *testing.T) {
+			home := clientFixtureRoot(t)
+			vars := map[string]string{}
+			getenv := func(name string) string { return vars[name] }
+			want := filepath.Join(home, ".minimax")
+			if variant != "absent" {
+				if variant == "legacy-link" {
+					if err := os.Symlink(filepath.Join(home, "missing"), filepath.Join(home, ".mavis")); err != nil {
+						t.Skip("filesystem link not available")
+					}
+				} else if err := os.Mkdir(filepath.Join(home, ".mavis"), 0700); err != nil {
+					t.Fatal(err)
+				}
+			}
+			switch variant {
+			case "current":
+				desktopFixtureFile(t, want, "config.yaml", miniMaxFixture(t))
+			case "current-link":
+				if err := os.Symlink(filepath.Join(home, "missing"), want); err != nil {
+					t.Skip("filesystem link not available")
+				}
+			case "explicit", "whitespace-explicit", "whitespace-fallback":
+				want = filepath.Join(home, "selected root")
+				vars["MINIMAX_DATA_DIR"] = want
+				if variant == "whitespace-explicit" {
+					vars["MINIMAX_DATA_DIR"] = " \t" + want + " \t"
+				} else if variant == "whitespace-fallback" {
+					vars["MINIMAX_DATA_DIR"] = " \t"
+					vars["MAVIS_DATA_DIR"] = " \t" + want + " \t"
+				}
+			}
+			got, err := miniMaxCLIRoot(home, getenv)
+			stop := variant == "legacy" || variant == "legacy-link" || variant == "current-link"
+			if (err != nil) != stop || (!stop && got != want) || (stop && got != "") {
+				t.Fatal("CLI root did not preserve explicit selection or pending migration")
+			}
+			if variant != "current" {
+				if _, err := os.Stat(filepath.Join(home, ".minimax", "config.yaml")); !os.IsNotExist(err) {
+					t.Fatal("root resolution wrote a configuration")
+				}
+			}
+		})
+	}
+}

@@ -60,6 +60,28 @@ test("new CLI hosts locate and install independently", async t => {
  await writeFile(path.join(f.root, ".env"), "OMP_PROFILE=other\n");
  await assert.rejects(execFile("sh", [installer, "locate", "--host", "oh-my-pi"], { env: clean, cwd: f.root }));
 });
+test("MiniMax CLI directory selection matches executor trimming and preserves pending migration", async t => {
+ const f = await fixture(t);
+ const clean = { ...f.env, MINIMAX_DATA_DIR: "", MAVIS_DATA_DIR: "", MAVIS_PROFILE: "", MINIMAX_PROFILE: "", AGENTARCHON_PROFILE: "", AGENTARCHON_DATA_DIR: "", __MAVIS_RUNTIME_PROFILE: "", __MAVIS_RUNTIME_DATA_DIR: "" };
+ const selected = path.join(f.root, "selected root");
+ for (const host of ["minimax-code-cli", ...(process.platform === "darwin" ? ["minimax-code"] : [])]) {
+  for (const overrides of [
+   { MINIMAX_DATA_DIR: ` \t${selected} \t`, MAVIS_DATA_DIR: path.join(f.root, "unselected") },
+   { MINIMAX_DATA_DIR: " \t", MAVIS_DATA_DIR: ` \t${selected} \t` }
+  ]) {
+   const { stdout } = await execFile("sh", [installer, "locate", "--host", host], { env: { ...clean, ...overrides } });
+   assert.equal(stdout.trim(), path.join(selected, "skills"));
+  }
+ }
+ await mkdir(path.join(clean.HOME, ".mavis"));
+ await assert.rejects(execFile("sh", [installer, "sync", "--host", "minimax-code-cli"], { env: clean }), error => {
+  assert.match(error.stderr, /migration/i);
+  return true;
+ });
+ await assert.rejects(stat(path.join(clean.HOME, ".minimax")), { code: "ENOENT" });
+ const { stdout } = await execFile("sh", [installer, "locate", "--host", "minimax-code-cli"], { env: { ...clean, MINIMAX_DATA_DIR: selected } });
+ assert.equal(stdout.trim(), path.join(selected, "skills"));
+});
 test("PowerShell local failures preserve file and init outcomes without exposing private errors", async t => {
  try { await execFile("pwsh", ["-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"]); }
  catch (error) { if (error.code === "ENOENT") { t.skip("PowerShell is unavailable; local failure fixtures remain unverified"); return; } throw error; }
