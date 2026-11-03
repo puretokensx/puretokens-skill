@@ -180,8 +180,8 @@
       "globalSkillDirectory": "~/.omp/agent/skills",
       "directMediaExecution": "managed-native-executor",
       "credentialAdapter": "fixture-tested",
-      "guidance": "Source adapter for Oh My Pi local saved-default sessions only. Config/model YAML, explicit default role and inline credential are fixture-tested. Named profiles, project/session/runtime/config overlays and dotenv scopes are unsupported. Never reuse Pi credentials. Real-host API and native delivery acceptance pending.",
-      "directorySelection": "Absolute PI_CODING_AGENT_DIR/skills, otherwise ~/.omp/agent/skills. PI_CONFIG_DIR, PI_CONFIG_FILES, named profiles and dotenv scopes stop; never select ~/.pi/agent."
+      "guidance": "Source adapter for confirmed Oh My Pi local saved/file-overlay sessions. Selected profile YAML and up to four absolute PI_CONFIG_FILES overlays resolve one exact default role and inline credential. Named profiles and ordered overlays are fixture-tested. Project/session/runtime/extension overrides and dotenv scopes remain unsupported. Never reuse another profile or Pi credentials. Real-host API and native delivery acceptance pending.",
+      "directorySelection": "Validated PI_CONFIG_DIR name under home, default .omp; OMP_PROFILE before PI_PROFILE, with explicitly empty canonical value selecting default. Named profiles use <config>/profiles/<profile>/agent/skills and ignore PI_CODING_AGENT_DIR; default accepts its unambiguous absolute override. Dotenv scopes stop; never select ~/.pi/agent."
     },
     {
       "id": "minimax-code-cli",

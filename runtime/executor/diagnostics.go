@@ -205,7 +205,11 @@ func doctorHostLocations(host, home string, getenv func(string) string) []doctor
 // latest release. Installed manifests contain no trusted binary checksum.
 func collectDoctorLocal(svc service, host string) doctorReceipt {
 	home, _ := os.UserHomeDir()
-	return collectDoctorAt(svc.profilesRoot, host, home, os.Getenv)
+	getenv := os.Getenv
+	if host == "oh-my-pi" {
+		getenv = ohMyPiGetenv
+	}
+	return collectDoctorAt(svc.profilesRoot, host, home, getenv)
 }
 
 func collectDoctorAt(loadedRoot, host, home string, getenv func(string) string) doctorReceipt {

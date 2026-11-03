@@ -49,8 +49,28 @@ try {
       if ($LASTEXITCODE -eq 0) { throw "$engine accepted the Pi root for Oh My Pi" }
     }
     $env:PI_CODING_AGENT_DIR = ''
+    $env:OMP_PROFILE = 'work'
+    $env:PI_CONFIG_DIR = '.omp-work'
+    $location = & $command.Source -NoProfile -ExecutionPolicy Bypass -File $installer locate -HostId oh-my-pi
+    if ($LASTEXITCODE -ne 0 -or $location -ne (Join-Path $env:USERPROFILE '.omp-work/profiles/work/agent/skills')) { throw "$engine named OMP profile location mismatch" }
+    for ($attempt=0; $attempt -lt 2; $attempt++) {
+      & $command.Source -NoProfile -ExecutionPolicy Bypass -File $installer sync -HostId oh-my-pi
+      if ($LASTEXITCODE -ne 0) { throw "$engine named OMP profile install/update failed" }
+    }
+    $env:OMP_PROFILE = ''
+    $env:PI_CONFIG_DIR = ''
+    $projectEnv = Join-Path $root '.env'
+    [IO.File]::WriteAllText($projectEnv, "OMP_PROFILE=other`n")
+    Push-Location $root
+    try {
+      & $command.Source -NoProfile -ExecutionPolicy Bypass -File $installer locate -HostId oh-my-pi *> $null
+      if ($LASTEXITCODE -eq 0) { throw "$engine ignored an unconfirmed project dotenv scope" }
+    } finally {
+      Pop-Location
+      Remove-Item -LiteralPath $projectEnv
+    }
     foreach ($case in @(@('oh-my-pi', 'OMP_PROFILE'), @('minimax-code-cli', 'MINIMAX_PROFILE'))) {
-      [Environment]::SetEnvironmentVariable($case[1], 'named', 'Process')
+      [Environment]::SetEnvironmentVariable($case[1], '../other', 'Process')
       & $command.Source -NoProfile -ExecutionPolicy Bypass -File $installer locate -HostId $case[0] -Target $target *> $null
       if ($LASTEXITCODE -eq 0) { throw "$engine accepted an unsupported host profile with an explicit target" }
       [Environment]::SetEnvironmentVariable($case[1], '', 'Process')

@@ -98,6 +98,16 @@ validate_client_root() {
   fi
 }
 
+validate_omp_config_files() (
+  IFS=:; set -f; count=0
+  for config_file in ${PI_CONFIG_FILES:-}; do
+    [ -n "$config_file" ] || continue
+    count=$((count + 1))
+    [ "$count" -le 4 ] || fail "Oh My Pi supports at most four explicit config overlays"
+    validate_client_root "$config_file"
+  done
+)
+
 target_for_host() {
   host=$1
   [ -n "${HOME:-}" ] || fail "cannot resolve a host Skill directory because HOME is unavailable"
@@ -105,14 +115,35 @@ target_for_host() {
     claude-code|claude-desktop) printf '%s\n' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" ;;
     kimi-code) printf '%s\n' "${KIMI_CODE_HOME:-$HOME/.kimi-code}/skills" ;;
     oh-my-pi)
-      [ -z "${PI_CONFIG_DIR:-}${PI_CONFIG_FILES:-}${OMP_CONFIG_DIR:-}${OMP_CODING_AGENT_DIR:-}" ] || fail "Oh My Pi config overrides are unsupported"
-      case "${OMP_PROFILE:-default}" in default|'') ;; *) fail "Oh My Pi named profiles are unsupported" ;; esac
-      case "${PI_PROFILE:-default}" in default|'') ;; *) fail "Oh My Pi named profiles are unsupported" ;; esac
-      client_root=${PI_CODING_AGENT_DIR:-$HOME/.omp/agent}
+      [ -z "${OMP_CONFIG_DIR:-}${OMP_CODING_AGENT_DIR:-}" ] || fail "Oh My Pi root overrides are unsupported"
+      validate_omp_config_files || exit $?
+      config_name=${PI_CONFIG_DIR:-.omp}
+      case "$config_name" in *[!A-Za-z0-9._-]*|.|..|.*.) fail "Oh My Pi config directory name is invalid" ;; esac
+      config_upper=$(printf '%s' "$config_name" | LC_ALL=C tr '[:lower:]' '[:upper:]')
+      case "$config_upper" in .PI|*.) fail "Oh My Pi config directory name is invalid" ;; esac
+      case "${config_upper%%.*}" in CON|PRN|AUX|NUL|COM[0-9]|LPT[0-9]) fail "Oh My Pi config directory name is reserved" ;; esac
+      profile=$(printf '%s' "${OMP_PROFILE-${PI_PROFILE:-}}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+      config_root=$HOME/$config_name
+      case "$profile" in
+        ''|default)
+          if [ -n "${PI_CODING_AGENT_DIR:-}" ]; then
+            legacy_profile=$(printf '%s' "${PI_PROFILE:-}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            case "$legacy_profile" in ''|default) ;; *) fail "Oh My Pi inherited profile directory is ambiguous" ;; esac
+          fi
+          client_root=${PI_CODING_AGENT_DIR:-$config_root/agent}
+          ;;
+        *)
+          [ "${#profile}" -le 64 ] || fail "Oh My Pi profile name is invalid"
+          case "$profile" in [!a-z0-9]*|*[!a-z0-9._-]*|*.) fail "Oh My Pi profile name is invalid" ;; esac
+          case "${profile%%.*}" in con|prn|aux|nul|com[0-9]|lpt[0-9]) fail "Oh My Pi profile name is reserved" ;; esac
+          config_root=$config_root/profiles/$profile
+          client_root=$config_root/agent
+          ;;
+      esac
       validate_client_root "$client_root"
       normalized_root=$(printf '%s' "$client_root/" | sed -e 's://*:/:g' -e ':dots' -e 's:/[.]/:/:g' -e 't dots' -e 's:/$::')
       [ "$normalized_root" != "$HOME/.pi/agent" ] || fail "Oh My Pi cannot use the Pi default root"
-      for dotenv in "$HOME/.env" "$HOME/.omp/.env" "$HOME/.omp/agent/.env" "$client_root/.env"; do
+      for dotenv in "$HOME/.env" "$config_root/.env" "$config_root/agent/.env" "$client_root/.env" "./.env"; do
         [ ! -e "$dotenv" ] && [ ! -L "$dotenv" ] || fail "Oh My Pi dotenv scope is unconfirmed"
       done
       printf '%s\n' "$client_root/skills"

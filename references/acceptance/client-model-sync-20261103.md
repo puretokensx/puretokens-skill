@@ -69,12 +69,47 @@ failed on the old proof; the final gate verified the completed artifact set.
 
 This deliberately does not claim to enable dedicated APIs in mapped mode.
 
+## Non-mapping support follow-up, 2026-11-03
+
+- Oh My Pi named profiles now align installation, doctor and credential roots.
+  Canonical-empty profile selection, legacy fallback, bounded config names,
+  named-profile isolation and ignored derived agent directories are covered.
+- Explicit `PI_CONFIG_FILES` supports up to four local absolute YAML files, in
+  declared order. Nested partial settings preserve unaffected roles; missing,
+  malformed, duplicate-key and linked layers stop without another connection.
+  Different inline Keys on the same service are selected by exact role only,
+  never compared or borrowed. Profile/overlay fixtures also exercise image,
+  video, audio and Jev routes, refreshed model visibility and 401/403 rejection.
+- Project `.env` existence was previously missed. New Go and Shell regressions
+  failed before the fix and passed afterward; no dotenv contents are read.
+  Windows cases are added but are not Windows execution evidence.
+- The upstream settings migration and deep-merge implementation were reviewed
+  at the pinned revision above; this does not support arbitrary CLI overrides,
+  model-role arrays, compatibility providers or host extensions.
+- MiniMax installed-runtime review confirms request/session selection can
+  override saved defaults; no verified current-session file contract was found.
+  Antigravity remains process-only authentication. Neither is implemented by
+  guessing, reading session databases or adding another authentication path.
+- Follow-up verification: `npm run check` passed with full Go tests and vet,
+  193 Node cases (189 passed, 4 PowerShell-only skips, 0 failures). All six
+  executors were rebuilt and their embedded identities/source hashes checked.
+  Named-profile source installation and repeated synchronization passed in an
+  isolated macOS home; this is not an installed Oh My Pi session.
+- Switch changes are limited to the product contract, changelog and client
+  compatibility matrix. Its current-contract documentation suite passed 34
+  cases, and the three edited documents passed `git diff --check`. Existing
+  unrelated Switch work is retained and is not part of this Skills commit.
+- No real user configuration, credentials or paid endpoint was used. No push,
+  version bump or publication is included. Windows installer execution and
+  actual client loading/API/attachment acceptance remain unverified.
+
 ## Remaining acceptance
 
 Real Skill loading, effective-session confirmation, actual Key group permissions,
-dedicated paid API results and native attachments/playback are pending. Named
-OMP profiles, dotenv/config/project/session/runtime overrides and MiniMax
-non-default sessions are unsupported. Claude Desktop loopback mappings and
+dedicated paid API results and native attachments/playback are pending. OMP
+dotenv/project/session/runtime/extension overrides, undeclared or nonabsolute
+config overlays and MiniMax non-default sessions are unsupported.
+Claude Desktop loopback mappings and
 Antigravity process-only credentials have no supported Skills auth path.
 
 Do not turn catalog visibility, init, fixtures, generated binaries or installation

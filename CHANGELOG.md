@@ -6,6 +6,7 @@
 
 ## Unreleased
 
+- Align Oh My Pi named profiles, validated configuration roots and explicit ordered YAML overlays across installation, doctor and credential resolution. Add profile isolation, no-fallback and dedicated-route fixtures; reject unconfirmed project dotenv selection. Real-host acceptance remains pending.
 - Add source-only Oh My Pi and MiniMax Code CLI saved-default adapters, independent installation entries and strict unsupported-scope handling. Real-host acceptance remains separate.
 - Accept the strict legacy flat DSH credential-reference store without migration or environment fallback.
 - Synchronize Wan 3.0 video aspect ratios with the production catalog; keep the current image and video defaults.

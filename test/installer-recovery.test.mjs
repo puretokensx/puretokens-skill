@@ -23,10 +23,33 @@ test("new CLI hosts locate and install independently", async t => {
   await execFile("sh", [installer, "sync", "--host", host], { env });
   for (const name of names) assert.ok(JSON.parse(await readFile(path.join(root, "skills", name, "skill.json"), "utf8")).supportedClients.includes(host));
  }
- await assert.rejects(execFile("sh", [installer, "locate", "--host", "oh-my-pi"], { env: { ...clean, OMP_PROFILE: "named" } }));
+ for (const [overrides, relative] of [
+  [{ OMP_PROFILE: "named" }, ".omp/profiles/named/agent"],
+  [{ OMP_PROFILE: undefined, PI_PROFILE: "legacy" }, ".omp/profiles/legacy/agent"],
+  [{ OMP_PROFILE: "", PI_PROFILE: "legacy" }, ".omp/agent"],
+  [{ PI_CONFIG_DIR: ".omp-work", OMP_PROFILE: " named " }, ".omp-work/profiles/named/agent"],
+  [{ OMP_PROFILE: "named", PI_CODING_AGENT_DIR: path.join(f.root, "ignored") }, ".omp/profiles/named/agent"],
+  [{ PI_CONFIG_FILES: path.join(f.root, "overlay.yml") }, ".omp/agent"],
+ ]) {
+  const env = { ...clean, ...overrides };
+  const { stdout } = await execFile("sh", [installer, "locate", "--host", "oh-my-pi"], { env });
+  assert.equal(stdout.trim(), path.join(clean.HOME, relative, "skills"));
+ }
+ const namedEnv = { ...clean, PI_CONFIG_DIR: ".omp-work", OMP_PROFILE: "work", PI_CODING_AGENT_DIR: path.join(f.root, "ignored") };
+ const namedSkills = path.join(clean.HOME, ".omp-work/profiles/work/agent/skills");
+ for (let attempt = 0; attempt < 2; attempt++) {
+  await execFile("sh", [installer, "sync", "--host", "oh-my-pi"], { env: namedEnv });
+  for (const name of names) assert.ok(JSON.parse(await readFile(path.join(namedSkills, name, "skill.json"), "utf8")).supportedClients.includes("oh-my-pi"));
+ }
+ await assert.rejects(stat(path.join(f.root, "ignored/skills")), { code: "ENOENT" });
  for (const [host, overrides] of [
-  ["oh-my-pi", { OMP_PROFILE: "named" }],
-  ["oh-my-pi", { PI_CONFIG_FILES: path.join(f.root, "overlay.yml") }],
+  ["oh-my-pi", { OMP_PROFILE: "../other" }],
+  ["oh-my-pi", { OMP_PROFILE: "con.txt" }],
+  ["oh-my-pi", { OMP_PROFILE: "work." }],
+  ["oh-my-pi", { PI_CONFIG_DIR: ".pi" }],
+  ["oh-my-pi", { PI_CONFIG_DIR: "../other" }],
+  ["oh-my-pi", { OMP_PROFILE: "default", PI_PROFILE: "old", PI_CODING_AGENT_DIR: path.join(clean.HOME, ".omp/profiles/old/agent") }],
+  ["oh-my-pi", { PI_CONFIG_FILES: "relative.yml" }],
   ["minimax-code-cli", { MINIMAX_PROFILE: "named" }]
  ]) {
   await assert.rejects(execFile("sh", [installer, "locate", "--host", host, "--target", f.target], { env: { ...clean, ...overrides } }));
@@ -34,6 +57,8 @@ test("new CLI hosts locate and install independently", async t => {
  for (const value of [path.join(clean.HOME, ".pi/agent"), path.join(clean.HOME, ".pi/agent") + "/", path.join(clean.HOME, ".pi") + "/./agent", path.join(clean.HOME, ".pi/agent") + "/.", path.join(clean.HOME, ".pi") + "/././agent/./"]) {
   await assert.rejects(execFile("sh", [installer, "locate", "--host", "oh-my-pi"], { env: { ...clean, PI_CODING_AGENT_DIR: value } }));
  }
+ await writeFile(path.join(f.root, ".env"), "OMP_PROFILE=other\n");
+ await assert.rejects(execFile("sh", [installer, "locate", "--host", "oh-my-pi"], { env: clean, cwd: f.root }));
 });
 test("PowerShell local failures preserve file and init outcomes without exposing private errors", async t => {
  try { await execFile("pwsh", ["-NoProfile", "-Command", "$PSVersionTable.PSVersion.ToString()"]); }

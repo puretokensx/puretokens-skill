@@ -317,14 +317,32 @@ function Get-TargetForHost([string]$RequestedHost) {
       return (Join-Path $env:USERPROFILE ".zcode\skills")
     }
     "oh-my-pi" {
-      foreach ($override in @("PI_CONFIG_DIR", "PI_CONFIG_FILES", "OMP_CONFIG_DIR", "OMP_CODING_AGENT_DIR")) {
+      foreach ($override in @("OMP_CONFIG_DIR", "OMP_CODING_AGENT_DIR")) {
         if ([Environment]::GetEnvironmentVariable($override)) { Fail "Oh My Pi config overrides are unsupported" }
       }
-      foreach ($profile in @($env:OMP_PROFILE, $env:PI_PROFILE)) { if ($profile -and $profile -cne "default") { Fail "Oh My Pi named profiles are unsupported" } }
-      $root = if ($env:PI_CODING_AGENT_DIR) { $env:PI_CODING_AGENT_DIR } else { Join-Path $env:USERPROFILE ".omp/agent" }
+      $configFiles = @(([string]$env:PI_CONFIG_FILES).Split(';') | Where-Object { $_ -ne '' })
+      if ($configFiles.Count -gt 4) { Fail "Oh My Pi supports at most four explicit config overlays" }
+      foreach ($configFile in $configFiles) {
+        if ($configFile -notmatch '^[A-Za-z]:[\\/]' -or ($configFile -split '[\\/]') -contains '..' -or $configFile -match '[\x00-\x1f\x7f]') { Fail "Oh My Pi config overlays must be local absolute files" }
+      }
+      $configName = if ($env:PI_CONFIG_DIR) { $env:PI_CONFIG_DIR } else { '.omp' }
+      if ($configName -cnotmatch '^[A-Za-z0-9._-]+$' -or $configName -in @('.', '..', '.pi') -or $configName.EndsWith('.') -or $configName -match '^(CON|PRN|AUX|NUL|COM[0-9]|LPT[0-9])([.]|$)') { Fail "Oh My Pi config directory name is invalid" }
+      $profile = [Environment]::GetEnvironmentVariable('OMP_PROFILE', 'Process')
+      if ($null -eq $profile) { $profile = $env:PI_PROFILE }
+      $profile = ([string]$profile).Trim()
+      $configRoot = Join-Path $env:USERPROFILE $configName
+      if ($profile -and $profile -cne 'default') {
+        if ($profile -cnotmatch '^[a-z0-9][a-z0-9._-]{0,63}$' -or $profile.EndsWith('.') -or $profile -match '^(CON|PRN|AUX|NUL|COM[0-9]|LPT[0-9])([.]|$)') { Fail "Oh My Pi profile name is invalid" }
+        $configRoot = Join-Path (Join-Path $configRoot 'profiles') $profile
+        $root = Join-Path $configRoot 'agent'
+      } else {
+        $legacyProfile = ([string]$env:PI_PROFILE).Trim()
+        if ($env:PI_CODING_AGENT_DIR -and $legacyProfile -and $legacyProfile -cne 'default') { Fail "Oh My Pi inherited profile directory is ambiguous" }
+        $root = if ($env:PI_CODING_AGENT_DIR) { $env:PI_CODING_AGENT_DIR } else { Join-Path $configRoot 'agent' }
+      }
       if ($root -notmatch '^[A-Za-z]:[\\/]' -or ($root -split '[\\/]') -contains '..' -or $root -match '[\x00-\x1f\x7f]') { Fail "Oh My Pi directory must be local and absolute without parent traversal" }
       if ([IO.Path]::GetFullPath($root).TrimEnd('\', '/') -ieq [IO.Path]::GetFullPath((Join-Path $env:USERPROFILE ".pi/agent")).TrimEnd('\', '/')) { Fail "Oh My Pi cannot use the Pi default root" }
-      foreach ($dotenv in @((Join-Path $env:USERPROFILE ".env"), (Join-Path $env:USERPROFILE ".omp/.env"), (Join-Path $env:USERPROFILE ".omp/agent/.env"), (Join-Path $root ".env"))) {
+      foreach ($dotenv in @((Join-Path $env:USERPROFILE ".env"), (Join-Path $configRoot ".env"), (Join-Path $configRoot "agent/.env"), (Join-Path $root ".env"), (Join-Path (Get-Location).Path ".env"))) {
         if (Test-Path -LiteralPath $dotenv) { Fail "Oh My Pi dotenv scope is unconfirmed" }
       }
       return (Join-Path $root "skills")
