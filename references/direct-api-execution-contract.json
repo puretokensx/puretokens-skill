@@ -25,7 +25,13 @@
       "vscode",
       "octop",
       "oh-my-pi",
-      "minimax-code-cli"
+      "minimax-code-cli",
+      "qwen-code",
+      "codebuddy-code",
+      "copilot-cli",
+      "factory-droid",
+      "mimo-coder",
+      "paseo"
     ],
     "credentialUse": "in_memory_only_for_fixed_puretokens_api_requests",
     "credentialSourceMustMatchFixedPureTokensEndpoint": true,
@@ -78,7 +84,13 @@
     "vscode",
     "octop",
     "oh-my-pi",
-    "minimax-code-cli"
+    "minimax-code-cli",
+    "qwen-code",
+    "codebuddy-code",
+    "copilot-cli",
+    "factory-droid",
+    "mimo-coder",
+    "paseo"
   ],
   "executorCredentialAdapterHosts": [
     "claude-code",
@@ -101,7 +113,13 @@
     "vscode",
     "octop",
     "oh-my-pi",
-    "minimax-code-cli"
+    "minimax-code-cli",
+    "qwen-code",
+    "codebuddy-code",
+    "copilot-cli",
+    "factory-droid",
+    "mimo-coder",
+    "paseo"
   ],
   "requiredExecutorCapabilities": [
     "fixed_full_url_request",
@@ -134,7 +152,17 @@
     {
       "id": "native-media-delivery",
       "request": "executor GET a completed task's fixed full content URL",
-      "expect": "the executor delivers validated native media bytes; URLs, HTML, SVG, task IDs, and status text are not completed delivery"
+      "expect": "the executor delivers validated native media bytes including explicitly reviewed static SVG files; URLs, HTML, invented SVG, task IDs, and status text are not completed delivery"
+    },
+    {
+      "id": "explicit-image-format",
+      "request": "retrieve or recover an existing image task with explicit output_format",
+      "expect": "validate matching MIME and native bytes; preserve GIF bytes and stop mismatches without conversion, overwrite or resubmission; legacy tasks without explicit format remain readable"
+    },
+    {
+      "id": "reviewed-local-mask",
+      "request": "edit with exact GPT 2.6 masked_image_edit, declared HTTPS image_urls and one local PNG mask",
+      "expect": "validate the immutable mask and URL bounds, encode mask only in memory and POST JSON once to /v1/images/edits; no caller data URL, rehosting or changed multipart contract"
     },
     {
       "id": "executor-request-start",
@@ -152,7 +180,9 @@
     "nativeAttachmentMustNeverFallBackToJsonTextSubmission": true,
     "untransportableNativeReferenceMustNeverBeConvertedToTextPrompt": true,
     "currentRequestScopeOnly": true,
-    "fallback": "If the executor cannot receive an explicitly attached file by absolute path through the declared multipart representation, stop before submission, explain the declared transport, and do not invent a URL, file ID, or upload path.",
+    "executorEncodesReviewedLocalRasterInputsInMemory": true,
+    "reviewedLocalMask": "exact_gpt_2_6_masked_image_edit_one_local_png_mask_plus_1_to_10_https_originals_14_MiB_file_20_MiB_json_body",
+    "fallback": "If the executor cannot receive the current explicit attachment through declared multipart or exact-model local_file_data_url JSON, stop before submission. Preserve field roles and original bytes; never invent a URL, rehost or convert media to text.",
     "publicUrlRequiresInstalledOrOnDemandProfilePropertyAndTransport": true
   },
   "supportSummary": {
@@ -171,8 +201,13 @@
     "transportErrorField": "transport_error_code",
     "transportErrorRule": "typed_local_error_for_latest_http_attempt_without_response_only_no_raw_text_no_extra_requests",
     "transportErrorCodes": [
-      "api_request_timeout", "api_request_cancelled", "api_dns_failed",
-      "api_tls_failed", "api_network_permission_denied", "api_connection_failed", "api_transport_failed"
+      "api_request_timeout",
+      "api_request_cancelled",
+      "api_dns_failed",
+      "api_tls_failed",
+      "api_network_permission_denied",
+      "api_connection_failed",
+      "api_transport_failed"
     ],
     "transportErrorBoundary": "No response is not an HTTP status or proof of non-acceptance; preserve unknown submissions and same-task recovery, never retry or relax TLS/sandbox protection automatically. Request timing remains invocation-local timings_ms, outside support and task records."
   },
@@ -247,9 +282,15 @@
     "pngJpegValidation": "bounded_standard_decoder_checks_pixel_payload_before_download_success_and_proof_reuse",
     "maxPngJpegDecodedPixels": 33554432,
     "webpValidation": "complete_container_and_nonempty_frame_payload_checks_not_full_codec_decode",
-    "fallback": "If the executor cannot hand off validated native media bytes, report same-task delivery as unavailable. Do not substitute a URL, HTML, SVG, status text, or a re-submitted task.",
+    "explicitImageFormat": "match_original_output_format_on_download_proof_reuse_resume_and_delivery_never_infer_from_current_defaults",
+    "gifDelivery": "preserve_original_gif_bytes_and_extension_no_conversion_or_static_substitute_native_attachment_does_not_prove_animation_playback",
+    "formatMismatchRecovery": "media_output_format_mismatch_await_user_explicit_same_index_new_directory_preserve_old_files_no_post",
+    "separateTailFrame": "explicit_reviewed_vega_pro_return_last_frame_video_index_0_image_index_1_requested_count_stays_1_verify_original_task_manifest_fixed_content_path_independent_proofs_and_handoffs",
+    "svgDelivery": "exact_gpt_2_6_explicit_svg_only_complete_200_no_content_range_8_mib_bounded_static_xml_css_original_bytes_native_file_attachment_no_scripts_external_resources_or_conversion",
+    "fallback": "If the executor cannot hand off validated native media bytes, report same-task delivery as unavailable. Do not substitute a URL, HTML, invented SVG, status text, or a re-submitted task.",
     "neverAutomaticallyPrefetchOrRefetchDeliveredContent": true,
-    "explicitRedelivery": "user_requested_same_task_index_verify_local_first_otherwise_content_get_never_post_preserve_historical_delivery"
+    "explicitRedelivery": "user_requested_same_task_index_verify_local_first_otherwise_content_get_never_post_preserve_historical_delivery",
+    "continuationAuthorization": "next_step_never_expands_current_user_authorized_indexes_stop_after_requested_subset"
   },
   "balance": {
     "url": "https://console.puretokensx.com/api/product/console/api-keys/usage",
@@ -274,7 +315,7 @@
     "modelDeclarationRefresh": "Explicit exact-model query then user-requested compatible stable update; no automatic profile mutation, preflight or media resubmission.",
     "doctor": "Explicit diagnostics: local managed install checks and existing read-only init checks; no paid task.",
     "filteredModels": "One explicit authenticated catalog GET, filtered by declared kind/model/operation/parameters.",
-    "taskRecord": "Explicit absolute user/workspace JSON with task identity, validated safe continuation metadata, and per-index download SHA-256/byte count/media type; never credentials, prompt, reference URLs or media bytes.",
+    "taskRecord": "Explicit absolute user/workspace JSON with task identity, validated safe continuation metadata, and per-index download SHA-256/byte count/media type; never credentials, prompt, reference URLs or media bytes. Mapped Claude requires a record with its random connection_id; a changed binding stops remote recovery without resubmission, while verified local handoff remains available.",
     "resume": "Reads only the recorded task; never discovers tasks or submits replacements.",
     "delivered": "Local progress acknowledgment only after actual host handoff."
   },
@@ -436,5 +477,23 @@
     "configurationChange": "user_preserves_existing_groups_selects_allowed_group_and_verifies_applies_in_switch",
     "ordinaryGenerationPreflight": false,
     "automaticTaskSubmission": false
+  },
+  "asynchronousAudio": {
+    "kind": "audio_task",
+    "models": [
+      "gemini-3.8-flash-tts",
+      "lyria-3.5",
+      "lyria-3-pro-preview"
+    ],
+    "submitUrl": "https://api.puretokensx.com/v1/tasks/product-yutoux",
+    "statusUrlTemplate": "https://api.puretokensx.com/v1/tasks/{task_id}",
+    "contentUrlTemplate": "https://api.puretokensx.com/v1/tasks/{task_id}/artifacts/audio/content",
+    "asynchronous": true,
+    "neverAutomaticallyResubmits": true,
+    "neverUsesSynchronousAudio": true,
+    "maxOutputs": 1,
+    "maxOutputBytes": 33554432,
+    "statusPlatform": "product-yutoux",
+    "deliveredOnlyAfterHostHandoff": true
   }
 }

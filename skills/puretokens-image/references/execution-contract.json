@@ -134,7 +134,8 @@
     ]
   },
   "parameterValidation": {
-    "defaultModel": "gpt-image-2.5-flare",
+    "localAssemblyCorrection": "once_only_correct_request_with_validation_not_submitted_media_request_invalid_no_task_identity_preserve_user_intent_otherwise_ask",
+    "defaultModel": "gpt-image-2.6",
     "normalSubmissionUsesSelectedProfileAndIndexWhenNeeded": true,
     "exactModelCoreSubmissionDoesNotRequireCatalogPreflight": true,
     "onDemandLiveCatalogRead": "only_for_explicit_discovery_installed_profile_gap_or_post_rejection_diagnosis",

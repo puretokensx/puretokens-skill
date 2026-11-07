@@ -114,6 +114,7 @@
     "explicitRedelivery": "user_requested_same_task_index_verify_local_first_otherwise_content_get_never_post_preserve_historical_delivery"
   },
   "parameterValidation": {
+    "localAssemblyCorrection": "once_only_correct_request_with_validation_not_submitted_media_request_invalid_no_task_identity_preserve_user_intent_otherwise_ask",
     "defaultModel": "MiniMax-H3",
     "normalSubmissionUsesSelectedProfileAndIndexWhenNeeded": true,
     "exactModelCoreSubmissionDoesNotRequireCatalogPreflight": true,

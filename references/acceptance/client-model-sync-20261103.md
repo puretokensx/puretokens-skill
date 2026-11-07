@@ -49,6 +49,10 @@ for these source changes.
 
 ## Mapping simplification, 2026-11-03
 
+Historical intermediate decision. The no-exchange/no-proxy boundary remains;
+the no-connection-file and unsupported-mode conclusion was superseded by the
+approved same-host Apply implementation recorded below.
+
 The uncommitted mapped-credential exchange experiment was withdrawn in both
 repositories. There is no credential endpoint, encryption protocol, new Key file
 or dedicated-API proxy. Existing chat mapping and the prior client/model sync
@@ -139,14 +143,51 @@ This deliberately does not claim to enable dedicated APIs in mapped mode.
   afterward, followed by a passing final full Go test/vet run. Switch's
   existing current-contract documentation suite passed 34 tests.
 
+## Same-host mapped Skills connection, 2026-11-03
+
+The existing Switch Apply action now enrolls the same Claude Desktop connection
+for Skills, without another consent dialog or another client's credentials.
+See [the shared connection contract](../claude-mapped-connection.md) and Switch
+ADR-0008. This is unreleased source support, not an installed 0.19.8 feature.
+No real client configuration was read or written for these checks.
+
+- Switch adapter: 19 tests passed, including strict record ownership, duplicate
+  and unknown fields, dual-platform four-file plans, direct-mode deactivation,
+  restore and stable connection identity across same-Key reapplication.
+- Switch native configuration: 52 tests passed; shared transaction crate:
+  20 passed. A failed fourth-file write restores both existing and first-time
+  configurations without an unfinished journal. Rehydration does not enroll
+  legacy installations; logout retains applied client credentials.
+- Frontend model/guide/summary: 56 tests passed; current-contract documentation:
+  35 passed. Existing chat mapper: 7 passed. TypeScript, Rust formatting, adapter
+  Clippy and repository checks passed. Final schema/guidance assertions passed
+  23 tests, including allowed task bindings and excluded support-export IDs.
+- Fresh synthetic Switch writer output for macOS and Windows was exported into
+  an isolated temporary directory and accepted by the actual Go reader. This
+  proves serialized format interoperability, not a Windows runtime result.
+- The six-capability dispatcher fixture verifies current mapped credentials,
+  present/absent/refreshed model lists, exact model IDs/routes, 401/403 rejection
+  and one submission. Missing async task records stop before networking.
+- Changed connection identities block remote status/wait/content/resume and
+  redelivery without modifying task identity or resubmitting. Verified local
+  delivery remains available. Support exports omit connection identities.
+- Final full `npm run check`: Go tests and vet passed; Node 195 cases,
+  191 passed, 4 PowerShell-only skips, 0 failures. Six native artifacts match
+  the source/build proof. The first full attempt exposed a missing new contract
+  in the isolated guidance fixture; it was corrected before the passing rerun.
+- Windows ACL tests cross-compiled, but were not executed on Windows. No real
+  client loading, paid calls, native attachment handoff, push or publication
+  occurred. The two projects must release compatible versions before uptake.
+
 ## Remaining acceptance
 
 Real Skill loading, effective-session confirmation, actual Key group permissions,
 dedicated paid API results and native attachments/playback are pending. OMP
 dotenv/project/session/runtime/extension overrides, undeclared or nonabsolute
 config overlays and MiniMax non-default sessions are unsupported.
-Claude Desktop loopback mappings and
-Antigravity process-only credentials have no supported Skills auth path.
+Claude Desktop mapping now has the source/fixture path above; Windows ACL and
+actual session/API/delivery acceptance remain pending. Antigravity process-only
+credentials still have no supported Skills auth path.
 
 Do not turn catalog visibility, init, fixtures, generated binaries or installation
 success into a paid-call or delivery claim. Paid acceptance needs a separate

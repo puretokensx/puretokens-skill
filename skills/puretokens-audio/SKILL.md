@@ -18,6 +18,7 @@ description: 当前宿主使用 Pure Tokens 连接，用户要求文字配音、
 | ElevenLabs 音乐 | `audio`；`operation=music_sync` | 同步；一次请求最多90秒 | 仅已有文件 `audio-verify` 后重新附加；无任务查询 |
 | 指定音色变声 | `audio`；`operation=voice_change` | 同步；一次请求最多90秒 | 仅已有文件 `audio-verify` 后重新附加；无任务查询 |
 | StepFun 纯音乐／歌曲 | `submit`；`kind=music` | 异步；先回执，再独立等待／下载 | 原任务 `resume`；仅实际附件交付后 `delivered` |
+| Gemini 配音／Lyria 音乐 | `submit`；`kind=audio_task` | 异步；先回执，再独立等待／下载 | 原任务 `resume`；仅实际附件交付后 `delivered` |
 
 文件路径／下载回执不等于交付；附件须实际附加，文本须展示校验后的结果。未知提交不证明未处理或未扣费，均不自动重发。
 <!-- /generated:operations -->
@@ -35,11 +36,16 @@ description: 当前宿主使用 Pure Tokens 连接，用户要求文字配音、
 
 ## 音乐路径
 
+指定 `gemini-3.8-flash-tts`、`lyria-3.5` 或 `lyria-3-pro-preview` 时，
+先读对应 profile 和 [Gemini／Lyria 异步指南](references/async-audio-usage.md)，
+使用 `kind=audio_task`，不是下方同步 `audio`，也不是 StepFun `kind=music`。
+Gemini 配音交付 WAV，Lyria 音乐交付 MP3；原任务续接和附件交付沿用同一任务记录。
+
 默认 StepFun 音乐先读 [音乐指南](references/music-usage.md) 和对应模型 profile，使用
 `submit/status/wait/resume/content/delivered` 与明确音乐任务记录；提交一次后
 立即回执，再按原编号续接。`music_v2_5` 使用同步 `audio` 的 `music_sync`；
 ElevenLabs 配音、音效、转写与变声按 [专用指南](references/elevenlabs-usage.md)。
-两种音乐路径不可互换；不得把同步音乐送到异步提交接口。
+这些路径不可互换；不得把同步音乐送到异步提交接口。
 用户只要求写／润色歌词时不生成；纯音乐与人声有歧义才澄清。
 当前能力需要配套网关 API Key 音乐接口已部署；404等失败停止，不改用网页接口。
 

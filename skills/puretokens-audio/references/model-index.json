@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-10-21",
+  "reviewedAt": "2026-11-07",
   "scope": "reviewed_contract_not_live_availability",
   "defaults": {
     "speech": "stepaudio-2.5-tts",
@@ -52,6 +52,7 @@
     {
       "id": "stepaudio-3-music-preview",
       "operation": "music",
+      "executor_kind": "music",
       "profile": "profiles/stepaudio-3-music-preview.json"
     },
     {
@@ -87,17 +88,38 @@
     {
       "id": "eleven_text_to_sound_v2",
       "operation": "generate",
+      "executor_kind": "audio",
       "profile": "profiles/eleven_text_to_sound_v2.json"
     },
     {
       "id": "music_v2_5",
       "operation": "music_sync",
+      "executor_kind": "audio",
       "profile": "profiles/music_v2_5.json"
     },
     {
       "id": "eleven_multilingual_sts_v2",
       "operation": "voice_change",
+      "executor_kind": "audio",
       "profile": "profiles/eleven_multilingual_sts_v2.json"
+    },
+    {
+      "id": "gemini-3.8-flash-tts",
+      "operation": "speech",
+      "executor_kind": "audio_task",
+      "profile": "profiles/gemini-3.8-flash-tts.json"
+    },
+    {
+      "id": "lyria-3.5",
+      "operation": "music",
+      "executor_kind": "audio_task",
+      "profile": "profiles/lyria-3.5.json"
+    },
+    {
+      "id": "lyria-3-pro-preview",
+      "operation": "music",
+      "executor_kind": "audio_task",
+      "profile": "profiles/lyria-3-pro-preview.json"
     }
   ]
 }

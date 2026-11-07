@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-10-21",
+  "reviewedAt": "2026-11-07",
   "sources": [
     "https://platform.stepfun.com/docs/zh/guides/developer/tts",
     "https://platform.stepfun.com/docs/zh/api-reference/audio/generate",
@@ -10,6 +10,8 @@
   ],
   "models": {
     "stepaudio-2.5-tts": {
+      "volume_min": 0.1,
+      "volume_max": 2,
       "model": "stepaudio-2.5-tts",
       "operation": "speech",
       "path": "/v1/audio/speech",
@@ -157,6 +159,11 @@
       "supports_instruction": false
     },
     "stepaudio-2.5-asr": {
+      "supports_hotwords": true,
+      "transcript_formats": [
+        "json",
+        "text"
+      ],
       "model": "stepaudio-2.5-asr",
       "operation": "transcribe",
       "path": "/v1/audio/transcriptions",
@@ -171,6 +178,11 @@
       "gateway_aggregates_sse": false
     },
     "step-asr": {
+      "supports_hotwords": true,
+      "transcript_formats": [
+        "json",
+        "text"
+      ],
       "model": "step-asr",
       "operation": "transcribe",
       "path": "/v1/audio/transcriptions",
@@ -393,6 +405,60 @@
       ],
       "max_input_bytes": 8388608,
       "gateway_max_input_seconds": 300
+    },
+    "gemini-3.8-flash-tts": {
+      "model": "gemini-3.8-flash-tts",
+      "operation": "speech",
+      "executor_kind": "audio_task",
+      "path": "/v1/tasks/product-yutoux",
+      "status_path": "/v1/tasks/{task_id}",
+      "content_path": "/v1/tasks/{task_id}/artifacts/audio/content",
+      "content_type": "application/json",
+      "max_prompt_characters": 8000,
+      "formats": [
+        "wav"
+      ],
+      "max_output_bytes": 33554432,
+      "temperature_min": 0,
+      "temperature_max": 2,
+      "default_voice": "Kore",
+      "max_voice_characters": 120,
+      "max_instruction_characters": 4000,
+      "speakers_count": 2
+    },
+    "lyria-3.5": {
+      "model": "lyria-3.5",
+      "operation": "music",
+      "executor_kind": "audio_task",
+      "path": "/v1/tasks/product-yutoux",
+      "status_path": "/v1/tasks/{task_id}",
+      "content_path": "/v1/tasks/{task_id}/artifacts/audio/content",
+      "content_type": "application/json",
+      "max_prompt_characters": 8000,
+      "formats": [
+        "mp3"
+      ],
+      "max_output_bytes": 33554432,
+      "temperature_min": 0,
+      "temperature_max": 2,
+      "max_lyrics_characters": 8000
+    },
+    "lyria-3-pro-preview": {
+      "model": "lyria-3-pro-preview",
+      "operation": "music",
+      "executor_kind": "audio_task",
+      "path": "/v1/tasks/product-yutoux",
+      "status_path": "/v1/tasks/{task_id}",
+      "content_path": "/v1/tasks/{task_id}/artifacts/audio/content",
+      "content_type": "application/json",
+      "max_prompt_characters": 8000,
+      "formats": [
+        "mp3"
+      ],
+      "max_output_bytes": 33554432,
+      "temperature_min": 0,
+      "temperature_max": 2,
+      "max_lyrics_characters": 8000
     }
   }
 }

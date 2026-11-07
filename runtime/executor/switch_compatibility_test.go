@@ -154,6 +154,46 @@ func TestDSHDesktopDedicatedPermissionsAndFreshCatalog(t *testing.T) {
 	}
 }
 
+func TestClaudeMappedDedicatedPermissionsAndFreshCatalog(t *testing.T) {
+	if runtime.GOOS != "darwin" && runtime.GOOS != "windows" {
+		t.Skip("local Desktop paths only")
+	}
+	home := clientFixtureRoot(t)
+	t.Setenv("HOME", home)
+	t.Setenv("USERPROFILE", home)
+	t.Setenv("APPDATA", filepath.Join(home, "roaming"))
+	root, err := currentDesktopRoot("Claude-3p")
+	if err != nil {
+		t.Fatal(err)
+	}
+	source, _ := mappedSkillsFixture(t)
+	for _, name := range []string{"claude_desktop_config.json", "configLibrary/_meta.json", "configLibrary/" + fixtureDesktopProfile + ".json", claudeSkillsConnectionFile} {
+		data, err := os.ReadFile(filepath.Join(source, name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		desktopFixtureFile(t, root, name, string(data))
+	}
+	previous := http.DefaultTransport
+	t.Cleanup(func() { http.DefaultTransport = previous })
+	calls := 0
+	http.DefaultTransport = evaluationTransport(func(*http.Request) (*http.Response, error) {
+		calls++
+		return evaluationHTTP(500, `{}`), nil
+	})
+	for _, command := range []string{"submit", "status", "wait", "content"} {
+		input := `{"kind":"image","operation":"generate","model":"gpt-image-2","prompt":"synthetic","requested_count":1}`
+		if command != "submit" {
+			input = `{"kind":"image","operation":"continue","task_id":"image_fixture"}`
+		}
+		var out bytes.Buffer
+		if err := run([]string{command, "--host", "claude-desktop"}, strings.NewReader(input), &out); err == nil || calls != 0 || !strings.Contains(out.String(), "explicit task record") {
+			t.Fatalf("%s without a mapped task record did not stop before networking", command)
+		}
+	}
+	exerciseDedicatedHostPermissions(t, "claude-desktop", home, "synthetic-mapped-skills-key")
+}
+
 func TestTraeDedicatedPermissionsAndFreshCatalog(t *testing.T) {
 	if runtime.GOOS != "darwin" && runtime.GOOS != "windows" {
 		t.Skip("TRAE local desktop adapter supports macOS and Windows")
@@ -275,7 +315,11 @@ func exerciseDedicatedHostPermissions(t *testing.T, host, home, token string) {
 				body, _ := json.Marshal(request)
 				file := clientFixtureFile(t, home, "request.json", string(body))
 				var out bytes.Buffer
-				err := run([]string{spec.command, "--host", host, "--request", file}, strings.NewReader(""), &out)
+				args := []string{spec.command, "--host", host, "--request", file}
+				if host == "claude-desktop" && spec.command == "submit" {
+					args = append(args, "--record", filepath.Join(t.TempDir(), "task.json"))
+				}
+				err := run(args, strings.NewReader(""), &out)
 				if (err == nil) != (status == 200) || !reflect.DeepEqual(calls, []string{"POST " + spec.route}) {
 					t.Fatalf("dedicated authorization or submit-once boundary failed: %s status=%d calls=%v", spec.name, status, calls)
 				}

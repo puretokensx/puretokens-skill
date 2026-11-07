@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
   "schemaVersion": 1,
   "capability": "video",
-  "catalogUpdatedAt": "2026-11-03",
-  "catalogCapturedAt": "2026-11-03T02:14:24.310Z",
+  "catalogUpdatedAt": "2026-11-07",
+  "catalogCapturedAt": "2026-11-07T09:20:36.335Z",
   "id": "viduq3-pro",
   "parameterSchema": {
     "properties": {
@@ -222,11 +222,32 @@
         "last_frame_image": [
           "first_frame_image"
         ]
+      },
+      "parameter_modes": {
+        "voice_id": [
+          "image_to_video"
+        ],
+        "watermark": [
+          "image_to_video"
+        ],
+        "wm_position": [
+          "image_to_video"
+        ],
+        "wm_url": [
+          "image_to_video"
+        ],
+        "meta_data": [
+          "image_to_video"
+        ],
+        "is_rec": [
+          "image_to_video",
+          "last_frame_video"
+        ]
       }
     }
   },
   "sourceReview": {
-    "reviewedAt": "2026-10-21",
+    "reviewedAt": "2026-11-07",
     "scope": "reviewed_source_not_live_availability",
     "source": "PureTokenPlus_web/config/model-metadata-official.json"
   }

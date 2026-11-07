@@ -83,6 +83,21 @@ test("actual executor JSON and executable documentation conform to their schemas
   assert.deepEqual(examples.filter(entry => /^docs-(image|video)-\d+$/.test(entry.name)).map(entry => entry.name).sort(), expectedNames.sort());
 });
 
+test("media local correction cannot authorize existing tasks or expose user values", () => {
+  const receipt = example("media-local-validation");
+  assert.equal(receipt.next_step, "correct_request");
+  assert.deepEqual(receipt.validation, {field: "quality", reason: "enum", allowed: ["auto", "low", "medium", "high"]});
+  assert.equal(receipt.support.validation, undefined);
+  assert.equal(receipt.support.api_request_attempted, false);
+  assert.equal(receipt.support.local_error_code, "media_request_invalid");
+  for (const extra of [{task_id: "existing"}, {submission_outcome: "unknown"}, {reconciliation_required: true}, {next_step: "wait"}, {operation: "continue"}, {kind: "music"}]) {
+    rejects("executor-receipt.schema.json", {...receipt, ...extra});
+  }
+  for (const extra of [{field: "private-field"}, {value: "private-value"}, {allowed: ["private-value"]}]) {
+    rejects("executor-receipt.schema.json", {...receipt, validation: {...receipt.validation, ...extra}});
+  }
+});
+
 test("media receipt schemas reject lost task context and unsafe metadata", () => {
   const receipt = example("record-0-submit-receipt");
   assert.equal(receipt.retry_not_before, "2026-09-06T00:00:05Z");
@@ -240,6 +255,8 @@ test("support summaries reject private data and invented network evidence", () =
   assert.equal(summary.api_request_attempted, false);
   assert.equal(summary.command, "status");
   assert.equal(summary.local_error_code, "host_credential_adapter_unavailable");
+  assert.deepEqual(validators.get("support-summary.schema.json")({ ...summary, local_error_code: "task_connection_changed" }), []);
+  rejects("support-summary.schema.json", { ...summary, connection_id: "11111111-1111-4111-8111-111111111111" });
   for (const addition of [
     { prompt: "private" }, { raw_response: "private" }, { parameters: { image: "private" } },
     { base_url: "https://private.example.test" }, { downloaded_paths: ["/private/output"] },
@@ -282,6 +299,8 @@ test("task records reject credentials, raw inputs and invalid progress", () => {
   const record = example("record-5-delivered-artifact");
   assert.deepEqual(record.delivered, [0, 1]);
   assert.equal(record.original_operation, "generate");
+  assert.deepEqual(validators.get("task-record.schema.json")({ ...record, connection_id: "11111111-1111-4111-8111-111111111111" }), []);
+  rejects("task-record.schema.json", { ...record, connection_id: "not-a-connection-id" });
   for (const addition of [
     { prompt: "private prompt" }, { api_key: "synthetic-private-value" }, { reference_url: "https://reference.example.test" },
     { parameters: { generate_audio: "true" } }, { parameters: { n: 0 } },

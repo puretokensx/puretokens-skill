@@ -48,6 +48,18 @@
     "voice_change": {
       "method": "POST",
       "url": "https://api.puretokensx.com/v1/audio/generate"
+    },
+    "asyncAudioSubmit": {
+      "method": "POST",
+      "url": "https://api.puretokensx.com/v1/tasks/product-yutoux"
+    },
+    "asyncAudioStatus": {
+      "method": "GET",
+      "urlTemplate": "https://api.puretokensx.com/v1/tasks/{task_id}"
+    },
+    "asyncAudioContent": {
+      "method": "GET",
+      "urlTemplate": "https://api.puretokensx.com/v1/tasks/{task_id}/artifacts/audio/content"
     }
   },
   "result": {
@@ -96,6 +108,24 @@
       ],
       "instrumentalRequired": true,
       "lyricsInInstruction": true
+    },
+    "asynchronousAudio": {
+      "kind": "audio_task",
+      "models": [
+        "gemini-3.8-flash-tts",
+        "lyria-3.5",
+        "lyria-3-pro-preview"
+      ],
+      "submitUrl": "https://api.puretokensx.com/v1/tasks/product-yutoux",
+      "statusUrlTemplate": "https://api.puretokensx.com/v1/tasks/{task_id}",
+      "contentUrlTemplate": "https://api.puretokensx.com/v1/tasks/{task_id}/artifacts/audio/content",
+      "asynchronous": true,
+      "neverAutomaticallyResubmits": true,
+      "neverUsesSynchronousAudio": true,
+      "maxOutputs": 1,
+      "maxOutputBytes": 33554432,
+      "statusPlatform": "product-yutoux",
+      "deliveredOnlyAfterHostHandoff": true
     }
   }
 }

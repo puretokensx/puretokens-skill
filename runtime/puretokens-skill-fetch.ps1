@@ -6,7 +6,7 @@ param(
   [ValidateSet("detect-host", "check-update", "install", "update", "repair")]
   [string]$Command,
   [Alias("Host")]
-  [ValidateSet("claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop", "oh-my-pi", "minimax-code-cli")]
+  [ValidateSet("claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop", "oh-my-pi", "minimax-code-cli", "qwen-code", "codebuddy-code", "copilot-cli", "factory-droid", "mimo-coder", "paseo")]
   [string]$HostId,
   [string]$Target
 )
@@ -34,7 +34,9 @@ function Get-CurrentHost {
         $process.Name -isnot [string] -or [string]::IsNullOrWhiteSpace($process.Name) -or
         [string]$process.ParentProcessId -notmatch '^\d+$') { break }
     switch ($process.Name.ToLowerInvariant()) {
-      "codex.exe" { return "codex" }
+      "codex.exe" { if ($env:PASEO_HOME) { $candidatePid = 0 } else { return "codex" } }
+      "mimo.exe" { return "mimo-coder" }
+      "droid.exe" { return "factory-droid" }
       "opencode.exe" { return "opencode" }
       "grok.exe" { return "grok-build" }
       "qodercli.exe" { return "qoder" }
@@ -45,7 +47,7 @@ function Get-CurrentHost {
     if ($candidatePid -eq 0 -or $process.ParentProcessId -le 1 -or $process.ParentProcessId -eq $candidatePid) { break }
     $candidatePid = $process.ParentProcessId
   }
-  Fail "stage=detect_host error_code=current_host_unconfirmed installation_status=not_started installed_files_changed=false next_step=confirm_current_client; confirm this client's host ID and run once with -Host <id>. Supported IDs: claude-code, codex, workbuddy, gemini-cli, grok-build, opencode, trae, claude-desktop, dsh-desktop, deepseek-harness, minimax-code, zcode, kimi-code, qoder, pi, hermes, evox, vscode, octop, oh-my-pi, minimax-code-cli. No network request or installation write was made."
+  Fail "stage=detect_host error_code=current_host_unconfirmed installation_status=not_started installed_files_changed=false next_step=confirm_current_client; confirm this client's host ID and run once with -Host <id>. Supported IDs: claude-code, codex, workbuddy, gemini-cli, grok-build, opencode, trae, claude-desktop, dsh-desktop, deepseek-harness, minimax-code, zcode, kimi-code, qoder, pi, hermes, evox, vscode, octop, oh-my-pi, minimax-code-cli, qwen-code, codebuddy-code, copilot-cli, factory-droid, mimo-coder, paseo. No network request or installation write was made."
 }
 function Get-OfficialFile([string]$Url, [string]$Destination, [string]$Stage) {
   $status = 0
@@ -53,8 +55,11 @@ function Get-OfficialFile([string]$Url, [string]$Destination, [string]$Stage) {
   $completed = $false
   $networkAccessDenied = $false
   $securityContextUnavailable = $false
+  $timeoutSeconds = if ($Stage -eq 'download_platform_archive') { 180 } else { 45 }
+  Write-Information "Pure Tokens download progress: stage=$Stage status=started" -InformationAction Continue
   try {
-    $result = Invoke-WebRequest -UseBasicParsing -Uri $Url -OutFile $Destination -PassThru -TimeoutSec 180 -Headers @{ Accept = "application/vnd.github+json" } -UserAgent "puretokens-skill-installer"
+    $ProgressPreference = 'SilentlyContinue'
+    $result = Invoke-WebRequest -UseBasicParsing -Uri $Url -OutFile $Destination -PassThru -TimeoutSec $timeoutSeconds -Headers @{ Accept = "application/vnd.github+json" } -UserAgent "puretokens-skill-installer"
     $status = [int]$result.StatusCode
     $category = "http_error"
     $completed = $true

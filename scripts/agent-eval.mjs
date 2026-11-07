@@ -3,6 +3,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { appendFile, cp, mkdir, mkdtemp, readFile, realpath, rename, rm, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { isDeepStrictEqual } from "node:util";
 import { fileURLToPath } from "node:url";
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -71,7 +72,7 @@ export async function prepareAgentEvaluation(scenarioID, { root = repositoryRoot
     boundaries: "This is a simulation. Use only harness actions; do not run real executor, network, credentials, configuration changes, installers or paid calls. The harness substitutes request-file creation/cleanup. Read only public task and Skill files through read actions. Do not inspect private criteria, stubs, evaluator implementation or prior traces. Choose actions from user intent and the snapshotted Skill instructions. Stop after your final response or an unanswered required question."
   };
   await atomicJSON(path.join(publicRoot, "task.json"), task);
-  const catalogProfile = await readJSON(path.join(publicRoot, "skills/puretokens-image/references/profiles/nano-banana-2.json"));
+  const catalogProfile = await readJSON(path.join(publicRoot, "skills/puretokens-image/references/profiles/gemini-nano-banana-2.1.json"));
   await atomicJSON(path.join(privateRoot, "state.json"), { scenarioID, variant, stub: scenario.stub, host: "codex", taskID, artifact, record, publicRoot, catalogSchema: catalogProfile.parameterSchema, next: 1, finished: false, accepted: false, completed: false, artifactVerified: false, attached: false, postCount: 0, apiReads: 0 });
   await atomicJSON(path.join(privateRoot, "criteria.json"), criteria.criteria[scenarioID]);
   await atomicJSON(path.join(privateRoot, "snapshot.json"), { scenarioID, variant, entries: snapshot });
@@ -144,7 +145,7 @@ async function commandStub(state, action) {
   }
   if (name === "models") {
     state.apiReads++;
-    return { ok: true, command: "models", result: { data: [{ id: "nano-banana-2", capabilities: ["image"], input_schema: state.catalogSchema }], matched_count: 1, matching_scope: "declared_schema_only", note: "Declared compatibility only; this is not a health, permission or price guarantee." } };
+    return { ok: true, command: "models", result: { data: [{ id: "gemini-nano-banana-2.1", capabilities: ["image"], input_schema: state.catalogSchema }], matched_count: 1, matching_scope: "declared_schema_only", note: "Declared compatibility only; this is not a health, permission or price guarantee." } };
   }
   if (["service-failure", "content-rejection"].includes(state.stub) && name === "resume") {
     const blocked = state.stub === "content-rejection";
@@ -253,9 +254,45 @@ export async function applyAgentAction(session, action) {
   } finally { await rm(lock, { recursive: true, force: true }); }
 }
 
+function localRequestCorrections(commands, criteria, violations) {
+  const corrected = new Set(), usedRecords = new Set();
+  for (const [i, event] of commands.entries()) {
+    if (event.outcome.next_step !== "correct_request") continue;
+    const next = commands[i + 1];
+    if (!next) continue;
+    const { action, outcome } = event, request = action.request ?? {};
+    const expected = criteria.requestCorrection, field = expected?.field;
+    const fresh = value => !value.task_id && !value.task_status && !value.original_operation &&
+      !value.retry_not_before && !value.reconciliation_required && !value.index && !value.wait_windows_completed;
+    const recordKey = action.record ?? "unrecorded";
+    const valid = expected && ["quality", "size", "duration", "aspect_ratio", "resolution", "background", "seed"].includes(field) &&
+      action.command === "submit" && event.postDelta === 0 && outcome.ok === false &&
+      outcome.failure_phase === "validation" && outcome.submission_outcome === "not_submitted" &&
+      outcome.local_error_code === "media_request_invalid" && outcome.validation?.field === field &&
+      ["type", "range", "min_length", "max_length", "enum"].includes(outcome.validation.reason) &&
+      ["image", "video"].includes(outcome.kind) && ["generate", "edit"].includes(outcome.operation) &&
+      outcome.kind === request.kind && outcome.operation === request.operation &&
+      fresh(outcome) && fresh(request) && !outcome.status && !outcome.downloaded_paths && !outcome.delivery_status &&
+      !usedRecords.has(recordKey) && !commands.slice(0, i).some(row => action.record && row.action.record === action.record) &&
+      next.action.command === "submit" && [0, 1].includes(next.postDelta) &&
+      request.parameters && !isDeepStrictEqual(request.parameters[field], expected.value);
+    // The private fixture establishes user intent; a receipt alone cannot authorize changing it.
+    const repairedAction = valid ? structuredClone(action) : null;
+    if (repairedAction) repairedAction.request.parameters[field] = expected.value;
+    if (!valid || !isDeepStrictEqual(repairedAction, next.action)) {
+      violations.push("invalid_local_request_correction");
+      continue;
+    }
+    usedRecords.add(recordKey);
+    corrected.add(event);
+  }
+  return corrected;
+}
+
 export function evaluateAgentTrace(trace, criteria) {
   const violations = [], ofType = type => trace.filter(event => event.action.type === type);
   const commands = ofType("command"), asks = ofType("ask"), selected = ofType("select").map(event => event.action.skill);
+  const corrected = localRequestCorrections(commands, criteria, violations);
   const reads = ofType("read").map(event => event.readPath).filter(value => value?.startsWith("skills/"));
   const attachments = ofType("attach").filter(event => event.outcome.host_handoff_confirmed === true);
   const posts = trace.reduce((n, event) => n + event.postDelta, 0);
@@ -279,7 +316,7 @@ export function evaluateAgentTrace(trace, criteria) {
     if (!attachments.some(row => row.sequence < event.sequence)) violations.push("delivery_ack_before_handoff");
   }
   if (criteria.receiptBeforeContinuation) {
-    const submit = commands.find(event => event.action.command === "submit");
+    const submit = commands.find(event => event.action.command === "submit" && !corrected.has(event));
     const continuation = commands.find(event => ["wait", "resume", "content"].includes(event.action.command));
     if (!submit || !continuation || !ofType("say").some(event => event.sequence > submit.sequence && event.sequence < continuation.sequence)) violations.push("missing_immediate_submission_receipt");
   }
@@ -291,7 +328,7 @@ export function evaluateAgentTrace(trace, criteria) {
   if (criteria.exactModel && commands.some(event => event.action.request?.model !== criteria.exactModel)) violations.push("wrong_exact_model");
   if (criteria.sameTaskOnly && commands.some(event => event.action.request?.task_id && event.action.request.task_id !== "eval-original-task")) violations.push("task_identity_changed");
   if (criteria.independentAssets) {
-    const submissions = commands.filter(event => event.action.command === "submit");
+    const submissions = commands.filter(event => event.action.command === "submit" && !corrected.has(event));
     const records = new Set(), ids = new Set();
     for (const [i, submission] of submissions.entries()) {
       const { request = {}, record } = submission.action, id = submission.outcome.task_id;
@@ -315,7 +352,7 @@ export function evaluateAgentTrace(trace, criteria) {
       if (next && (!handoff || !delivered || delivered.sequence < handoff.sequence || delivered.sequence > next.sequence)) violations.push("independent_asset:next_submit_before_delivery");
     }
     if (criteria.stopOnAssetError) {
-      const stopped = commands.find(row => row.outcome.ok === false || row.outcome.exit_code || row.outcome.submission_outcome === "unknown" || row.outcome.next_step === "await_user" || (row.outcome.wait_outcome === "window_ended" && row.outcome.wait_windows_completed >= 2));
+      const stopped = commands.find(row => !corrected.has(row) && (row.outcome.ok === false || row.outcome.exit_code || row.outcome.submission_outcome === "unknown" || row.outcome.next_step === "await_user" || (row.outcome.wait_outcome === "window_ended" && row.outcome.wait_windows_completed >= 2)));
       if (stopped && commands.some(row => row.sequence > stopped.sequence)) violations.push("independent_asset:command_after_stop");
     }
   }

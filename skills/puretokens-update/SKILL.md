@@ -9,21 +9,19 @@ description: 用户询问 Pure Tokens 是什么、有什么用、怎么开始、
 
 宿主绑定与本地失败停止：首次调用前按当前应用或用户明确指定绑定一个 host，全部命令沿用，不从安装目录推断。`active_connection_*`、`workbuddy_*` 或 `host_credential_adapter_unavailable` 本地失败后停止 API 流程，保留用户原任务和已有 task ID；不得自动调用 puretokens-connection、init、doctor、models 或其他 Skill 探测，不得枚举、更换 `--host` 或借用凭据。仅用户明确重查或有可验证的新依据时，在原 host 检查一次；换宿主须用户明确指定。“继续生成”本身不是重查、换宿主或重提授权；本次未发送不代表此前未提交。
 
-只响应用户主动的安装、升级、检查或帮助请求。普通媒体生成不自动更新、初始化或诊断。仅问用法时直接读 `references/usage-guide.md` 回答，不运行 init／doctor，不查凭据或访问网络。异常时才读 `references/behavior-scenarios.json`。
+只响应用户主动的安装、升级、检查或帮助请求。普通媒体生成不自动更新、初始化或诊断。异常时才读 `references/behavior-scenarios.json`。
 
 ## 检查、安装和更新
 
 直接使用官方 fetch 入口，不先下载在线 README、raw.githubusercontent.com 或其他远程说明。安装提示词只表达当前客户端的安装／更新意图，提供稳定入口和 install 子命令，不承载客户端映射、系统分支、校验、初始化或排障规则。由入口识别客户端、选择系统／架构与目标目录、固定和校验稳定版本、保护受管文件并汇报安装及连接验证结果；仅回执明确要求确认时询问缺失信息。不委托通用 skill-installer 复制目录，不调用 CUA／浏览器自动化兜底，不反复检查环境或只重复说明计划。下载脚本已取得时直接运行一次；宿主阻止执行或下载失败就保留脱敏结果并停止，不绕过权限。
 
-当前应用或用户已明确的 host 直接显式沿用，不重复询问。安装入口尚无已确认的 host／target 时，执行 fetch install，由脚本先离线识别客户端。它最多检查八层直接启动进程的名称和父 PID，接受明确的原生 codex、opencode、grok、qoder／qodercli 启动器（Windows 对应 .exe），映射到 codex、opencode、grok-build、qoder；不越过 Node、Python、Electron 或模糊的 Claude／DSH 进程借用外层身份。`current_host_unconfirmed` 或旧入口要求 host 时，只询问缺失的客户端，再带参数执行一次；不是下载失败后的自动重试。不根据模型名、目录存在或继承的会话标记猜宿主。其他已支持客户端仍可按已确认 host 安装。`detect-host` 只读、无网络，不是普通生成预检；识别不证明当前聊天模型、凭据或 API／交付能力。任何 API 命令仍须绑定已确认的 host。
+当前应用或用户已明确的 host 直接显式沿用，不重复询问。尚无已确认 host／target 时执行 fetch install，由脚本先离线识别；仅 `current_host_unconfirmed` 或旧入口要求 host 时确认缺失客户端，再显式执行一次。识别只确认客户端，不证明模型、连接或交付能力；不从模型名、目录存在、共享目录、会话标记或外层进程猜宿主。任何 API 命令仍绑定已确认 host。自动识别边界仅在相关失败时读 `references/install-permissions.md`。
 
-安装需当前会话允许命令执行、HTTPS 下载及临时／目标目录写入；优先使用宿主已报告的权限与审批能力，不额外探测或读取宿主配置。未知权限不等于拒绝，按正常流程及原生审批执行；审批须覆盖当前动作，遵守宿主实际有效范围。网络授权不证明完整执行权限，不默认要求“完全访问”或自动扩大权限。fetch 下载或启动失败应报告“安装尚未开始”。旧提示词若停在读取说明，仅在用户明确继续且宿主已确认时，使用完整官方提示词直接请求稳定 fetch 一次，不重试文档；历史文档失败不能证明发布附件不可达，也不允许绕过宿主拒绝或重试失败的发布下载。权限错误、Windows 安全上下文错误及用户明确要求继续安装时，按需读 `references/install-permissions.md`，不要一律归因于 Key、证书、客户端损坏或权限问题。
+安装需当前会话允许命令执行、HTTPS 下载及临时／目标目录写入。沿用宿主已报告的能力与当前有效的原生审批，不额外探测配置；未知不等于拒绝，网络授权也不代表全部权限。不默认要求完全访问，不提权或绕过政策。fetch 尚未启动就失败时报告“安装尚未开始”。权限／下载失败或用户明确继续时才读 `references/install-permissions.md`；不猜 Key、证书、客户端损坏或错误原因。
 
 下载失败时明确“安装未完成”，报告 stage、error_code 和非零 http_status；http_status=0 表示没有可报告的 HTTP 状态，不猜测为 403 或密钥问题。不展示原始异常、响应、请求头或配置，不自动重试或改用镜像。同步成功但 init 失败时说明“安装已完成，连接验证未完成”，不回滚、不重装。同步后脚本自动执行一次同宿主 init；同版完整性核验快速返回则不执行。已有结果不重复运行 init，不在安装会话自动继续生成。
 
-目录创建、暂存复制、文件替换及同步校验失败也保留 stage、error_code、installation_status、installed_files_changed 和 next_step；未知原因如实说明，权限／文件锁／磁盘空间只是检查方向。`installed_files_changed=unknown` 不代表旧安装完好；仅 `recovery_status=restored` 才报告原受管文件已恢复，`incomplete` 保留事务并先诊断。已提交安装后，执行器启动／输出／超时失败仅报告 `init_status=unverified`，不改报安装失败；不自动重试、提权、修复或补跑 doctor。
-
-保留下载回执的 next_step；network_access_denied／tls_security_context_unavailable 提示用户先核实客户端当前会话权限，不宣称原因已唯一确定。用户处理阻塞并明确要求继续后：同步前只在原宿主再执行一次官方 fetch；已同步且仅 init 失败，明确要求继续连接验证才执行一次 init；同步状态未知先另行诊断本地状态，不自动重跑。未变更环境的同一错误不反复测试，不更换传输、宿主或权限模式。
+本地同步失败保留 stage、error_code、installation_status、installed_files_changed、next_step。unknown 不代表旧安装完好；仅 `recovery_status=restored` 才确认恢复，incomplete 保留事务。同步成功后的执行器启动／输出／超时失败只报连接未验证，不重装、补跑 doctor 或自动重试。恢复须按失败阶段和用户明确授权处理，详见 `references/install-permissions.md`；同一错误不循环测试，不换宿主或传输。
 
 已安装且使用本版本时，从本 SKILL.md 的绝对目录解析`../.puretokens-executor/puretokens-skill-fetch.sh`（Windows 为 `.ps1`）。用户通过当前官方安装提示词安装或升级旧版本时，由宿主现成 HTTPS 下载能力把 `https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh`（Windows 改为 `.ps1`）下载为唯一临时本地文件，沿用已确认的宿主和目标目录执行 install／update。旧 fetch 可能指向旧仓库；不执行它、不手改受管脚本，不在下载失败后自动改路。不把远程响应管道进 shell，不安装 Git、Node、Python 或 Go。
 
@@ -36,17 +34,15 @@ Windows: powershell.exe -NoProfile -ExecutionPolicy Bypass -File <fetch脚本绝
 
 Windows 的 install／update 使用相同参数形式替换子命令。ExecutionPolicy 只作用于该进程，不修改系统策略；宿主明确阻止执行时停止，不绕过审批。
 
-宿主 ID 为 claude-code、codex、workbuddy、gemini-cli、grok-build、opencode、trae、claude-desktop、dsh-desktop、deepseek-harness、minimax-code、zcode、kimi-code、qoder、pi、hermes、evox、vscode、octop、oh-my-pi、minimax-code-cli；自动识别不了时才询问。显式选择使用 --host／-Host；自定义路径同时传 --target／-Target 绝对目录并保留 host，Octop 必须指定工作区目标。fetch 固定最新稳定发布清单中的版本、源码提交和 SHA-256，先下载并校验该发布的目录选择器，不复用旧版同目录选择器。普通安装只下载当前系统／架构平台包，不回退 main、源码归档或镜像。维护者明确指定本地官方检出时仍可执行其 sync。
+宿主 ID 为 claude-code、codex、workbuddy、gemini-cli、grok-build、opencode、trae、claude-desktop、dsh-desktop、deepseek-harness、minimax-code、zcode、kimi-code、qoder、pi、hermes、evox、vscode、octop、oh-my-pi、minimax-code-cli、qwen-code、codebuddy-code、copilot-cli、factory-droid、mimo-coder、paseo；自动识别不了时才询问。显式选择使用 --host／-Host；自定义路径同时传 --target／-Target 绝对目录并保留 host，Octop 必须指定工作区目标。fetch 固定最新稳定发布清单中的版本、源码提交和 SHA-256，先下载并校验该发布的目录选择器，不复用旧版同目录选择器。普通安装只下载当前系统／架构平台包，不回退 main、源码归档或镜像。维护者明确指定本地官方检出时仍可执行其 sync。
 
 check-update 只比较版本，不证明文件完整，也不修改安装或执行 init。同版 install／update 只有在所选发布执行器校验和与全部受管清单（本版本十一份）通过、无未完成事务时，才返回 `already current and verified`：不下载 ZIP、不写入、不 init。缺失、修改或未完成事务必须停止并保留现场，不自动修复。
 
 用户明确要求检查缺失、文件冲突或中断安装时，按需读 `references/installation-recovery.md`。`install-inspect --directory <安装根绝对路径>` 只读十一个受管组件，返回 missing／modified／additional／transaction／unreadable 分类及安全相对路径，不读凭据或发请求。用户明确要求修复后才使用官方 fetch 的 `repair`，仍完整校验当前稳定包；仅恢复可证明的受管缺失和完整受管事务，不覆盖本地定制或删除未知文件。普通 update 不自动转 repair。
 
-只由 sync 写入十个 Skill 和一个当前平台原生执行器及下载／同步脚本。它保护非受管目录；更新锁阻止并发，中断的受管事务在下次显式 sync 时恢复。Gemini 如已有较高优先级的共享 `.agents/skills`，更新其有效目录并报告重复的低优先级副本，不擅自删除。共享目录本身不说明当前宿主是 Codex。只处理十个当前 Skill 和原生执行器；其他目录和用户配置保持不动。
+只由 sync 写入十个通用 Skill、一个当前平台执行器及当前系统脚本；不裁剪其他宿主所需引用，不安装额外环境。以 `.puretokens-managed.json` 的完整清单和校验值识别受管内容；未记录目录必须完全匹配官方源才可接管。本地修改、附加／缺失文件、符号链接或未完成事务停止覆盖，不删除未知目录或重建清单。安装锁及事务由 sync 管理，不自行复制、链接或拆成逐目录命令；用户配置保持不动。
 
-受管识别核对 `.puretokens-managed.json` 的完整文件清单和校验值；没有记录的目录只有与当前官方源文件完全匹配才可接管，不能仅凭同名或目录中的自报版本判定归属。存在新增文件、本地修改、缺失文件或符号链接时停止覆盖；向用户说明需保留并处理该冲突，不自动删除、重建清单或声称更新完成。中断恢复遇到改动同样保留原目录和备份。
-
-只在收到 `Pure Tokens Skills <版本> synchronized with the native API executor at <目录>` 后报告本次同步完成；`already current and verified` 只表示原安装完整、未修改文件，不补跑 init。超时／中断不能声称完成或自动重试。实际同步成功后复用脚本的当前宿主加载步骤与简短示例，不重复列出十份相同版本信息。
+只在收到 `Pure Tokens Skills <版本> synchronized with the native API executor at <目录>` 后报告本次同步完成；`already current and verified` 只表示原安装完整、未修改文件。复用脚本的宿主加载步骤与一个示例：当前会话可用就直接使用，否则按宿主刷新／启用，仅宿主需要时新开对话。汇总实际 host、版本和 init 已验证／未验证／未执行；不重复十份版本或完整手册，不自动生成体验任务。
 
 ## 初始化与诊断
 
@@ -58,20 +54,12 @@ check-update 只比较版本，不证明文件完整，也不修改安装或执�
 
 Skill 和安装脚本不读取、显示或修改认证文件。只有原生执行器按当前宿主明确记录在内存中读取匹配凭据；不使用其他认证、MCP、代理或 Computer Use。
 
-失败时区分版本检查、下载／校验、文件同步和 init 阶段，说明哪些步骤已确认完成及下一步。网络失败可建议稍后重新检查；校验失败停止使用该包并反馈官方维护方；写入受限可建议检查目标目录权限，不提权或删除未知目录。sync 已成功但 init 失败时明确“文件已同步，连接验证未完成”，按 init 脱敏建议处理，不重复安装。未知中断先核对已安装状态，不自动重跑。
-
-Windows 安装只运行一次官方 fetch／sync 流程并汇总同步、清理和 init 结果；不要自行拆成逐目录命令或重复执行已通过的校验。安装器捕获原生执行器输出并禁止创建额外控制台窗口；宿主自身的命令窗口仍由宿主控制。执行被策略拒绝时停止并说明，不改用备用启动方式或提权。
-
-不要在正常安装中额外审计整份脚本、逐项探测 PowerShell 能力、重复核对清单或再跑 doctor。必要的宿主审批照常遵守；失败时报告已完成阶段与脱敏结果并停止。不得创建 probe、shim、Python 补丁、修改官方脚本、换启动路径或自动重试；只有另行授权的开发排查才进入调试流程。
+正常安装不额外审计整份脚本、逐项探测 PowerShell、重复核对清单或跑 doctor。失败仅汇总已完成阶段、脱敏原因和下一步。不得创建 probe、shim、Python 补丁、修改官方脚本或换启动路径；只有另行授权的开发排查才调试。
 
 当前会话若使用未反映在宿主已声明有效文件中的配置覆盖，停止并说明无法确认有效连接；不读取其他配置或借用默认连接。
 
 宿主目录、会话选择限制或特定客户端故障才按需读 `references/desktop-hosts.md`；普通请求不增加诊断前置步骤。
 
-安装时由官方入口识别或沿用当前应用／用户已确认的宿主 ID；不从模型名称、Skill 来源目录或共享 `.agents/skills` 推断为 Codex。Qoder 使用 `--host qoder`，默认目标由官方 locate 解析，不照抄 Codex 示例。普通安装只使用当前官方 fetch，不直接下载旧迁移载荷或复制 Skill 文件。
-
-安装汇报保留实际宿主、同步版本、init 已验证／失败／未执行的结果，下一步只指向该宿主。仅复制文件不代表原生安装完成。只有原生同步已确认成功且 init 明确未执行时，补一次同宿主 init；同版快速返回不属于此情形。输出不确定先说明未确认，不重装或猜成功。
-
-安装和更新不检查、移除或迁移 Codex 插件，不运行 codex plugin 命令，也不汇报旧插件状态。汇总脚本已有的同宿主 init 结果及加载指引，不另跑一次 init。默认仅输出短回执、当前宿主适用示例与帮助入口，不整段输出使用手册；ZCode 需刷新并启用，Trae 无 API 适配器时不展示生成示例。`cleanup_status: pending` 单独报告，不把已完成同步改报失败，不绕过删除限制或因此重装。
+安装和更新不检查、移除或迁移旧插件，不运行 codex plugin 命令。汇总脚本已有的同宿主 init 结果，不另跑一次 init；只有原生同步已确认成功且 init 明确未执行才补一次，同版快速返回不适用。输出不确定先说明未确认。Trae 无 API 适配器时不展示生成示例；`cleanup_status: pending` 单独报告，不把同步改报失败，不绕过删除限制或重装。
 
 本地连接失败按执行器脱敏状态解释：未识别、不可读、不支持或未验证均不等于“尚未配置”。保留现有连接，不据此要求重装、切换模型、重配或更换凭据；`api_request_executed: false` 时说明未请求 API、未认证凭据。具体宿主限制见 `references/desktop-hosts.md`。

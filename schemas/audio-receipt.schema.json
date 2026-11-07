@@ -162,6 +162,8 @@
             "input",
             "voice",
             "speed",
+            "volume",
+            "hotwords",
             "instruction",
             "response_format",
             "file",

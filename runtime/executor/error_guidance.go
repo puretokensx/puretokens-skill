@@ -11,6 +11,8 @@ func guideReceipt(result receipt) receipt {
 		return result
 	}
 	switch {
+	case !result.OK && result.Validation != nil && result.LocalErrorCode == "media_request_invalid" && result.FailurePhase == "validation" && result.SubmissionOutcome == "not_submitted" && result.TaskID == "" && !result.ReconciliationRequired:
+		result.NextStep = "correct_request"
 	case !result.OK:
 		result.WaitOutcome = ""
 		result.NextStep = "await_user"

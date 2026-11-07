@@ -21,9 +21,9 @@ type downloadProof struct {
 func validDownloadProof(proof downloadProof, kind string) bool {
 	digest, err := hex.DecodeString(proof.SHA256)
 	return err == nil && len(digest) == sha256.Size && strings.ToLower(proof.SHA256) == proof.SHA256 &&
-		proof.Bytes > 0 && proof.Bytes <= attachmentLimit(kind) &&
+		proof.Bytes > 0 && proof.Bytes <= attachmentLimit(kind) && (proof.MediaType != "image/svg+xml" || proof.Bytes <= maxSVGBytes) &&
 		strings.HasPrefix(proof.MediaType, mediaKindPrefix(kind)) &&
-		contains([]string{"image/png", "image/jpeg", "image/webp", "image/gif", "image/avif", "video/mp4", "video/webm", "audio/mpeg", "audio/wav"}, proof.MediaType)
+		contains([]string{"image/png", "image/jpeg", "image/webp", "image/gif", "image/avif", "image/svg+xml", "video/mp4", "video/webm", "audio/mpeg", "audio/wav"}, proof.MediaType)
 }
 
 func fingerprintDownload(path, mediaType string) (downloadProof, error) {

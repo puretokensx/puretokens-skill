@@ -339,7 +339,7 @@ func TestAudioAttachmentAndOutputPreflight(t *testing.T) {
 		"missing":     func(r map[string]any) { r["file"] = filepath.Join(t.TempDir(), "missing.wav") },
 		"corrupt":     func(r map[string]any) { os.WriteFile(r["file"].(string), []byte("fake"), 0600) },
 		"oversized":   func(r map[string]any) { os.WriteFile(r["file"].(string), make([]byte, maxAudioInput+1), 0600) },
-		"unsupported": func(r map[string]any) { r["response_format"] = "text" },
+		"unsupported": func(r map[string]any) { r["response_format"] = "srt" },
 	} {
 		t.Run(name, func(t *testing.T) {
 			calls := 0

@@ -92,6 +92,30 @@
     "minimaxCodeCli": {
       "manualInstallationSupported": true,
       "globalSkillDirectory": "~/.minimax/skills"
+    },
+    "qwenCode": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.qwen/skills"
+    },
+    "codebuddyCode": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.codebuddy/skills"
+    },
+    "copilotCli": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.copilot/skills"
+    },
+    "factoryDroid": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.factory/skills"
+    },
+    "mimoCoder": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.config/mimocode/skills"
+    },
+    "paseo": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.agents/skills"
     }
   },
   "supportedClients": [
@@ -115,7 +139,13 @@
     "vscode",
     "octop",
     "oh-my-pi",
-    "minimax-code-cli"
+    "minimax-code-cli",
+    "qwen-code",
+    "codebuddy-code",
+    "copilot-cli",
+    "factory-droid",
+    "mimo-coder",
+    "paseo"
   ],
   "rules": {
     "usesFixedPureTokensApiOrigin": true,
@@ -131,5 +161,5 @@
     "doesNotUseMcpOrFallbackTransport": true,
     "neverAutomaticallyRetries": true
   },
-  "sourceSha256": "5a49121e8f9c3da5bea53c8798661c61cbcd2935cc21d74bd35d2a645b0cd862"
+  "sourceSha256": "39b82eabe45be0ca3fa90b41117d7e23184451da6fdf85f2d52d053198bcaa29"
 }

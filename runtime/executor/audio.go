@@ -31,6 +31,7 @@ const maxAudioRequest = 64 << 10
 var audioProfileJSON []byte
 
 type audioProfile struct {
+ ExecutorKind             string            `json:"executor_kind"`
 	Model                    string            `json:"model"`
 	Operation                string            `json:"operation"`
 	Path                     string            `json:"path"`
@@ -41,6 +42,10 @@ type audioProfile struct {
 	Formats                  []string          `json:"formats"`
 	SpeedMin                 float64           `json:"speed_min"`
 	SpeedMax                 float64           `json:"speed_max"`
+	VolumeMin                float64           `json:"volume_min"`
+	VolumeMax                float64           `json:"volume_max"`
+	SupportsHotwords         bool              `json:"supports_hotwords"`
+	TranscriptFormats        []string          `json:"transcript_formats"`
 	VoicePattern             string            `json:"voice_pattern"`
 	Task                     string            `json:"task"`
 	DurationMin              float64           `json:"duration_min"`
@@ -66,6 +71,8 @@ type audioRequest struct {
 	Instruction     string   `json:"instruction,omitempty"`
 	Voice           string   `json:"voice,omitempty"`
 	Speed           *float64 `json:"speed,omitempty"`
+	Volume          *float64 `json:"volume,omitempty"`
+	Hotwords        []string `json:"hotwords,omitempty"`
 	ResponseFormat  string   `json:"response_format,omitempty"`
 	File            string   `json:"file,omitempty"`
 	OutputDir       string   `json:"output_dir,omitempty"`
@@ -199,7 +206,7 @@ func decodeAudioRequest(data []byte) (audioRequest, error) {
 		return request, audioIssue("request", "invalid_type", 0)
 	}
 	profile, ok := audioProfiles()[request.Model]
-	if !ok {
+	if !ok || profile.ExecutorKind == "audio_task" {
 		return request, audioIssue("model", "unsupported", 0)
 	}
 	if request.Operation != profile.Operation {
@@ -213,6 +220,12 @@ func decodeAudioRequest(data []byte) (audioRequest, error) {
 		}
 		if profile.SpeedMin > 0 {
 			allowed["speed"] = true
+		}
+		if profile.VolumeMin > 0 {
+			allowed["volume"] = true
+			if request.Volume != nil && (*request.Volume < profile.VolumeMin || *request.Volume > profile.VolumeMax) {
+				return request, audioIssue("volume", "out_of_range", 0)
+			}
 		}
 		if profile.SupportsInstruction {
 			allowed["instruction"] = true
@@ -271,6 +284,25 @@ func decodeAudioRequest(data []byte) (audioRequest, error) {
 		}
 	case "transcribe", "voice_change":
 		allowed["file"] = true
+		if request.Operation == "transcribe" {
+			if profile.SupportsHotwords {
+				allowed["hotwords"] = true
+				for _, word := range request.Hotwords {
+					if strings.TrimSpace(word) == "" {
+						return request, audioIssue("hotwords", "invalid_type", 0)
+					}
+				}
+			}
+			if len(profile.TranscriptFormats) > 0 {
+				allowed["response_format"] = true
+				if _, exists := fields["response_format"]; exists && !contains(profile.TranscriptFormats, request.ResponseFormat) {
+					return request, audioIssue("response_format", "unsupported", 0)
+				}
+			}
+			if request.ResponseFormat == "" {
+				request.ResponseFormat = "json"
+			}
+		}
 		if !filepath.IsAbs(request.File) {
 			return request, audioIssue("file", "absolute_path_required", 0)
 		}
@@ -322,6 +354,9 @@ func prepareAudioBody(request audioRequest) ([]byte, string, error) {
 			if request.Speed != nil {
 				body["speed"] = *request.Speed
 			}
+			if request.Volume != nil {
+				body["volume"] = *request.Volume
+			}
 			if request.Instruction != "" {
 				body["instruction"] = request.Instruction
 			}
@@ -367,7 +402,15 @@ func prepareAudioBody(request audioRequest) ([]byte, string, error) {
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)
 	_ = writer.WriteField("model", request.Model)
-	_ = writer.WriteField("response_format", "json")
+	formatRequest := request.ResponseFormat
+	if formatRequest == "" {
+		formatRequest = "json"
+	}
+	_ = writer.WriteField("response_format", formatRequest)
+	if request.Hotwords != nil {
+		hotwords, _ := json.Marshal(request.Hotwords)
+		_ = writer.WriteField("hotwords", string(hotwords))
+	}
 	header := textproto.MIMEHeader{}
 	header.Set("Content-Disposition", `form-data; name="file"; filename="recording.`+format+`"`)
 	header.Set("Content-Type", audioMIME(format))
@@ -498,19 +541,37 @@ func executeAudio(output io.Writer, svc service, request audioRequest, body []by
 	result := audioReceipt{OK: true, Command: "audio", Operation: request.Operation, Model: request.Model, SubmissionOutcome: "accepted"}
 	if request.Operation == "transcribe" {
 		mediaType, _, err := mime.ParseMediaType(response.Header.Get("Content-Type"))
-		if err != nil || mediaType != "application/json" {
+		if err != nil {
 			return invalid()
 		}
-		if _, err := strictEvaluationJSON(data, limit); err != nil {
-			return invalid()
+		var text string
+		if request.ResponseFormat == "text" {
+			if mediaType != "text/plain" || !utf8.Valid(data) || bytes.IndexByte(data, 0) >= 0 {
+				return invalid()
+			}
+			text = string(data)
+			if svc.token != "" {
+				text = strings.ReplaceAll(text, svc.token, "[redacted credential]")
+			}
+		} else {
+			if mediaType != "application/json" {
+				return invalid()
+			}
+			if _, err := strictEvaluationJSON(data, limit); err != nil {
+				return invalid()
+			}
+			sanitized := sanitizeResponseJSON(data, svc.token)
+			var document map[string]any
+			if json.Unmarshal(sanitized, &document) != nil || document["error"] != nil {
+				return invalid()
+			}
+			var ok bool
+			text, ok = document["text"].(string)
+			if !ok {
+				return invalid()
+			}
 		}
-		sanitized := sanitizeResponseJSON(data, svc.token)
-		var document map[string]any
-		if json.Unmarshal(sanitized, &document) != nil {
-			return invalid()
-		}
-		text, ok := document["text"].(string)
-		if !ok || strings.TrimSpace(text) == "" || utf8.RuneCountInString(text) > 100000 || document["error"] != nil {
+		if strings.TrimSpace(text) == "" || utf8.RuneCountInString(text) > 100000 {
 			return invalid()
 		}
 		result.NextStep, result.Result = "done", map[string]string{"text": text}

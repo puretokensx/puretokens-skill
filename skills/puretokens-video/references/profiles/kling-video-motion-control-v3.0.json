@@ -1,0 +1,186 @@
+{
+  "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
+  "schemaVersion": 1,
+  "capability": "video",
+  "catalogUpdatedAt": "2026-11-07",
+  "catalogCapturedAt": "2026-11-07T09:20:36.335Z",
+  "id": "kling-video-motion-control-v3.0",
+  "parameterSchema": {
+    "properties": {
+      "prompt": {
+        "type": "string",
+        "maxLength": 2500
+      },
+      "resolution": {
+        "type": "string",
+        "enum": [
+          "720p",
+          "1080p"
+        ],
+        "default": "720p"
+      },
+      "reference_images": {
+        "type": "string[]"
+      },
+      "reference_videos": {
+        "type": "string[]"
+      },
+      "audio": {
+        "type": "string",
+        "enum": [
+          "original",
+          "off"
+        ],
+        "default": "original"
+      },
+      "character_orientation": {
+        "type": "string",
+        "required": true,
+        "enum": [
+          "video",
+          "image"
+        ],
+        "default": "video"
+      },
+      "contents": {
+        "type": "json"
+      },
+      "settings": {
+        "type": "json"
+      },
+      "options": {
+        "type": "json"
+      }
+    },
+    "constraints": {
+      "reference_video": {
+        "min_seconds": [
+          3
+        ],
+        "max_seconds": [
+          30
+        ],
+        "min_width": [
+          340
+        ],
+        "min_height": [
+          340
+        ],
+        "max_width": [
+          3850
+        ],
+        "max_height": [
+          3850
+        ],
+        "max_bytes": [
+          100000000
+        ],
+        "mime_types": [
+          "video/mp4",
+          "video/quicktime"
+        ]
+      },
+      "motion_control": {
+        "image_orientation_max_seconds": [
+          10
+        ],
+        "video_orientation_max_seconds": [
+          30
+        ],
+        "duration_and_ratio_from_source": [
+          true
+        ]
+      },
+      "reference_image": {
+        "min_width": [
+          300
+        ],
+        "min_height": [
+          300
+        ],
+        "min_ratio": [
+          0.4
+        ],
+        "max_ratio": [
+          2.5
+        ],
+        "max_bytes": [
+          50000000
+        ],
+        "mime_types": [
+          "image/jpeg",
+          "image/png"
+        ]
+      },
+      "kling_contents": {
+        "types": [
+          "prompt",
+          "image",
+          "video",
+          "element"
+        ]
+      },
+      "kling_settings": {
+        "native_settings_replace_flat": [
+          true
+        ],
+        "source_controls_ratio": [
+          false
+        ]
+      },
+      "unsupported_inputs": {
+        "nonce": true,
+        "idempotency_key": true
+      },
+      "unsupported_operations": {
+        "native_generation": true,
+        "native_subject": true
+      }
+    },
+    "operations": {
+      "reference_video": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "reference_images",
+          "reference_videos"
+        ],
+        "inputs": {
+          "reference_images": {
+            "field": "reference_images",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 1,
+            "transports": [
+              "https_url"
+            ]
+          },
+          "reference_videos": {
+            "field": "reference_videos",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 1,
+            "transports": [
+              "https_url"
+            ]
+          }
+        }
+      },
+      "native_video": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "contents"
+        ]
+      }
+    }
+  }
+}

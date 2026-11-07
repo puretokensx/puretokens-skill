@@ -81,6 +81,11 @@
           "minimum": 0.5,
           "maximum": 2
         },
+        "volume": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 2
+        },
         "instruction": {
           "type": "string",
           "minLength": 1,
@@ -260,6 +265,20 @@
         "file": {
           "type": "string",
           "pattern": "^(?:/|[A-Za-z]:[\\\\/]|\\\\\\\\)[^\\u0000]+$(?![\\s\\S])"
+        },
+        "response_format": {
+          "enum": [
+            "json",
+            "text"
+          ]
+        },
+        "hotwords": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          }
         }
       },
       "additionalProperties": false
@@ -281,6 +300,20 @@
         "file": {
           "type": "string",
           "pattern": "^(?:/|[A-Za-z]:[\\\\/]|\\\\\\\\)[^\\u0000]+$(?![\\s\\S])"
+        },
+        "response_format": {
+          "enum": [
+            "json",
+            "text"
+          ]
+        },
+        "hotwords": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          }
         }
       },
       "additionalProperties": false

@@ -31,7 +31,7 @@ func TestExplicitAlternativeKeepsOriginalTaskAndReference(t *testing.T) {
 			prompt := "只改背景，保留文字：原文 A\nDo not rewrite."
 			var calls []string
 			posts := 0
-			profile := readInstalledProfileFixture(t, tc.kind, tc.alternative)
+			profile := readHistoricalProfileFixture(t, tc.alternative)
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				calls = append(calls, r.Method+" "+r.URL.Path)
 				if r.Method == http.MethodGet && r.URL.Path == "/v1/media/models" {
@@ -103,6 +103,7 @@ func TestExplicitAlternativeKeepsOriginalTaskAndReference(t *testing.T) {
 			}))
 			defer server.Close()
 			svc := fixtureService(server)
+			svc.profilesRoot = historicalProfilesRoot(t, "nano-banana-2", "grok-imagine-video-1.5", "wan3.0-video")
 			request := taskRequest{Kind: tc.kind, Operation: tc.operation, Model: tc.first, Prompt: prompt,
 				MediaOperation: tc.mediaOperation, Parameters: tc.parameters, Attachments: []attachment{{Field: tc.oldField, Path: input}}}
 			var out bytes.Buffer
@@ -169,7 +170,7 @@ func TestIncompatibleAlternativeDoesNotDropReferencesOrSubmit(t *testing.T) {
 	} {
 		t.Run(request.Kind, func(t *testing.T) {
 			calls := 0
-			profile := readInstalledProfileFixture(t, request.Kind, request.Model)
+			profile := readHistoricalProfileFixture(t, request.Model)
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				calls++
 				// A missing field may trigger one declared profile-gap lookup;
@@ -186,7 +187,9 @@ func TestIncompatibleAlternativeDoesNotDropReferencesOrSubmit(t *testing.T) {
 			defer server.Close()
 			path := filepath.Join(t.TempDir(), "alternative.json")
 			var out bytes.Buffer
-			if err := executeRecordedTask("submit", path, request, 0, "", &out, fixtureService(server)); err == nil {
+			svc := fixtureService(server)
+			svc.profilesRoot = historicalProfilesRoot(t, request.Model)
+			if err := executeRecordedTask("submit", path, request, 0, "", &out, svc); err == nil {
 				t.Fatal("incompatible media requirements were silently dropped")
 			}
 			result := decodeReceipt(t, &out)

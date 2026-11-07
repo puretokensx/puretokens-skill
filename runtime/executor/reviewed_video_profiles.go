@@ -35,6 +35,10 @@ func reviewedVideoProfile(id string) (modelProfile, bool) {
 }
 
 func reviewedVideoAllowsEmptyPrompt(request taskRequest) bool {
+	if request.Kind == "video" && request.Operation == "generate" && request.MediaOperation == "reference_video" &&
+		contains([]string{"kling-video-motion-control-v3.0", "kling-video-motion-control-v2.6"}, request.Model) {
+		return true
+	}
 	profile, exists := reviewedVideoProfile(request.Model)
 	if !exists || request.Kind != "video" || request.Operation != "generate" ||
 		profile.Parameters.Properties["prompt"]["required"] != false {

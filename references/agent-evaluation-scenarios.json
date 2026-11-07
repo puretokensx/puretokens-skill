@@ -94,8 +94,8 @@
     },
     {
       "id": "model-group-unavailable",
-      "request": "刚才用 nano-banana-2 被拒绝，回执是 model_not_allowed。应该补选哪个分组？我原来的分组不要删。",
-      "variants": ["nano-banana-2 提示 model_not_allowed。我该在 Switch 加选哪一组？保留我已经选的那些组。"],
+      "request": "刚才用 gemini-nano-banana-2.1 被拒绝，回执是 model_not_allowed。应该补选哪个分组？我原来的分组不要删。",
+      "variants": ["gemini-nano-banana-2.1 提示 model_not_allowed。我该在 Switch 加选哪一组？保留我已经选的那些组。"],
       "context": "当前是 Codex Desktop 本地会话。此前提交明确 rejected、没有 task_id；用户现在只询问模型分组，不要求重新生成。",
       "stub": "groups-unavailable"
     },

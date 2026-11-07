@@ -1,11 +1,132 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
+
+func mappedSkillsFixture(t *testing.T) (string, map[string]any) {
+	t.Helper()
+	root := claudeDesktopFixture(t)
+	profile := `{"inferenceProvider":"gateway","inferenceCredentialKind":"static","inferenceGatewayAuthScheme":"bearer","inferenceGatewayBaseUrl":"http://127.0.0.1:15722/claude-desktop","inferenceGatewayApiKey":"pts-local-12345678-1234-4000-8000-123456789abc"}`
+	desktopFixtureFile(t, root, "configLibrary/"+fixtureDesktopProfile+".json", profile)
+	digest := sha256.Sum256([]byte(profile))
+	record := map[string]any{"version": 1, "host": "claude-desktop", "state": "active", "profile_id": fixtureDesktopProfile, "profile_sha256": hex.EncodeToString(digest[:]), "api_base_url": "https://api.puretokensx.com", "api_key": "synthetic-mapped-skills-key", "connection_id": "11111111-1111-4111-8111-111111111111"}
+	writeMappedSkillsFixture(t, root, record)
+	return root, record
+}
+
+func writeMappedSkillsFixture(t *testing.T, root string, record map[string]any) {
+	t.Helper()
+	data, err := json.Marshal(record)
+	if err != nil {
+		t.Fatal(err)
+	}
+	desktopFixtureFile(t, root, "puretokens-skills-connection.json", string(data))
+}
+
+func TestClaudeDesktopMappedSkillsUsesOnlyBoundConnection(t *testing.T) {
+	root, _ := mappedSkillsFixture(t)
+	token, err := credentialFromClaudeDesktopRoot(root)
+	if err != nil || token != "synthetic-mapped-skills-key" {
+		t.Fatal("mapped profile did not resolve its Switch-managed dedicated connection")
+	}
+}
+
+func TestClaudeDesktopSwitchWriterFixture(t *testing.T) {
+	root := os.Getenv("PTP_MAPPED_FIXTURE_INPUT")
+	if root == "" {
+		t.Skip("explicit synthetic Switch writer export required")
+	}
+	for _, platform := range []string{"macos", "windows"} {
+		var connectionID string
+		token, err := credentialFromClaudeDesktopConnection(filepath.Join(root, platform), &connectionID)
+		if err != nil || token != "pts-cross-repo-fixture" || !desktopProfileID.MatchString(connectionID) {
+			t.Fatalf("Switch %s writer output rejected by Skills reader", platform)
+		}
+	}
+}
+
+func TestClaudeDesktopMappedSkillsRejectsInvalidBindings(t *testing.T) {
+	for _, tc := range []struct {
+		field string
+		value any
+	}{
+		{"version", 2}, {"host", "codex"}, {"state", "inactive"},
+		{"profile_id", "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"},
+		{"profile_sha256", strings.Repeat("0", 64)},
+		{"api_base_url", "https://third-party.invalid"},
+		{"api_key", ""}, {"api_key", "pts-local-12345678-1234-4000-8000-123456789abc"},
+	} {
+		t.Run(tc.field, func(t *testing.T) {
+			root, record := mappedSkillsFixture(t)
+			record[tc.field] = tc.value
+			writeMappedSkillsFixture(t, root, record)
+			if token, err := credentialFromClaudeDesktopRoot(root); err == nil || token != "" {
+				t.Fatal("invalid mapped connection accepted")
+			}
+		})
+	}
+	root, _ := mappedSkillsFixture(t)
+	desktopFixtureFile(t, root, "configLibrary/_meta.json", `{"appliedId":"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"}`)
+	if token, err := credentialFromClaudeDesktopRoot(root); err == nil || token != "" {
+		t.Fatal("inactive mapped profile accepted")
+	}
+}
+
+func TestClaudeDesktopDirectIgnoresMappedSkillsRecord(t *testing.T) {
+	root := claudeDesktopFixture(t)
+	desktopFixtureFile(t, root, "puretokens-skills-connection.json", "not JSON")
+	if token, err := credentialFromClaudeDesktopRoot(root); err != nil || token != "synthetic-desktop-key" {
+		t.Fatal("companion must not override direct credentials")
+	}
+}
+
+func TestClaudeDesktopMappedSkillsRejectsChangedFilesAndUnsafeStorage(t *testing.T) {
+	for _, mutation := range []string{"profile", "duplicate", "symlink", "permissions"} {
+		t.Run(mutation, func(t *testing.T) {
+			root, _ := mappedSkillsFixture(t)
+			path := filepath.Join(root, claudeSkillsConnectionFile)
+			switch mutation {
+			case "profile":
+				p := filepath.Join(root, "configLibrary", fixtureDesktopProfile+".json")
+				data, _ := os.ReadFile(p)
+				if err := os.WriteFile(p, append(data, ' '), 0600); err != nil {
+					t.Fatal(err)
+				}
+			case "duplicate":
+				data, _ := os.ReadFile(path)
+				data = append([]byte(`{"api_key":"unselected-key",`), data[1:]...)
+				if err := os.WriteFile(path, data, 0600); err != nil {
+					t.Fatal(err)
+				}
+			case "symlink":
+				if err := os.Rename(path, path+".other"); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.Symlink(path+".other", path); err != nil {
+					t.Skip("symlinks unavailable")
+				}
+			case "permissions":
+				if runtime.GOOS == "windows" {
+					t.Skip("Unix file modes")
+				}
+				if err := os.Chmod(path, 0644); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if token, err := credentialFromClaudeDesktopRoot(root); err == nil || token != "" {
+				t.Fatal("unsafe connection accepted")
+			}
+		})
+	}
+}
 
 const fixtureDesktopProfile = "70757265-746f-4000-8000-636c61756465"
 
@@ -24,6 +145,10 @@ func desktopFixtureFile(t *testing.T, root, relative, body string) {
 func claudeDesktopFixture(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
+	root, err := filepath.EvalSymlinks(root)
+	if err != nil {
+		t.Fatal(err)
+	}
 	desktopFixtureFile(t, root, "claude_desktop_config.json", `{"deploymentMode":"3p"}`)
 	desktopFixtureFile(t, root, "configLibrary/_meta.json", `{"appliedId":"`+fixtureDesktopProfile+`","entries":[{"id":"unrelated","name":"Pure Tokens"}]}`)
 	desktopFixtureFile(t, root, "configLibrary/"+fixtureDesktopProfile+".json", `{"inferenceProvider":"gateway","inferenceCredentialKind":"static","inferenceGatewayAuthScheme":"bearer","inferenceGatewayBaseUrl":"https://api.puretokensx.com","inferenceGatewayApiKey":"synthetic-desktop-key"}`)

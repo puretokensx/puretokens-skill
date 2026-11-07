@@ -1,11 +1,35 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-10-18",
+  "reviewedAt": "2026-11-07",
   "sources": [
     "https://docs.x.ai/developers/model-capabilities/video/editing",
     "PureTokenPlus_web/docs/architecture/video-provider-adapters.md"
   ],
   "models": {
+    "kling-v3": { "retired": true },
+    "kling-v3-turbo": { "retired": true },
+    "gemini-3.0-pro-image": { "localFileEncoding": "data_url", "unsupportedTransports": ["data_url"] },
+    "gemini-3.1-flash-image": { "localFileEncoding": "data_url", "unsupportedTransports": ["data_url"] },
+    "gemini-nano-banana-2.1": { "localFileEncoding": "data_url", "unsupportedTransports": ["data_url"] },
+    "veo-3.1": { "localFileEncoding": "data_url", "unsupportedTransports": ["data_url"] },
+    "veo-3.1-fast": { "localFileEncoding": "data_url", "unsupportedTransports": ["data_url"] },
+    "veo-3.1-lite": { "localFileEncoding": "data_url", "unsupportedTransports": ["data_url"] },
+    "omni-flash": { "localFileEncoding": "data_url", "unsupportedTransports": ["data_url"] },
+    "kling-video-v4": { "klingNative": true, "unsupportedInputs": ["nonce", "idempotency_key"], "unsupportedOperations": ["native_generation", "native_subject", "native_voice", "native_feature_video"] },
+    "kling-video-v3": { "klingNative": true, "unsupportedInputs": ["nonce", "idempotency_key"], "unsupportedOperations": ["native_generation", "native_subject"] },
+    "kling-video-v3-turbo": { "klingNative": true, "unsupportedInputs": ["nonce", "idempotency_key"], "unsupportedOperations": ["native_generation"] },
+    "kling-video-v3-omni": { "klingNative": true, "unsupportedInputs": ["nonce", "idempotency_key"], "unsupportedOperations": ["native_generation", "native_subject", "native_voice", "native_video_edit", "native_feature_video"] },
+    "kling-video-motion-control-v3.0": { "klingNative": true, "unsupportedInputs": ["nonce", "idempotency_key"], "unsupportedOperations": ["native_generation", "native_subject"] },
+    "kling-video-motion-control-v2.6": { "klingNative": true, "unsupportedInputs": ["nonce", "idempotency_key"], "unsupportedOperations": ["native_generation"] },
+    "wan3.0-video": { "unsupportedOperations": ["native_generation"], "unsupportedInputs": ["input", "parameters", "idempotency_key"] },
+    "wan3.0-video-prime": { "unsupportedOperations": ["native_generation"], "unsupportedInputs": ["input", "parameters", "idempotency_key"] },
+    "gpt-image-2.6": { "localMaskEncoding": "data_url", "svgOutput": true },
+    "gpt-image-2.6-flare": { "localMaskEncoding": "data_url", "svgOutput": true },
+    "gpt-image-2.6-sunburst": { "localMaskEncoding": "data_url", "svgOutput": true },
+    "Super Vega 1.0-pro": { "tailFrameOutput": true },
+    "Super Vega 1.0-pro-fast": { "tailFrameOutput": true },
+    "Super Vega 1.0-pro-mini": { "tailFrameOutput": true },
+    "Super Vega 1.5-pro": { "tailFrameOutput": true },
     "grok-imagine-video": {
       "unsupportedParametersByOperation": {
         "video_edit": ["duration", "seconds", "aspect_ratio", "aspectRatio", "resolution"]

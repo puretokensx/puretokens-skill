@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-index.schema.json",
   "schemaVersion": 1,
   "capability": "video",
-  "catalogUpdatedAt": "2026-11-03",
-  "catalogCapturedAt": "2026-11-03T02:14:24.310Z",
+  "catalogUpdatedAt": "2026-11-07",
+  "catalogCapturedAt": "2026-11-07T09:20:36.335Z",
   "defaultModel": "MiniMax-H3",
   "models": [
     {
@@ -14,21 +14,39 @@
       "profile": "profiles/grok-imagine-video.json"
     },
     {
-      "id": "grok-imagine-video-1.5",
+      "id": "grok-imagine-video-1.5-preview",
       "aliases": [],
-      "profile": "profiles/grok-imagine-video-1.5.json"
+      "profile": "profiles/grok-imagine-video-1.5-preview.json"
     },
     {
-      "id": "kling-v3",
+      "id": "kling-video-motion-control-v2.6",
       "aliases": [],
-      "profile": "profiles/kling-v3.json",
-      "supportScope": "reviewed_source"
+      "profile": "profiles/kling-video-motion-control-v2.6.json"
     },
     {
-      "id": "kling-v3-turbo",
+      "id": "kling-video-motion-control-v3.0",
       "aliases": [],
-      "profile": "profiles/kling-v3-turbo.json",
-      "supportScope": "reviewed_source"
+      "profile": "profiles/kling-video-motion-control-v3.0.json"
+    },
+    {
+      "id": "kling-video-v3",
+      "aliases": [],
+      "profile": "profiles/kling-video-v3.json"
+    },
+    {
+      "id": "kling-video-v3-omni",
+      "aliases": [],
+      "profile": "profiles/kling-video-v3-omni.json"
+    },
+    {
+      "id": "kling-video-v3-turbo",
+      "aliases": [],
+      "profile": "profiles/kling-video-v3-turbo.json"
+    },
+    {
+      "id": "kling-video-v4",
+      "aliases": [],
+      "profile": "profiles/kling-video-v4.json"
     },
     {
       "id": "MiniMax-H3",
@@ -37,14 +55,9 @@
       "supportScope": "reviewed_source"
     },
     {
-      "id": "muse-video",
+      "id": "omni-flash",
       "aliases": [],
-      "profile": "profiles/muse-video.json"
-    },
-    {
-      "id": "omni",
-      "aliases": [],
-      "profile": "profiles/omni.json"
+      "profile": "profiles/omni-flash.json"
     },
     {
       "id": "seedance-2.0",
@@ -97,19 +110,19 @@
       "supportScope": "reviewed_source"
     },
     {
-      "id": "veo_fast",
+      "id": "veo-3.1",
       "aliases": [],
-      "profile": "profiles/veo_fast.json"
+      "profile": "profiles/veo-3.1.json"
     },
     {
-      "id": "veo_lite",
+      "id": "veo-3.1-fast",
       "aliases": [],
-      "profile": "profiles/veo_lite.json"
+      "profile": "profiles/veo-3.1-fast.json"
     },
     {
-      "id": "veo_quan",
+      "id": "veo-3.1-lite",
       "aliases": [],
-      "profile": "profiles/veo_quan.json"
+      "profile": "profiles/veo-3.1-lite.json"
     },
     {
       "id": "viduq3-pro",

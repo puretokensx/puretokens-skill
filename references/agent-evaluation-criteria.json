@@ -48,11 +48,11 @@
       "maxReads": 4,
       "allowedCommands": ["submit", "wait", "resume", "content", "delivered"],
       "requiredCommands": ["submit", "content"],
-      "requiredReferences": ["skills/puretokens-image/SKILL.md", "skills/puretokens-image/references/profiles/gpt-image-2.5-flare.json"],
+      "requiredReferences": ["skills/puretokens-image/SKILL.md", "skills/puretokens-image/references/profiles/gpt-image-2.6.json"],
       "attachmentRequired": true,
       "receiptBeforeContinuation": true,
       "deliveredAfterAttachment": true,
-      "attachmentModel": "gpt-image-2.5-flare"
+      "attachmentModel": "gpt-image-2.6"
     },
     "image-existing-icons": {
       "skills": ["puretokens-image"],
@@ -72,10 +72,10 @@
       "maxReads": 4,
       "allowedCommands": ["submit", "wait", "resume", "content", "delivered"],
       "requiredCommands": ["submit", "content", "delivered"],
-      "requiredReferences": ["skills/puretokens-image/SKILL.md", "skills/puretokens-image/references/profiles/gpt-image-2.5-flare.json", "skills/puretokens-image/references/workflows.md"],
+      "requiredReferences": ["skills/puretokens-image/SKILL.md", "skills/puretokens-image/references/profiles/gpt-image-2.6.json", "skills/puretokens-image/references/workflows.md"],
       "attachmentRequired": true,
       "attachmentCount": 3,
-      "attachmentModel": "gpt-image-2.5-flare",
+      "attachmentModel": "gpt-image-2.6",
       "independentAssets": ["红色茶壶", "蓝色陶瓷杯", "绿色玻璃瓶"],
       "stopOnAssetError": true
     },
@@ -87,7 +87,7 @@
       "requiredCommands": ["submit", "content", "delivered"],
       "attachmentRequired": true,
       "attachmentCount": 1,
-      "attachmentModel": "gpt-image-2.5-flare",
+      "attachmentModel": "gpt-image-2.6",
       "independentAssets": ["红色茶壶", "蓝色陶瓷杯", "绿色玻璃瓶"],
       "stopOnAssetError": true,
       "sayAny": ["未知", "未确认", "无法确认"],
@@ -100,7 +100,7 @@
       "allowedCommands": ["submit", "wait", "resume", "content", "delivered"],
       "requiredCommands": ["submit", "content"],
       "attachmentRequired": true,
-      "attachmentModel": "gpt-image-2.5-flare",
+      "attachmentModel": "gpt-image-2.6",
       "combinedSubjects": ["红色茶壶", "蓝色陶瓷杯", "绿色玻璃瓶"]
     },
     "unknown-submission": {
@@ -152,7 +152,7 @@
       "requiredCommands": ["model-groups"],
       "maxCommands": 1,
       "attachmentRequired": false,
-      "exactModel": "nano-banana-2",
+      "exactModel": "gemini-nano-banana-2.1",
       "sayAny": ["无法确认", "不能确认", "未能确认", "没有返回"],
       "forbiddenSay": ["Gemini", "gemini", "删除原分组", "换 Key", "已确认权限"]
     },
@@ -166,7 +166,7 @@
       "maxCommands": 2,
       "attachmentRequired": false,
       "catalogBeforeAsk": true,
-      "askAll": [["nano-banana-2"], ["新任务", "重新生成"], ["计费", "费用", "收费"]]
+      "askAll": [["gemini-nano-banana-2.1"], ["新任务", "重新生成"], ["计费", "费用", "收费"]]
     },
     "historical-content-rejection": {
       "skills": ["puretokens-image"],

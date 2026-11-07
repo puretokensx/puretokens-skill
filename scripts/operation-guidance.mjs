@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 const fields = ["id", "skill", "label", "command", "kind", "operations", "lifecycle", "delivery", "recovery"];
-const ids = ["image", "video", "speech", "transcribe", "sound", "music_sync", "voice_change", "music", "evaluate", "embedding", "rerank"];
+const ids = ["image", "video", "speech", "transcribe", "sound", "music_sync", "voice_change", "music", "audio_task", "evaluate", "embedding", "rerank"];
 const recoveries = {
   "task-record": "原任务 `resume`；仅实际附件交付后 `delivered`",
   "local-artifact": "仅已有文件 `audio-verify` 后重新附加；无任务查询",
@@ -43,6 +43,10 @@ export async function loadOperationGuidance(root) {
       if (contract.kind !== "audio" || contract.result.asynchronousMusic?.kind !== "music" ||
           !contract.result.asynchronousMusic.asynchronous || !contract.result.asynchronousMusic.neverAutomaticallyResubmits ||
           row.operations.join() !== "generate") throw new Error("music: async contract differs");
+    } else if (row.id === "audio_task") {
+      if (contract.kind !== "audio" || contract.result.asynchronousAudio?.kind !== "audio_task" ||
+          !contract.result.asynchronousAudio.asynchronous || !contract.result.asynchronousAudio.neverAutomaticallyResubmits ||
+          row.operations.join() !== "generate") throw new Error("audio_task: async contract differs");
     } else if (row.id === "evaluate") {
       if (contract.kind !== "evaluate" || !contract.result.synchronous || !contract.result.neverPoll ||
           !contract.result.neverAutomaticallyRetries || row.operations.length !== 0) throw new Error("evaluate: sync contract differs");
@@ -58,7 +62,7 @@ export async function loadOperationGuidance(root) {
           !contract.result.synchronousOperations.includes(operation) || !contract.result.neverAutomaticallyRetries ||
           !contract.operations[operation]) throw new Error(`${row.id}: sync contract differs`);
     }
-    const async = ["image", "video", "music"].includes(row.id);
+    const async = ["image", "video", "music", "audio_task"].includes(row.id);
     const text = ["transcribe", "evaluate"].includes(row.id);
     const file = ["embedding", "rerank"].includes(row.id);
     const command = async ? "submit" : row.id === "evaluate" || file ? row.id : "audio";

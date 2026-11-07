@@ -71,34 +71,53 @@ export async function loadHostDelivery(root) {
   return source;
 }
 
+function renderProtocol(protocol) {
+  return [
+    `## ${protocol.title}`, "", `适用模式：${protocol.modes.map(mode => labels[mode]).join("、")}；媒体：${protocol.media.map(kind => labels[kind]).join("、")}。`, "",
+    `前提：${protocol.requirement}`, "", `动作：${protocol.action}`, "", `确认：${protocol.confirmation}`, "", `依据：${protocol.evidence}`,
+    ...protocol.sources.map(url => `- 官方资料：${url}`), ""
+  ];
+}
+
 export function renderHostDeliveryGuide(source) {
-  const protocols = new Map(source.protocols.map(row => [row.id, row]));
+  const shared = source.protocols.find(row => row.id === source.defaultProtocol);
+  if (!shared) throw new Error("Missing shared delivery protocol");
   const lines = [
     "# 当前客户端的结果交付", "",
-    "当前会话尚无明确交付方式，或遇到文件已生成但未出现在对话时，读取本页对应宿主／模式；已知且仍有效的协议不重读。它不是生成前的联网检查，也不是实机验收清单。", "",
+    "当前会话尚无明确交付方式，或文件已生成但未出现在对话时，只读本页通用规则和 `delivery/<已绑定的 host>.md`；已知且仍有效的协议不重读，不读其他客户端文件。它不是生成前的联网检查，也不是实机验收清单。宿主 ID 入口见 [短索引](desktop-hosts.md)。", "",
     "## 先用已有宿主能力", "",
     "- 宿主 ID 沿用本任务绑定值；桌面、IDE、CLI 和远程模式不能互相代替。只依据当前应用上下文及现有工具声明选择交付方式，不扫描配置、安装插件或试发付费任务。",
     "- 普通生成不为此额外联网或增加发现步骤。验收未知不等于无法交付；仅当前宿主已明确不能接收所需文件或附件字节不可访问时，在提交前说明限制并停止。",
     "- 图片、视频、配音、音效和音乐使用执行器已校验的实际原生文件。将 `downloaded_paths` 或 `artifact.path` 中的绝对路径传给当前宿主支持的动作，不重命名、转换、上传或重复下载以制造可展示形式。",
+    "- GIF 按原始 `.gif` 文件交付；当前预览工具不支持 GIF，但原生文件附件支持时，使用原始文件附件。不能用静态首帧、PNG/JPEG、改后缀、HTML 或视频替代。若用户明确要求在对话中播放，附件交付不能冒充播放验收；宿主两种方式均不支持时保留文件和原任务并说明限制，不重新生成。",
+    "- 显式 SVG 仅交付执行器已校验的原始 `.svg` 文件；宿主未声明安全 SVG 预览时使用原生文件附件，不插入 HTML、不运行内容、不转成 PNG。原文件附件交付不等于渲染验收。",
+    "- 显式视频尾帧是同任务第二份产物：索引 0 为视频，索引 1 为尾帧图片；逐份交付并确认，单份完成不代表整个任务完成。",
     "- 录音转写和 Jev 是文本结果：直接展示校验后的 `result.text` 或结构化答案，不要求附件、图片预览或媒体交付工具。", "",
-    "## 按宿主选择", "",
-    "表中是条件协议，不是客户端能力承诺。先核对当前模式和协议前提；专用协议不适用时，依据当前会话的通用原生协议，不能把未验证写成不支持，也不能虚构不存在的工具。", "",
-    "| 宿主 ID | 可检查的协议 |", "| --- | --- |"
+    "各宿主文件只含该宿主的条件协议，不是客户端能力承诺。核对当前模式及前提；专用协议不适用时，使用本页的通用原生协议，不能虚构工具。目录、安装或 init 成功不证明交付，文档不改变实机验收状态。", "",
+    ...renderProtocol(shared)
   ];
-  for (const host of source.hosts) {
-    lines.push(`| \`${host.id}\` | ${host.protocols.map(id => protocols.get(id).title).join("；")} |`);
-  }
-  lines.push("", "TRAE 的源码适配器仅使用 Switch 已保存连接；实际技能加载、API 与原生交付仍需分别验收。这里列出交付协议不等于已发布或实机通过。其他客户端同样遵守原有凭据与执行模式边界。", "");
-  for (const protocol of source.protocols) {
-    lines.push(`## ${protocol.title}`, "", `适用模式：${protocol.modes.map(mode => labels[mode]).join("、")}；媒体：${protocol.media.map(kind => labels[kind]).join("、")}。`, "",
-      `前提：${protocol.requirement}`, "", `动作：${protocol.action}`, "", `确认：${protocol.confirmation}`, "", `依据：${protocol.evidence}`);
-    for (const url of protocol.sources) lines.push(`- 官方资料：${url}`);
-    lines.push("");
-  }
   lines.push("## 区分交付动作、交付记录和播放验收", "",
     "文件已校验、交付动作已发出、宿主已完成文件交接、用户确实打开／播放，是不同事实。只按当前协议的实际成功信号描述；发出一个路径不创造附件成功回执。宿主按其明确协议接收媒体项后，无须再要求用户每次回复确认；没有可确定的交接结果时，保留待交付并说明文件已准备好，不能预先执行 `delivered`。", "",
     "异步任务仅在实际交接后执行原记录的 `delivered`；同步音频不调用该命令。若交付发生在最终回复，不能在该回复发出前先确认；可在支持中间媒体消息的宿主先发送，再按实际协议记账。用户明确确认已收到也是可用依据，但不把确认作为每次正常交付的额外步骤。打开／播放成功属于单独的实机验收，不能从工具接收推断。", "",
     "交付失败保留原任务及原文件：异步用原记录 `resume`，同步音频用 `audio-verify` 校验后重交；不重生、不自动换模型。远程路径不能冒充本地可访问路径，终端图片输入、给模型看图或打印 Markdown 也不能冒充用户收到了音视频。", "",
     `资料核对日期：${source.reviewedAt}；本页不更改实机验收状态。`, "");
+  return lines.join("\n");
+}
+
+export function renderSelectedHostDelivery(source, hostID) {
+  const host = source.hosts.find(row => row.id === hostID);
+  if (!host) throw new Error("Unknown delivery host; never fall back to another client");
+  const lines = [
+    `# ${hostID} 结果交付`, "",
+    "沿用当前宿主绑定和 [通用交付规则](../host-delivery.md)，仅使用符合当前模式和前提的协议。", ""
+  ];
+  for (const id of host.protocols) {
+    const protocol = source.protocols.find(row => row.id === id);
+    if (!protocol) throw new Error("Unknown delivery protocol");
+    if (id !== source.defaultProtocol) lines.push(...renderProtocol(protocol));
+  }
+  if (host.protocols.every(id => id === source.defaultProtocol)) {
+    lines.push("本宿主没有额外专用协议；仅在当前会话明确支持时使用通用规则中的原生交付方式。", "");
+  }
   return lines.join("\n");
 }

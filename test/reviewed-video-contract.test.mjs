@@ -14,7 +14,7 @@ test("reviewed video profiles preserve source scope separately from the public s
   const validateProfile = compileSchema(profileSchema, [profileSchema]);
   const validateIndex = compileSchema(indexSchema, [indexSchema]);
   assert.deepEqual(validateIndex(index), []);
-  assert.equal(source.models.length, 11);
+  assert.equal(source.models.length, 9);
   for (const model of source.models) {
     const row = index.models.find(row => row.id === model.id);
     assert.equal(row.supportScope, "reviewed_source");
@@ -30,7 +30,7 @@ test("reviewed video profiles preserve source scope separately from the public s
     }
   }
   for (const id of ["MiniMax-H3", "viduq3-pro", "viduq3-turbo",
-    "kling-v3", "kling-v3-turbo", "Super Vega 1.0-lite", "Super Vega 1.0-pro",
+    "Super Vega 1.0-lite", "Super Vega 1.0-pro",
     "Super Vega 1.0-pro-fast", "Super Vega 1.0-pro-mini", "Super Vega 1.5-pro"]) {
     const live = catalog.models.find(row => row.id === id);
     const installed = await read(`skills/puretokens-video/references/profiles/${id}.json`);
@@ -43,6 +43,10 @@ test("reviewed video profiles preserve source scope separately from the public s
   assert.ok(!catalog.models.some(row => row.id === "viduq4-preview"),
     "source-only Vidu Q4 must not be invented in the public snapshot");
   assert.equal(index.models.filter(row => row.id === "viduq4-preview").length, 1);
+  for (const id of ["kling-v3", "kling-v3-turbo"]) {
+    assert.ok(!catalog.models.some(row => row.id === id));
+    assert.ok(!index.models.some(row => row.id === id), "retired routes must leave new selection");
+  }
   assert.equal(index.defaultModel, "MiniMax-H3");
 });
 

@@ -54,6 +54,23 @@ func TestSupportRequestIDHeaderBoundary(t *testing.T) {
 	}
 }
 
+func TestSupportMappedConnectionChangeIsSafeAndActionable(t *testing.T) {
+	var output bytes.Buffer
+	writer := &supportReceiptWriter{output: &output, command: "status", host: "claude-desktop"}
+	_ = rejectChangedTaskConnection(writer, taskRequest{Kind: "image", TaskID: "fixture-original"})
+	var result map[string]any
+	if json.Unmarshal(output.Bytes(), &result) != nil {
+		t.Fatal("invalid diagnostic")
+	}
+	support := jsonObject(result["support"])
+	if support["local_error_code"] != "task_connection_changed" || support["api_request_attempted"] != false || result["next_step"] != "await_user" {
+		t.Fatal("connection change lost its safe support category or stop action")
+	}
+	if support["connection_id"] != nil {
+		t.Fatal("connection identity must not enter exports")
+	}
+}
+
 func TestSupportRequestPhaseAndDoctorFailure(t *testing.T) {
 	writer := &supportReceiptWriter{command: "doctor"}
 	for _, tc := range []struct{ method, path, phase string }{

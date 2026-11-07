@@ -14,7 +14,7 @@
 }
 ```
 
-请求仅含这三个字段，不接受 `dimensions`、`user`、自选地址、文件引用或输出目录 flags。审核 ID 为 `qwen3.7-text-embedding`、`qwen3.7-text-embedding-flash`，不猜别名。`input` 为 1–64 条非空字符串，每条最多 32768 个 Unicode 字符；整个请求最多 1048576 字节，响应最多 2097152 字节。父目录必须已存在且可写，文件必须是尚不存在的绝对 `.jsonl`；不覆盖、跟随符号链接改写或删除原文件。请求和路径校验先于凭据读取或网络请求。
+请求仅含这三个字段，不接受 `dimensions`、`user`、自选地址、文件引用或输出目录 flags。审核 ID 为 `qwen3.7-text-embedding`、`qwen3.7-text-embedding-flash`，不猜别名。用户未指定时由 Skill 显式填入默认 `qwen3.7-text-embedding`；用户指定 flash 时保留，不省略 model 或在失败后自动替换。`input` 为 1–64 条非空字符串，每条最多 32768 个 Unicode 字符；整个请求最多 1048576 字节，响应最多 2097152 字节。父目录必须已存在且可写，文件必须是尚不存在的绝对 `.jsonl`；不覆盖、跟随符号链接改写或删除原文件。请求和路径校验先于凭据读取或网络请求。
 
 固定 API 为 `POST https://api.puretokensx.com/v1/embeddings`，body 仅有 `model`、`input` 和固定 `encoding_format: "float"`；`output_file` 是本地产物路径，不发送到 API。单次同步 90 秒，不重试、不轮询。
 

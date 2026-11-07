@@ -1,0 +1,91 @@
+{
+  "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
+  "schemaVersion": 1,
+  "capability": "image",
+  "catalogUpdatedAt": "2026-11-07",
+  "catalogCapturedAt": "2026-11-07T09:20:36.335Z",
+  "id": "dola-seedream-5-0-pro-260628",
+  "parameterSchema": {
+    "properties": {
+      "prompt": {
+        "type": "string",
+        "required": true,
+        "maxLength": 4000
+      },
+      "n": {
+        "type": "integer",
+        "default": 1,
+        "min": 1,
+        "max": 1
+      },
+      "size": {
+        "type": "string",
+        "enum": [
+          "1K",
+          "2K"
+        ],
+        "default": "2K"
+      },
+      "image_size": {
+        "type": "string",
+        "enum": [
+          "1K",
+          "2K"
+        ],
+        "default": "2K"
+      },
+      "aspect_ratio": {
+        "type": "string",
+        "enum": [
+          "auto"
+        ],
+        "default": "auto"
+      },
+      "seed": {
+        "type": "integer",
+        "min": 0,
+        "max": 2147483647
+      },
+      "watermark": {
+        "type": "boolean",
+        "default": true
+      }
+    },
+    "operations": {
+      "image_generation": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/images/generations",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt"
+        ]
+      },
+      "image_edit": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/images/generations",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt",
+          "images"
+        ],
+        "inputs": {
+          "images": {
+            "field": "images",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 3,
+            "transports": [
+              "https_url"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

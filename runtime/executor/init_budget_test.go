@@ -40,6 +40,13 @@ func TestInitSharesOneTwentySecondDeadline(t *testing.T) {
 	if len(deadlines) != 2 || !deadlines[0].Equal(deadlines[1]) {
 		t.Fatalf("init reset its deadline: %v", deadlines)
 	}
+	var result initReceipt
+	if json.Unmarshal(out.Bytes(), &result) != nil || !strings.Contains(result.NextAction, "already available") || !strings.Contains(result.NextAction, "only when required") {
+		t.Fatalf("init unnecessarily restarts the conversation: %s", out.String())
+	}
+	if strings.Contains(strings.Join(result.UsageExamples, " "), "then start a new host conversation") {
+		t.Fatal("usage example forces a new conversation")
+	}
 }
 
 func TestInitDeadlineStopsWithoutRetryAndPreservesIdentityResult(t *testing.T) {

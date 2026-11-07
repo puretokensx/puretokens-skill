@@ -1,0 +1,110 @@
+{
+  "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
+  "schemaVersion": 1,
+  "capability": "video",
+  "catalogUpdatedAt": "2026-11-07",
+  "catalogCapturedAt": "2026-11-07T09:20:36.335Z",
+  "id": "grok-imagine-video-1.5-preview",
+  "parameterSchema": {
+    "properties": {
+      "prompt": {
+        "type": "string",
+        "required": true
+      },
+      "duration": {
+        "type": "integer",
+        "enum": [
+          5,
+          10
+        ],
+        "default": 5
+      },
+      "resolution": {
+        "type": "string",
+        "enum": [
+          "480p",
+          "720p"
+        ],
+        "default": "480p"
+      },
+      "aspect_ratio": {
+        "type": "string",
+        "enum": [
+          "16:9",
+          "9:16",
+          "1:1"
+        ],
+        "default": "16:9"
+      },
+      "first_frame_image": {
+        "type": "string"
+      },
+      "last_frame_image": {
+        "type": "string"
+      }
+    },
+    "operations": {
+      "image_to_video": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt",
+          "first_frame_image"
+        ],
+        "inputs": {
+          "first_frame_image": {
+            "field": "first_frame_image",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 1,
+            "transports": [
+              "https_url"
+            ]
+          }
+        }
+      },
+      "last_frame_video": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt",
+          "first_frame_image",
+          "last_frame_image"
+        ],
+        "inputs": {
+          "first_frame_image": {
+            "field": "first_frame_image",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 1,
+            "transports": [
+              "https_url"
+            ]
+          },
+          "last_frame_image": {
+            "field": "last_frame_image",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 1,
+            "transports": [
+              "https_url"
+            ]
+          }
+        }
+      }
+    },
+    "constraints": {
+      "unsupported_operations": {
+        "video_edit": true
+      }
+    }
+  }
+}

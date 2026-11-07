@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-10-21",
+  "reviewedAt": "2026-11-07",
   "model": "eleven_text_to_sound_v2",
   "operation": "generate",
   "path": "/v1/audio/generate",

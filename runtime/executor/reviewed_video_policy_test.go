@@ -90,6 +90,9 @@ func TestReviewedGrokEditControls(t *testing.T) {
 		}
 		profile := readInstalledProfileFixture(t, "video", request.Model)
 		svc, transport := catalogProfileService(t, profile)
+		if operation == "edit" {
+			_, svc, transport = retiredProfileService(t, request.Model)
+		}
 		if err := prepareProfileRequest(&request, svc); err != nil || transport.calls != 0 {
 			t.Fatalf("valid %s changed: %v", operation, err)
 		}

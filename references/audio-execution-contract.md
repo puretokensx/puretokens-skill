@@ -1,6 +1,6 @@
 # Audio Skill and gateway contract
 
-Reviewed 2026-10-21. Owners: `puretokens-skill` owns `puretokens-audio`, the
+Reviewed 2026-11-07. Owners: `puretokens-skill` owns `puretokens-audio`, the
 one-shot executor, reviewed model/voice profiles, local validation and host
 attachment handoff. `PureTokenPlus_web` owns API routing, upstream adapters,
 authorization, billing and its separate account-session audio workspace.
@@ -8,10 +8,43 @@ The paired contract is `docs/product/audio-workspace-integration.md` in Web.
 
 ## Fixed API-key protocol
 
+The synchronous routes below do not apply to Gemini TTS or Lyria. Their
+asynchronous protocol is defined in the next section. No Web changes are made
+by this Skill adaptation; source inspection is not paid production acceptance.
+
+## Gemini TTS and Lyria tasks
+
+Exact models `gemini-3.8-flash-tts`, `lyria-3.5`, `lyria-3-pro-preview` use
+`kind=audio_task`: POST `/v1/tasks/product-yutoux`, GET `/v1/tasks/{id}`,
+GET `/v1/tasks/{id}/artifacts/audio/content`, all at the fixed API origin.
+The current host connection supplies the bearer; no group override or account
+session route is used. The gateway's existing native submit returns id/task_id
+and queued without platform; status requires matching task_id and
+platform=product-yutoux. FAILURE normalizes to failed; NOT_START/SUBMITTED to
+queued. Unknown, conflicting or wrong-family responses never authorize content
+or another submission. Submit has one 90-second deadline and immediately returns.
+
+Gemini sends original input, optional voice (default Kore), instructions,
+temperature 0-2 and exactly two distinct named speakers when requested. Only WAV
+is accepted for verified delivery, not PCM. Lyria sends prompt, optional lyrics
+and temperature; output is MP3. Local text bounds are 8000 characters for input
+or lyrics, 4000 for instructions, 120 for speaker/voice names, and 64 KiB total
+request JSON. These are executor safety limits, not provider performance claims.
+No duration, instrumental flag, reference audio or batch generation is inferred.
+
+Task records, bounded waits, resume/redeliver and native 32 MiB artifact checks
+are shared with existing asynchronous tasks, but never share StepFun's submit
+or retrieval routes. Records contain no spoken text, instructions, lyrics,
+speaker names or voices; only model/task identity, safe format and progress.
+Only actual attachment handoff permits delivered. Detailed request guidance:
+`skills/puretokens-audio/references/async-audio-usage.md`.
+
+## Synchronous StepFun operations
+
 | Operation | Fixed POST URL | Reviewed exact model IDs | Response |
 | --- | --- | --- | --- |
 | `speech` | `https://api.puretokensx.com/v1/audio/speech` | `stepaudio-2.5-tts`, `step-tts-2`, `step-tts-mini` | Complete MP3/WAV bytes |
-| `transcribe` | `https://api.puretokensx.com/v1/audio/transcriptions` | `stepaudio-2.5-asr`, `step-asr`, `stepaudio-3-asr-max`, `stepaudio-2-asr-pro` | Final JSON `text` |
+| `transcribe` | `https://api.puretokensx.com/v1/audio/transcriptions` | `stepaudio-2.5-asr`, `step-asr`, `stepaudio-3-asr-max`, `stepaudio-2-asr-pro` | Final JSON `text`; first two also allow explicit plain text |
 | `generate` | `https://api.puretokensx.com/v1/audio/generate` | `stepaudio-3-gen-preview` | Complete MP3/WAV bytes |
 
 One invocation makes one synchronous POST with a 90-second deadline, no redirect,
@@ -22,12 +55,24 @@ Max/Pro belongs to the gateway: the client requires one final JSON response.
 
 StepFun speech sends `model`, unchanged `input`, a model-specific reviewed `voice`,
 `response_format`, optional `speed` (0.5–2), and optional `instruction` only for
-TTS2.5. The local text limit is 1000 Unicode characters, instruction limit 500.
+TTS2.5. Only exact `stepaudio-2.5-tts` also permits numeric `volume` 0.1-2,
+independent of speed. Omission preserves the gateway default. The local text
+limit is 1000 Unicode characters, instruction limit 500.
+The anonymous Web speech catalog reports `instructionMaxLength=200` for its
+account-session composer. That is a Web workspace limit, not the dedicated
+API-key route contract: the paired gateway documentation retains the Skill's
+500-character bound, and the gateway speech adapter does not apply the BFF
+composer validator. Do not import account-session limits as API parameter changes.
 StepFun sound sends only `model`, `instruction` (max 500), `response_format`, fixed
-`task=text_to_audio` and `stream_format=audio`. Transcription sends only multipart
+`task=text_to_audio` and `stream_format=audio`. Transcription defaults to multipart
 `model`, `response_format=json`, and the original MP3/WAV/OGG file, at most 8 MiB.
 It does not send local paths, original filenames or upload to another service.
 The request file is bounded to 64 KiB; no implicit paid chunking or conversion.
+Only `stepaudio-2.5-asr` and `step-asr` additionally allow `hotwords` as an array
+of nonempty strings, serialized once as a JSON-array multipart field, and optional
+`response_format=json|text`. Text responses require bounded UTF-8 `text/plain`,
+no NUL, nonempty content and credential redaction. Max/Pro and ElevenLabs do not
+inherit these fields. Invalid extensions stop before credentials or HTTP.
 
 Local request errors include a controlled `validation` object (`field`, `reason`,
 optional numeric `limit`). It never echoes input values, paths or unknown field
@@ -43,12 +88,15 @@ that source, schemas, native validation and the paired gateway contract/tests.
 TTS3 has no reviewed preset voice mapping and remains excluded. Cloning,
 translation, streaming input and real-time conversation are not implemented.
 
-## ElevenLabs synchronous expansion (candidate 0.19.6)
+## ElevenLabs synchronous operations
 
-These are source-reviewed API-Key contracts, not production availability,
-model/voice entitlement, paid acceptance or host playback evidence. New IDs are
-absent from the anonymous production snapshot dated 2026-10-21. Ordinary calls
-still read only the selected profile, never a catalog preflight.
+These are source-reviewed API-Key contracts, not model/voice entitlement,
+paid acceptance or host playback evidence. All nine reviewed ElevenLabs IDs
+are visible in the anonymous base catalog rechecked on 2026-11-07. That list
+does not guarantee availability in the account-session audio workspace or for
+the current Key. Ordinary calls still read only the selected profile, never a
+catalog preflight. See `acceptance/web-model-review-20261106.md` for the dated
+public catalog and protocol-source comparison.
 
 | Exact IDs | Executor operation | Fixed route and fields |
 | --- | --- | --- |
@@ -126,7 +174,8 @@ PCM/float WAV structure, and saved without overwriting a user file in an explici
 output directory. OGG input requires a single complete Opus (mono/stereo mapping
 family0) or Vorbis stream with page CRC/sequence and codec headers. These checks
 do not decode playback or prove audible quality. Transcription requires final
-JSON (max 128 KiB), a nonempty `text` (max 100000 Unicode characters), and no error.
+JSON (max 128 KiB), a nonempty `text` (max 100000 Unicode characters), and no error,
+or the explicitly selected, model-scoped plain-text response above.
 Only the safe text projection is returned; arbitrary upstream fields are omitted.
 
 Binary receipt: `submission_outcome=accepted`, `next_step=deliver`,
@@ -145,6 +194,14 @@ exclude input, transcript, file paths and output bytes. Explicit artifact receip
 are user/workspace files, not a credential or media cache.
 
 ## Model discovery and evidence
+
+The public catalog now also lists `gemini-3.8-flash-tts`, `lyria-3.5` and
+`lyria-3-pro-preview`. They use `POST /v1/tasks/product-yutoux`, then same-task
+`GET /v1/tasks/{id}` and `/artifacts/audio/content`. The executor implements this
+separate `audio_task` protocol with fixture lifecycle/schema coverage. Never
+route these models through synchronous audio or StepFun music, or claim real
+Key entitlement, provider acceptance or host playback from listing or fixtures.
+See `acceptance/web-model-review-20261106.md` for the publication follow-up.
 
 Only explicit audio discovery uses one authenticated `GET /v1/models`, intersected
 with exact reviewed IDs. Operation filtering uses reviewed local profiles; the

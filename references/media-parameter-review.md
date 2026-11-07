@@ -1,6 +1,89 @@
 # Media Parameter Review
 
-## Current review - 2026-10-24
+## Current review - 2026-11-07
+
+The publication follow-up is recorded in `acceptance/web-model-review-20261106.md`.
+The anonymous snapshot contains 149 models and 48 dedicated media declarations:
+22 image and 26 video. Installed selection additionally retains the separately
+reviewed source-only viduq4-preview profile. The retired kling-v3 and
+kling-v3-turbo routes leave selection and reject new tasks, without blocking
+historical task recovery. Missing catalog IDs are not aliases for new
+models and do not invalidate old task recovery. The final November 7 capture
+no longer lists muse-video, so it leaves new selection without a permanent
+retirement claim. Following the user's November 7 selection, the image default
+is now exact `gpt-image-2.6` and embedding defaults to
+`qwen3.7-text-embedding`. Video remains `MiniMax-H3`; explicit choices and
+existing task models are unchanged.
+
+Submission and filtered discovery validate operation-specific fields, image
+format/size combinations, standard versus sequential counts and combined input
+and output limits. Seedream sequence counts must match explicit `n`/requested
+count and `sequential_image_generation_options.max_images`; the executor still
+caps all task output at eight. GIF is permitted only by each model's declared
+operation/size rules and survives receipts/records. Download and proof recovery
+must match an explicitly requested output format; mismatches stop without
+conversion or resubmission. GIF bytes and extension stay unchanged. Historical
+records lacking output_format are not constrained by today's model defaults.
+Explicit SVG is supported only for the three exact GPT 2.6 IDs. Preserve the
+original bytes after complete HTTP 200 delivery, an 8 MiB limit and bounded
+static XML/CSS validation. Scripts, external resources and unsafe structures
+are rejected, never stripped or converted. Host file handoff remains separate.
+Wan mode-specific resolution rules apply to named 1K/2K/4K tiers, not explicit
+pixel dimensions; declared Seedream dimension bounds remain enforced separately.
+
+GPT 2.6 base edits exclude GIF, while flare/sunburst allow GIF edits at 1K only.
+Vidu keeps `generate_audio`/`seed` and gains mode restrictions for voice/watermark
+fields. The four exact Super Vega Pro profiles support explicit
+`return_last_frame=true`: video index 0 and tail-frame image index 1, with the
+original requested_count still 1. Verify the original task's artifact manifest
+before the fixed last_frame content route; never follow returned URLs. Both
+artifacts have independent proof and handoff records. Missing tail output stops
+same-task recovery without changing the request or resubmitting.
+Wan uses `audio` as a boolean, duration `-1` or 2-30 and declared HTTPS reference
+operations. Native nested inputs/idempotency claims remain outside this contract.
+
+Generic JSON operations can use multipart only when every local role explicitly
+declares that transport. The seven exact Gemini/Nano 2.1, Veo and Omni Flash
+profiles instead project local files as `local_file_data_url`: the executor
+encodes verified PNG/JPEG/WebP bytes in memory into the existing fixed JSON
+API with original images/reference_images/first_frame_image/last_frame_image
+roles. This avoids the gateway multipart decoder's collapsed roles without
+changing the gateway. Each file is at most 14 MiB; the complete encoded body
+is at most 20 MiB. Arbitrary caller-supplied data URLs remain rejected.
+No rehosting, new upload endpoint or silent text-only downgrade is permitted.
+
+Exact gpt-image-2.6, gpt-image-2.6-flare and gpt-image-2.6-sunburst also support
+JSON `masked_image_edit`: 1-10 declared HTTPS originals plus one local PNG mask.
+Only the executor encodes the validated immutable mask in memory, under the
+same 14 MiB/20 MiB bounds. Caller data URLs, duplicate roles, local originals
+mixed into this operation and unreviewed models stop. All-local multipart
+image/mask editing is unchanged. The same reviewed projection is applied after
+a single profile-gap catalog GET, not only during installation/discovery.
+
+Six exact `kling-video-*` IDs now have dedicated installed profiles. Flat
+parameters use `/v1/videos`; motion control permits an empty prompt with the
+required character image/action video and orientation. Omni feature/base modes
+validate audio/multi_shot and material counts. A separate `native_video` operation
+accepts bounded contents/settings/options for these six exact IDs at /v1/videos.
+It rejects flat/native mixtures, unknown fields, invalid roles, counts, URLs and
+IDs before networking. Existing element/voice IDs are allowed only in reviewed
+roles; resource creation, voice cloning and idempotency claims remain excluded.
+Exact-model request guards also enforce reference-only V4 adaptive ratio,
+distinct bounded existing voice IDs, mode-specific prompt lengths and material
+counts even if an installed/live schema is missing. Source-controlled ratios
+are rejected when they would be silently ignored; declared reference-mode
+ratios remain available. A combined role still requires a declared transport.
+
+Gemini TTS and Lyria now use a separate asynchronous audio task protocol with
+one submission, original-task recovery and verified WAV/MP3 bytes. Synchronous
+audio and StepFun music retain their own routes. See the audio execution
+contract; fixture success is not real Key, billing or host playback acceptance.
+Realtime voice, voice cloning and subject/resource creation are deliberately
+outside the requested Skill scope. Audio translations remain unavailable: the
+generic gateway route exists, but no currently public exact model has a verified
+native translation contract. Do not substitute ASR plus a chat model.
+
+## Historical review - 2026-10-24
 
 The anonymous production catalog now lists 129 models, with 38 explicit media
 declarations (15 image, 23 video). Kling V3/Turbo and the five reviewed Super

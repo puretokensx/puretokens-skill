@@ -63,6 +63,18 @@ func doctorHostLocations(host, home string, getenv func(string) string) []doctor
 	}
 	location := ""
 	switch host {
+	case "qwen-code", "codebuddy-code", "copilot-cli", "factory-droid", "mimo-coder":
+		root, err := switchCLIRoot(host, home, getenv)
+		if err != nil {
+			return nil
+		}
+		locations := []doctorLocation{{"host_skills", filepath.Join(root, "skills")}}
+		if host == "qwen-code" || host == "copilot-cli" || host == "mimo-coder" {
+			locations = append(locations, doctorLocation{"shared_agents_skills", filepath.Join(home, ".agents", "skills")})
+		}
+		return locations
+	case "paseo":
+		return []doctorLocation{{"host_skills", filepath.Join(home, ".agents", "skills")}}
 	case "claude-code", "claude-desktop":
 		location = getenv("CLAUDE_CONFIG_DIR")
 		if location == "" {
@@ -225,7 +237,7 @@ func collectDoctorAt(loadedRoot, host, home string, getenv func(string) string) 
 		NextAction: "Review the local findings; run the connection checks and verify attachment handoff in the current host.",
 	}
 	switch host {
-	case "claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop", "oh-my-pi", "minimax-code-cli":
+	case "claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop", "oh-my-pi", "minimax-code-cli", "qwen-code", "codebuddy-code", "copilot-cli", "factory-droid", "mimo-coder", "paseo":
 	default:
 		result.Host = "unsupported"
 		result.NextAction = "Choose a supported current host before running diagnostics."

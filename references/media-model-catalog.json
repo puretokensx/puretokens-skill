@@ -1,16 +1,311 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-03",
+  "updatedAt": "2026-11-07",
   "serviceCatalog": {
     "source": "Pure Tokens base model catalog",
     "path": "/api/product/docs/model-catalog",
-    "capturedAt": "2026-11-03T02:14:24.310Z"
+    "capturedAt": "2026-11-07T09:20:36.335Z"
   },
   "availabilityNotice": {
     "en": "This list is an installed selection aid, not a per-request authorization check. Ordinary generation reads only the selected profile; live discovery is limited to explicit requests, profile gaps or rejection diagnosis. Reviewed local compatibility supplements are separately sourced.",
     "zh": "这份清单用于安装后的模型选择，不是每次请求的认证检查。普通生成只读选中 profile；仅明确查询、profile 缺口或拒绝诊断时读取实时目录。经审查的本地兼容补充定义单独注明来源。"
   },
   "models": [
+    {
+      "id": "dola-seedream-5-0-pro-260628",
+      "name": "dola-seedream-5-0-pro-260628",
+      "provider": "ByteDance",
+      "vendorId": 15,
+      "capabilities": [
+        "image"
+      ],
+      "aliases": [],
+      "goodFor": {
+        "en": "Image generation",
+        "zh": "图片生成"
+      },
+      "example": {
+        "en": "Use dola-seedream-5-0-pro-260628 to generate an image.",
+        "zh": "用 dola-seedream-5-0-pro-260628 生成一张图片。"
+      },
+      "parameterSchema": {
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "required": true,
+            "maxLength": 4000
+          },
+          "n": {
+            "type": "integer",
+            "default": 1,
+            "min": 1,
+            "max": 1
+          },
+          "size": {
+            "type": "string",
+            "enum": [
+              "1K",
+              "2K"
+            ],
+            "default": "2K"
+          },
+          "image_size": {
+            "type": "string",
+            "enum": [
+              "1K",
+              "2K"
+            ],
+            "default": "2K"
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "auto"
+            ],
+            "default": "auto"
+          },
+          "seed": {
+            "type": "integer",
+            "min": 0,
+            "max": 2147483647
+          },
+          "watermark": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "operations": {
+          "image_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/generations",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
+          },
+          "image_edit": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/generations",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "images"
+            ],
+            "inputs": {
+              "images": {
+                "field": "images",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 3,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "gemini-3.0-pro-image",
+      "name": "gemini-3.0-pro-image",
+      "provider": "Google",
+      "vendorId": 4,
+      "capabilities": [
+        "image"
+      ],
+      "aliases": [],
+      "goodFor": {
+        "en": "Image generation",
+        "zh": "图片生成"
+      },
+      "example": {
+        "en": "Use gemini-3.0-pro-image to generate an image.",
+        "zh": "用 gemini-3.0-pro-image 生成一张图片。"
+      },
+      "parameterSchema": {
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "required": true
+          },
+          "n": {
+            "type": "integer",
+            "default": 1,
+            "min": 1,
+            "max": 1
+          },
+          "image_size": {
+            "type": "string",
+            "enum": [
+              "1K",
+              "2K",
+              "4K"
+            ],
+            "default": "1K"
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "4:5",
+              "5:4",
+              "9:16",
+              "16:9",
+              "21:9"
+            ],
+            "default": "1:1"
+          }
+        },
+        "operations": {
+          "image_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/generations",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
+          },
+          "image_edit": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/edits",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "images"
+            ],
+            "inputs": {
+              "images": {
+                "field": "images",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 14,
+                "transports": [
+                  "https_url",
+                  "local_file_data_url"
+                ]
+              }
+            }
+          }
+        },
+        "constraints": {}
+      }
+    },
+    {
+      "id": "gemini-3.1-flash-image",
+      "name": "gemini-3.1-flash-image",
+      "provider": "Google",
+      "vendorId": 4,
+      "capabilities": [
+        "image"
+      ],
+      "aliases": [],
+      "goodFor": {
+        "en": "Image generation",
+        "zh": "图片生成"
+      },
+      "example": {
+        "en": "Use gemini-3.1-flash-image to generate an image.",
+        "zh": "用 gemini-3.1-flash-image 生成一张图片。"
+      },
+      "parameterSchema": {
+        "properties": {
+          "n": {
+            "type": "integer",
+            "default": 1,
+            "min": 1,
+            "max": 1
+          },
+          "prompt": {
+            "type": "string",
+            "required": true
+          },
+          "image_size": {
+            "type": "string",
+            "enum": [
+              "1K",
+              "2K",
+              "4K"
+            ],
+            "default": "1K"
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "4:5",
+              "5:4",
+              "9:16",
+              "16:9",
+              "21:9",
+              "1:4",
+              "4:1",
+              "1:8",
+              "8:1"
+            ],
+            "default": "1:1"
+          }
+        },
+        "operations": {
+          "image_edit": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/edits",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "images"
+            ],
+            "inputs": {
+              "images": {
+                "field": "images",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 14,
+                "transports": [
+                  "https_url",
+                  "local_file_data_url"
+                ]
+              }
+            }
+          },
+          "image_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/generations",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
+          }
+        },
+        "constraints": {}
+      }
+    },
     {
       "id": "gemini-nano-banana-2.1",
       "name": "gemini-nano-banana-2.1",
@@ -32,14 +327,13 @@
         "properties": {
           "prompt": {
             "type": "string",
-            "required": true,
-            "minLength": 3
+            "required": true
           },
           "n": {
             "type": "integer",
             "default": 1,
             "min": 1,
-            "max": 8
+            "max": 1
           },
           "image_size": {
             "type": "string",
@@ -49,10 +343,6 @@
               "4K"
             ],
             "default": "1K"
-          },
-          "image": {
-            "type": "string[]",
-            "maxLength": 16
           },
           "aspect_ratio": {
             "type": "string",
@@ -67,74 +357,52 @@
               "9:16",
               "16:9",
               "21:9",
-              "4:1",
               "1:4",
-              "8:1",
-              "1:8"
-            ]
-          }
-        },
-        "constraints": {
-          "reference_transport": {
-            "image": [
-              "public_https_url"
-            ]
-          }
-        },
-        "lifecycle": {
-          "create": {
-            "successStatus": 200,
-            "idField": "id",
-            "object": "image",
-            "initialStatuses": [
-              "pending"
-            ]
-          },
-          "poll": {
-            "method": "GET",
-            "path": "/v1/images/{image_id}",
-            "intervalSeconds": 3,
-            "statusField": "status",
-            "pendingStatuses": [
-              "pending"
+              "4:1",
+              "1:8",
+              "8:1"
             ],
-            "successStatuses": [
-              "completed"
-            ],
-            "failureStatuses": [
-              "failed"
-            ],
-            "resultFields": [
-              "content_url",
-              "content_urls"
-            ]
+            "default": "1:1"
           }
         },
         "operations": {
+          "image_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/generations",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
+          },
           "image_edit": {
             "request": {
               "method": "POST",
               "path": "/v1/images/edits",
-              "contentType": "multipart/form-data"
+              "contentType": "application/json"
             },
             "requiredBodyFields": [
               "model",
               "prompt",
-              "image"
+              "images"
             ],
             "inputs": {
-              "image": {
-                "field": "image",
+              "images": {
+                "field": "images",
                 "required": true,
                 "minItems": 1,
-                "maxItems": 16,
+                "maxItems": 14,
                 "transports": [
-                  "multipart_file"
+                  "https_url",
+                  "local_file_data_url"
                 ]
               }
             }
           }
-        }
+        },
+        "constraints": {}
       }
     },
     {
@@ -768,6 +1036,776 @@
       }
     },
     {
+      "id": "gpt-image-2.6",
+      "name": "gpt-image-2.6",
+      "provider": "OpenAI",
+      "vendorId": 1,
+      "capabilities": [
+        "image"
+      ],
+      "aliases": [],
+      "goodFor": {
+        "en": "Image generation",
+        "zh": "图片生成"
+      },
+      "example": {
+        "en": "Use gpt-image-2.6 to generate an image.",
+        "zh": "用 gpt-image-2.6 生成一张图片。"
+      },
+      "parameterSchema": {
+        "properties": {
+          "n": {
+            "type": "integer",
+            "enum": [
+              1
+            ],
+            "default": 1
+          },
+          "image_size": {
+            "type": "string",
+            "enum": [
+              "1K",
+              "2K",
+              "4K"
+            ],
+            "default": "1K"
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "4:5",
+              "5:4",
+              "9:16",
+              "16:9",
+              "21:9"
+            ],
+            "default": "1:1"
+          },
+          "quality": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "low",
+              "medium",
+              "high"
+            ],
+            "default": "auto"
+          },
+          "output_format": {
+            "type": "string",
+            "enum": [
+              "png",
+              "jpeg",
+              "webp",
+              "gif",
+              "svg"
+            ],
+            "default": "jpeg"
+          },
+          "response_format": {
+            "type": "string",
+            "enum": [
+              "url"
+            ],
+            "default": "url"
+          },
+          "image": {
+            "type": "string[]",
+            "maxLength": 10
+          },
+          "mask": {
+            "type": "string"
+          }
+        },
+        "constraints": {
+          "reference_transport": {
+            "image": [
+              "public_https_url"
+            ]
+          },
+          "parameter_modes": {
+            "mask": [
+              "image_edit",
+              "masked_image_edit"
+            ]
+          },
+          "output_format_by_image_mode": {
+            "text": [
+              "png",
+              "jpeg",
+              "webp",
+              "gif",
+              "svg"
+            ],
+            "edit": [
+              "png",
+              "jpeg",
+              "webp"
+            ]
+          },
+          "aspect_ratio_by_image_size": {
+            "1K": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "4:5",
+              "5:4",
+              "9:16",
+              "16:9",
+              "21:9"
+            ],
+            "2K": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "4:5",
+              "5:4",
+              "9:16",
+              "16:9",
+              "21:9"
+            ],
+            "4K": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "4:5",
+              "5:4",
+              "9:16",
+              "16:9",
+              "21:9"
+            ]
+          }
+        },
+        "lifecycle": {
+          "create": {
+            "successStatus": 200,
+            "idField": "id",
+            "object": "image",
+            "initialStatuses": [
+              "pending"
+            ]
+          },
+          "poll": {
+            "method": "GET",
+            "path": "/v1/images/{image_id}",
+            "intervalSeconds": 3,
+            "statusField": "status",
+            "pendingStatuses": [
+              "pending"
+            ],
+            "successStatuses": [
+              "completed"
+            ],
+            "failureStatuses": [
+              "failed"
+            ],
+            "resultFields": [
+              "content_url",
+              "content_urls"
+            ]
+          }
+        },
+        "operations": {
+          "image_edit": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/edits",
+              "contentType": "multipart/form-data"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "image"
+            ],
+            "inputs": {
+              "image": {
+                "field": "image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 10,
+                "transports": [
+                  "multipart_file"
+                ]
+              },
+              "mask": {
+                "field": "mask",
+                "required": false,
+                "minItems": 0,
+                "maxItems": 1,
+                "transports": [
+                  "multipart_file"
+                ]
+              }
+            }
+          },
+          "masked_image_edit": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/edits",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "image_urls",
+              "mask"
+            ],
+            "inputs": {
+              "image_urls": {
+                "field": "image_urls",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 10,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "mask": {
+                "field": "mask",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "local_file_data_url"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "gpt-image-2.6-flare",
+      "name": "gpt-image-2.6-flare",
+      "provider": "OpenAI",
+      "vendorId": 1,
+      "capabilities": [
+        "image"
+      ],
+      "aliases": [],
+      "goodFor": {
+        "en": "Image generation",
+        "zh": "图片生成"
+      },
+      "example": {
+        "en": "Use gpt-image-2.6-flare to generate an image.",
+        "zh": "用 gpt-image-2.6-flare 生成一张图片。"
+      },
+      "parameterSchema": {
+        "properties": {
+          "n": {
+            "type": "integer",
+            "enum": [
+              1
+            ],
+            "default": 1
+          },
+          "image_size": {
+            "type": "string",
+            "enum": [
+              "1K",
+              "2K",
+              "4K"
+            ],
+            "default": "1K"
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "4:5",
+              "5:4",
+              "9:16",
+              "16:9",
+              "21:9"
+            ],
+            "default": "1:1"
+          },
+          "quality": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "low",
+              "medium",
+              "high"
+            ],
+            "default": "auto"
+          },
+          "output_format": {
+            "type": "string",
+            "enum": [
+              "png",
+              "jpeg",
+              "webp",
+              "gif",
+              "svg"
+            ],
+            "default": "jpeg"
+          },
+          "response_format": {
+            "type": "string",
+            "enum": [
+              "url"
+            ],
+            "default": "url"
+          },
+          "image": {
+            "type": "string[]",
+            "maxLength": 10
+          },
+          "mask": {
+            "type": "string"
+          }
+        },
+        "constraints": {
+          "reference_transport": {
+            "image": [
+              "public_https_url"
+            ]
+          },
+          "parameter_modes": {
+            "mask": [
+              "image_edit",
+              "masked_image_edit"
+            ]
+          },
+          "output_format_by_image_mode": {
+            "text": [
+              "png",
+              "jpeg",
+              "webp",
+              "gif",
+              "svg"
+            ],
+            "edit": [
+              "png",
+              "jpeg",
+              "webp",
+              "gif",
+              "svg"
+            ]
+          },
+          "output_format_resolutions": {
+            "gif": [
+              "1k"
+            ],
+            "svg": [
+              "1k"
+            ]
+          },
+          "aspect_ratio_by_image_size": {
+            "1K": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "4:5",
+              "5:4",
+              "9:16",
+              "16:9",
+              "21:9"
+            ],
+            "2K": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "4:5",
+              "5:4",
+              "9:16",
+              "16:9",
+              "21:9"
+            ],
+            "4K": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "4:5",
+              "5:4",
+              "9:16",
+              "16:9",
+              "21:9"
+            ]
+          }
+        },
+        "lifecycle": {
+          "create": {
+            "successStatus": 200,
+            "idField": "id",
+            "object": "image",
+            "initialStatuses": [
+              "pending"
+            ]
+          },
+          "poll": {
+            "method": "GET",
+            "path": "/v1/images/{image_id}",
+            "intervalSeconds": 3,
+            "statusField": "status",
+            "pendingStatuses": [
+              "pending"
+            ],
+            "successStatuses": [
+              "completed"
+            ],
+            "failureStatuses": [
+              "failed"
+            ],
+            "resultFields": [
+              "content_url",
+              "content_urls"
+            ]
+          }
+        },
+        "operations": {
+          "image_edit": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/edits",
+              "contentType": "multipart/form-data"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "image"
+            ],
+            "inputs": {
+              "image": {
+                "field": "image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 10,
+                "transports": [
+                  "multipart_file"
+                ]
+              },
+              "mask": {
+                "field": "mask",
+                "required": false,
+                "minItems": 0,
+                "maxItems": 1,
+                "transports": [
+                  "multipart_file"
+                ]
+              }
+            }
+          },
+          "masked_image_edit": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/edits",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "image_urls",
+              "mask"
+            ],
+            "inputs": {
+              "image_urls": {
+                "field": "image_urls",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 10,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "mask": {
+                "field": "mask",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "local_file_data_url"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "gpt-image-2.6-sunburst",
+      "name": "gpt-image-2.6-sunburst",
+      "provider": "OpenAI",
+      "vendorId": 1,
+      "capabilities": [
+        "image"
+      ],
+      "aliases": [],
+      "goodFor": {
+        "en": "Image generation",
+        "zh": "图片生成"
+      },
+      "example": {
+        "en": "Use gpt-image-2.6-sunburst to generate an image.",
+        "zh": "用 gpt-image-2.6-sunburst 生成一张图片。"
+      },
+      "parameterSchema": {
+        "properties": {
+          "n": {
+            "type": "integer",
+            "enum": [
+              1
+            ],
+            "default": 1
+          },
+          "image_size": {
+            "type": "string",
+            "enum": [
+              "1K",
+              "2K",
+              "4K"
+            ],
+            "default": "1K"
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "4:5",
+              "5:4",
+              "9:16",
+              "16:9",
+              "21:9"
+            ],
+            "default": "1:1"
+          },
+          "quality": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "low",
+              "medium",
+              "high"
+            ],
+            "default": "auto"
+          },
+          "output_format": {
+            "type": "string",
+            "enum": [
+              "png",
+              "jpeg",
+              "webp",
+              "gif",
+              "svg"
+            ],
+            "default": "jpeg"
+          },
+          "response_format": {
+            "type": "string",
+            "enum": [
+              "url"
+            ],
+            "default": "url"
+          },
+          "image": {
+            "type": "string[]",
+            "maxLength": 10
+          },
+          "mask": {
+            "type": "string"
+          }
+        },
+        "constraints": {
+          "reference_transport": {
+            "image": [
+              "public_https_url"
+            ]
+          },
+          "parameter_modes": {
+            "mask": [
+              "image_edit",
+              "masked_image_edit"
+            ]
+          },
+          "output_format_by_image_mode": {
+            "text": [
+              "png",
+              "jpeg",
+              "webp",
+              "gif",
+              "svg"
+            ],
+            "edit": [
+              "png",
+              "jpeg",
+              "webp",
+              "gif",
+              "svg"
+            ]
+          },
+          "output_format_resolutions": {
+            "gif": [
+              "1k"
+            ],
+            "svg": [
+              "1k"
+            ]
+          },
+          "aspect_ratio_by_image_size": {
+            "1K": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "4:5",
+              "5:4",
+              "9:16",
+              "16:9",
+              "21:9"
+            ],
+            "2K": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "4:5",
+              "5:4",
+              "9:16",
+              "16:9",
+              "21:9"
+            ],
+            "4K": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "4:5",
+              "5:4",
+              "9:16",
+              "16:9",
+              "21:9"
+            ]
+          }
+        },
+        "lifecycle": {
+          "create": {
+            "successStatus": 200,
+            "idField": "id",
+            "object": "image",
+            "initialStatuses": [
+              "pending"
+            ]
+          },
+          "poll": {
+            "method": "GET",
+            "path": "/v1/images/{image_id}",
+            "intervalSeconds": 3,
+            "statusField": "status",
+            "pendingStatuses": [
+              "pending"
+            ],
+            "successStatuses": [
+              "completed"
+            ],
+            "failureStatuses": [
+              "failed"
+            ],
+            "resultFields": [
+              "content_url",
+              "content_urls"
+            ]
+          }
+        },
+        "operations": {
+          "image_edit": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/edits",
+              "contentType": "multipart/form-data"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "image"
+            ],
+            "inputs": {
+              "image": {
+                "field": "image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 10,
+                "transports": [
+                  "multipart_file"
+                ]
+              },
+              "mask": {
+                "field": "mask",
+                "required": false,
+                "minItems": 0,
+                "maxItems": 1,
+                "transports": [
+                  "multipart_file"
+                ]
+              }
+            }
+          },
+          "masked_image_edit": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/edits",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "image_urls",
+              "mask"
+            ],
+            "inputs": {
+              "image_urls": {
+                "field": "image_urls",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 10,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "mask": {
+                "field": "mask",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "local_file_data_url"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
       "id": "gpt-image-2(Sub)",
       "name": "gpt-image-2(Sub)",
       "provider": "OpenAI",
@@ -945,39 +1983,49 @@
       },
       "parameterSchema": {
         "properties": {
+          "prompt": {
+            "type": "string",
+            "required": true
+          },
           "n": {
             "type": "integer",
+            "default": 1,
+            "min": 1,
+            "max": 1
+          },
+          "aspect_ratio": {
+            "type": "string",
             "enum": [
-              1
+              "16:9"
             ],
-            "default": 1
+            "default": "16:9"
           },
-          "size": {
-            "type": "string"
-          },
-          "image": {
-            "type": "json"
-          }
-        },
-        "constraints": {
-          "response_format": {
-            "value": [
-              "url"
-            ]
-          },
-          "reference_transport": {
-            "image": [
-              "public_https_url",
-              "max_1"
-            ]
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "1k",
+              "2k"
+            ],
+            "default": "1k"
           }
         },
         "operations": {
+          "image_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/generations",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
+          },
           "image_edit": {
             "request": {
               "method": "POST",
               "path": "/v1/images/edits",
-              "contentType": "multipart/form-data"
+              "contentType": "application/json"
             },
             "requiredBodyFields": [
               "model",
@@ -991,7 +2039,90 @@
                 "minItems": 1,
                 "maxItems": 1,
                 "transports": [
-                  "multipart_file"
+                  "https_url"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "grok-imagine-image-2.0",
+      "name": "grok-imagine-image-2.0",
+      "provider": "xAI",
+      "vendorId": 8,
+      "capabilities": [
+        "image"
+      ],
+      "aliases": [],
+      "goodFor": {
+        "en": "Image generation",
+        "zh": "图片生成"
+      },
+      "example": {
+        "en": "Use grok-imagine-image-2.0 to generate an image.",
+        "zh": "用 grok-imagine-image-2.0 生成一张图片。"
+      },
+      "parameterSchema": {
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "required": true
+          },
+          "n": {
+            "type": "integer",
+            "default": 1,
+            "min": 1,
+            "max": 1
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "16:9"
+            ],
+            "default": "16:9"
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "1k",
+              "2k"
+            ],
+            "default": "1k"
+          }
+        },
+        "operations": {
+          "image_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/generations",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
+          },
+          "image_edit": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/edits",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "image"
+            ],
+            "inputs": {
+              "image": {
+                "field": "image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
                 ]
               }
             }
@@ -1018,39 +2149,49 @@
       },
       "parameterSchema": {
         "properties": {
+          "prompt": {
+            "type": "string",
+            "required": true
+          },
           "n": {
             "type": "integer",
+            "default": 1,
+            "min": 1,
+            "max": 1
+          },
+          "aspect_ratio": {
+            "type": "string",
             "enum": [
-              1
+              "16:9"
             ],
-            "default": 1
+            "default": "16:9"
           },
-          "size": {
-            "type": "string"
-          },
-          "image": {
-            "type": "json"
-          }
-        },
-        "constraints": {
-          "response_format": {
-            "value": [
-              "url"
-            ]
-          },
-          "reference_transport": {
-            "image": [
-              "public_https_url",
-              "max_1"
-            ]
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "1k",
+              "2k"
+            ],
+            "default": "1k"
           }
         },
         "operations": {
+          "image_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/generations",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
+          },
           "image_edit": {
             "request": {
               "method": "POST",
               "path": "/v1/images/edits",
-              "contentType": "multipart/form-data"
+              "contentType": "application/json"
             },
             "requiredBodyFields": [
               "model",
@@ -1064,7 +2205,7 @@
                 "minItems": 1,
                 "maxItems": 1,
                 "transports": [
-                  "multipart_file"
+                  "https_url"
                 ]
               }
             }
@@ -1093,56 +2234,76 @@
       },
       "parameterSchema": {
         "properties": {
+          "prompt": {
+            "type": "string",
+            "required": true
+          },
           "duration": {
             "type": "integer",
-            "min": 1
-          },
-          "aspect_ratio": {
-            "type": "string",
             "enum": [
-              "1:1",
-              "16:9",
-              "9:16",
-              "4:3",
-              "3:4",
-              "3:2",
-              "2:3",
-              "21:9",
-              "5:2"
-            ]
+              5,
+              10
+            ],
+            "default": 5
           },
           "resolution": {
             "type": "string",
             "enum": [
               "480p",
               "720p"
-            ]
+            ],
+            "default": "480p"
           },
-          "image": {
-            "type": "json"
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "default": "16:9"
+          },
+          "first_frame_image": {
+            "type": "string"
+          }
+        },
+        "operations": {
+          "image_to_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "first_frame_image"
+            ],
+            "inputs": {
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "video_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
           }
         },
         "constraints": {
-          "reference_transport": {
-            "image": [
-              "public_https_url",
-              "max_1"
-            ]
-          },
-          "resolution_by_mode": {
-            "text": [
-              "480p",
-              "720p"
-            ],
-            "image": [
-              "480p",
-              "720p"
-            ],
-            "reference": [
-              "480p",
-              "720p"
-            ]
-          },
           "unsupported_parameters_by_operation": {
             "video_edit": [
               "duration",
@@ -1152,83 +2313,12 @@
               "resolution"
             ]
           }
-        },
-        "operations": {
-          "image_to_video": {
-            "request": {
-              "method": "POST",
-              "path": "/v1/videos",
-              "contentType": "multipart/form-data"
-            },
-            "requiredBodyFields": [
-              "model",
-              "prompt",
-              "image"
-            ],
-            "inputs": {
-              "image": {
-                "field": "image",
-                "required": true,
-                "minItems": 1,
-                "maxItems": 1,
-                "transports": [
-                  "multipart_file"
-                ]
-              }
-            }
-          },
-          "reference_image_video": {
-            "request": {
-              "method": "POST",
-              "path": "/v1/videos",
-              "contentType": "multipart/form-data"
-            },
-            "requiredBodyFields": [
-              "model",
-              "prompt",
-              "reference_images"
-            ],
-            "inputs": {
-              "reference_images": {
-                "field": "reference_images",
-                "required": true,
-                "minItems": 1,
-                "maxItems": 1,
-                "transports": [
-                  "multipart_file"
-                ]
-              }
-            }
-          },
-          "video_edit": {
-            "request": {
-              "method": "POST",
-              "path": "/v1/videos/edits",
-              "contentType": "multipart/form-data"
-            },
-            "requiredBodyFields": [
-              "model",
-              "prompt",
-              "video"
-            ],
-            "inputs": {
-              "video": {
-                "field": "video",
-                "required": true,
-                "minItems": 1,
-                "maxItems": 1,
-                "transports": [
-                  "multipart_file"
-                ]
-              }
-            }
-          }
         }
       }
     },
     {
-      "id": "grok-imagine-video-1.5",
-      "name": "grok-imagine-video-1.5",
+      "id": "grok-imagine-video-1.5-preview",
+      "name": "grok-imagine-video-1.5-preview",
       "provider": "xAI",
       "vendorId": 8,
       "capabilities": [
@@ -1240,66 +2330,45 @@
         "zh": "视频生成"
       },
       "example": {
-        "en": "Use grok-imagine-video-1.5 to generate a short video.",
-        "zh": "用 grok-imagine-video-1.5 生成一条短视频。"
+        "en": "Use grok-imagine-video-1.5-preview to generate a short video.",
+        "zh": "用 grok-imagine-video-1.5-preview 生成一条短视频。"
       },
       "parameterSchema": {
         "properties": {
+          "prompt": {
+            "type": "string",
+            "required": true
+          },
           "duration": {
             "type": "integer",
-            "min": 1
-          },
-          "aspect_ratio": {
-            "type": "string",
             "enum": [
-              "1:1",
-              "16:9",
-              "9:16",
-              "4:3",
-              "3:4",
-              "3:2",
-              "2:3",
-              "21:9",
-              "5:2"
-            ]
+              5,
+              10
+            ],
+            "default": 5
           },
           "resolution": {
             "type": "string",
             "enum": [
               "480p",
-              "720p",
-              "1080p"
-            ]
-          },
-          "image": {
-            "type": "json"
-          }
-        },
-        "constraints": {
-          "reference_transport": {
-            "image": [
-              "public_https_url",
-              "max_1"
-            ]
-          },
-          "resolution_by_mode": {
-            "text": [
-              "480p",
-              "720p",
-              "1080p"
-            ],
-            "image": [
-              "480p",
-              "720p",
-              "1080p"
-            ],
-            "reference": [
-              "480p",
               "720p"
-            ]
+            ],
+            "default": "480p"
           },
-          "unsupported_operations": {
-            "video_edit": true
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "default": "16:9"
+          },
+          "first_frame_image": {
+            "type": "string"
+          },
+          "last_frame_image": {
+            "type": "string"
           }
         },
         "operations": {
@@ -1307,54 +2376,69 @@
             "request": {
               "method": "POST",
               "path": "/v1/videos",
-              "contentType": "multipart/form-data"
+              "contentType": "application/json"
             },
             "requiredBodyFields": [
               "model",
               "prompt",
-              "image"
+              "first_frame_image"
             ],
             "inputs": {
-              "image": {
-                "field": "image",
+              "first_frame_image": {
+                "field": "first_frame_image",
                 "required": true,
                 "minItems": 1,
                 "maxItems": 1,
                 "transports": [
-                  "multipart_file"
+                  "https_url"
                 ]
               }
             }
           },
-          "reference_image_video": {
+          "last_frame_video": {
             "request": {
               "method": "POST",
               "path": "/v1/videos",
-              "contentType": "multipart/form-data"
+              "contentType": "application/json"
             },
             "requiredBodyFields": [
               "model",
               "prompt",
-              "reference_images"
+              "first_frame_image",
+              "last_frame_image"
             ],
             "inputs": {
-              "reference_images": {
-                "field": "reference_images",
+              "first_frame_image": {
+                "field": "first_frame_image",
                 "required": true,
                 "minItems": 1,
                 "maxItems": 1,
                 "transports": [
-                  "multipart_file"
+                  "https_url"
+                ]
+              },
+              "last_frame_image": {
+                "field": "last_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
                 ]
               }
             }
+          }
+        },
+        "constraints": {
+          "unsupported_operations": {
+            "video_edit": true
           }
         }
       }
     },
     {
-      "id": "kling-v3",
-      "name": "kling-v3",
+      "id": "kling-video-motion-control-v2.6",
+      "name": "kling-video-motion-control-v2.6",
       "provider": "Kling",
       "vendorId": 23,
       "capabilities": [
@@ -1366,14 +2450,414 @@
         "zh": "视频生成"
       },
       "example": {
-        "en": "Use kling-v3 to generate a short video.",
-        "zh": "用 kling-v3 生成一条短视频。"
+        "en": "Use kling-video-motion-control-v2.6 to generate a short video.",
+        "zh": "用 kling-video-motion-control-v2.6 生成一条短视频。"
       },
       "parameterSchema": {
         "properties": {
           "prompt": {
             "type": "string",
-            "required": true
+            "maxLength": 2500
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "720p",
+              "1080p"
+            ],
+            "default": "720p"
+          },
+          "reference_images": {
+            "type": "string[]"
+          },
+          "reference_videos": {
+            "type": "string[]"
+          },
+          "audio": {
+            "type": "string",
+            "enum": [
+              "original",
+              "off"
+            ],
+            "default": "original"
+          },
+          "character_orientation": {
+            "type": "string",
+            "required": true,
+            "enum": [
+              "video",
+              "image"
+            ],
+            "default": "video"
+          },
+          "contents": {
+            "type": "json"
+          },
+          "settings": {
+            "type": "json"
+          },
+          "options": {
+            "type": "json"
+          }
+        },
+        "constraints": {
+          "reference_video": {
+            "min_seconds": [
+              3
+            ],
+            "max_seconds": [
+              30
+            ],
+            "min_width": [
+              340
+            ],
+            "min_height": [
+              340
+            ],
+            "max_width": [
+              3850
+            ],
+            "max_height": [
+              3850
+            ],
+            "max_bytes": [
+              100000000
+            ],
+            "mime_types": [
+              "video/mp4",
+              "video/quicktime"
+            ]
+          },
+          "motion_control": {
+            "image_orientation_max_seconds": [
+              10
+            ],
+            "video_orientation_max_seconds": [
+              30
+            ],
+            "duration_and_ratio_from_source": [
+              true
+            ]
+          },
+          "reference_image": {
+            "min_width": [
+              300
+            ],
+            "min_height": [
+              300
+            ],
+            "min_ratio": [
+              0.4
+            ],
+            "max_ratio": [
+              2.5
+            ],
+            "max_bytes": [
+              50000000
+            ],
+            "mime_types": [
+              "image/jpeg",
+              "image/png"
+            ]
+          },
+          "kling_contents": {
+            "types": [
+              "prompt",
+              "image",
+              "video"
+            ]
+          },
+          "kling_settings": {
+            "native_settings_replace_flat": [
+              true
+            ],
+            "source_controls_ratio": [
+              false
+            ]
+          },
+          "unsupported_inputs": {
+            "nonce": true,
+            "idempotency_key": true
+          },
+          "unsupported_operations": {
+            "native_generation": true
+          }
+        },
+        "operations": {
+          "reference_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "reference_images",
+              "reference_videos"
+            ],
+            "inputs": {
+              "reference_images": {
+                "field": "reference_images",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "reference_videos": {
+                "field": "reference_videos",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "native_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "contents"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "kling-video-motion-control-v3.0",
+      "name": "kling-video-motion-control-v3.0",
+      "provider": "Kling",
+      "vendorId": 23,
+      "capabilities": [
+        "video"
+      ],
+      "aliases": [],
+      "goodFor": {
+        "en": "Video generation",
+        "zh": "视频生成"
+      },
+      "example": {
+        "en": "Use kling-video-motion-control-v3.0 to generate a short video.",
+        "zh": "用 kling-video-motion-control-v3.0 生成一条短视频。"
+      },
+      "parameterSchema": {
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "maxLength": 2500
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "720p",
+              "1080p"
+            ],
+            "default": "720p"
+          },
+          "reference_images": {
+            "type": "string[]"
+          },
+          "reference_videos": {
+            "type": "string[]"
+          },
+          "audio": {
+            "type": "string",
+            "enum": [
+              "original",
+              "off"
+            ],
+            "default": "original"
+          },
+          "character_orientation": {
+            "type": "string",
+            "required": true,
+            "enum": [
+              "video",
+              "image"
+            ],
+            "default": "video"
+          },
+          "contents": {
+            "type": "json"
+          },
+          "settings": {
+            "type": "json"
+          },
+          "options": {
+            "type": "json"
+          }
+        },
+        "constraints": {
+          "reference_video": {
+            "min_seconds": [
+              3
+            ],
+            "max_seconds": [
+              30
+            ],
+            "min_width": [
+              340
+            ],
+            "min_height": [
+              340
+            ],
+            "max_width": [
+              3850
+            ],
+            "max_height": [
+              3850
+            ],
+            "max_bytes": [
+              100000000
+            ],
+            "mime_types": [
+              "video/mp4",
+              "video/quicktime"
+            ]
+          },
+          "motion_control": {
+            "image_orientation_max_seconds": [
+              10
+            ],
+            "video_orientation_max_seconds": [
+              30
+            ],
+            "duration_and_ratio_from_source": [
+              true
+            ]
+          },
+          "reference_image": {
+            "min_width": [
+              300
+            ],
+            "min_height": [
+              300
+            ],
+            "min_ratio": [
+              0.4
+            ],
+            "max_ratio": [
+              2.5
+            ],
+            "max_bytes": [
+              50000000
+            ],
+            "mime_types": [
+              "image/jpeg",
+              "image/png"
+            ]
+          },
+          "kling_contents": {
+            "types": [
+              "prompt",
+              "image",
+              "video",
+              "element"
+            ]
+          },
+          "kling_settings": {
+            "native_settings_replace_flat": [
+              true
+            ],
+            "source_controls_ratio": [
+              false
+            ]
+          },
+          "unsupported_inputs": {
+            "nonce": true,
+            "idempotency_key": true
+          },
+          "unsupported_operations": {
+            "native_generation": true,
+            "native_subject": true
+          }
+        },
+        "operations": {
+          "reference_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "reference_images",
+              "reference_videos"
+            ],
+            "inputs": {
+              "reference_images": {
+                "field": "reference_images",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "reference_videos": {
+                "field": "reference_videos",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "native_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "contents"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "kling-video-v3",
+      "name": "kling-video-v3",
+      "provider": "Kling",
+      "vendorId": 23,
+      "capabilities": [
+        "video"
+      ],
+      "aliases": [],
+      "goodFor": {
+        "en": "Video generation",
+        "zh": "视频生成"
+      },
+      "example": {
+        "en": "Use kling-video-v3 to generate a short video.",
+        "zh": "用 kling-video-v3 生成一条短视频。"
+      },
+      "parameterSchema": {
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "required": true,
+            "maxLength": 3072
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "720p",
+              "1080p",
+              "4k"
+            ],
+            "default": "720p"
           },
           "duration": {
             "type": "integer",
@@ -1394,15 +2878,6 @@
             ],
             "default": 5
           },
-          "resolution": {
-            "type": "string",
-            "enum": [
-              "720p",
-              "1080p",
-              "4k"
-            ],
-            "default": "720p"
-          },
           "aspect_ratio": {
             "type": "string",
             "enum": [
@@ -1414,36 +2889,85 @@
           },
           "first_frame_image": {
             "type": "string"
+          },
+          "last_frame_image": {
+            "type": "string"
+          },
+          "audio": {
+            "type": "string",
+            "enum": [
+              "native",
+              "off"
+            ],
+            "default": "off"
+          },
+          "multi_shot": {
+            "type": "boolean",
+            "default": true
+          },
+          "contents": {
+            "type": "json"
+          },
+          "settings": {
+            "type": "json"
+          },
+          "options": {
+            "type": "json"
           }
         },
-        "lifecycle": {
-          "create": {
-            "successStatus": 200,
-            "idField": "id",
-            "object": "video",
-            "initialStatuses": [
-              "queued",
-              "in_progress"
+        "constraints": {
+          "reference_image": {
+            "min_width": [
+              300
+            ],
+            "min_height": [
+              300
+            ],
+            "min_ratio": [
+              0.4
+            ],
+            "max_ratio": [
+              2.5
+            ],
+            "max_bytes": [
+              50000000
+            ],
+            "mime_types": [
+              "image/jpeg",
+              "image/png"
             ]
           },
-          "poll": {
-            "method": "GET",
-            "path": "/v1/videos/{task_id}",
-            "intervalSeconds": 8,
-            "statusField": "status",
-            "pendingStatuses": [
-              "queued",
-              "in_progress"
-            ],
-            "successStatuses": [
-              "completed"
-            ],
-            "failureStatuses": [
-              "failed"
-            ],
-            "resultFields": [
-              "metadata.url"
+          "kling_contents": {
+            "types": [
+              "prompt",
+              "first_frame",
+              "last_frame",
+              "element"
             ]
+          },
+          "kling_settings": {
+            "native_settings_replace_flat": [
+              true
+            ],
+            "source_controls_ratio": [
+              true
+            ]
+          },
+          "prompt": {
+            "text_max_characters": [
+              3072
+            ],
+            "image_max_characters": [
+              2500
+            ]
+          },
+          "unsupported_inputs": {
+            "nonce": true,
+            "idempotency_key": true
+          },
+          "unsupported_operations": {
+            "native_generation": true,
+            "native_subject": true
           }
         },
         "operations": {
@@ -1480,13 +3004,57 @@
                 ]
               }
             }
+          },
+          "last_frame_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "first_frame_image",
+              "last_frame_image"
+            ],
+            "inputs": {
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "last_frame_image": {
+                "field": "last_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "native_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "contents"
+            ]
           }
         }
       }
     },
     {
-      "id": "kling-v3-turbo",
-      "name": "kling-v3-turbo",
+      "id": "kling-video-v3-omni",
+      "name": "kling-video-v3-omni",
       "provider": "Kling",
       "vendorId": 23,
       "capabilities": [
@@ -1498,8 +3066,560 @@
         "zh": "视频生成"
       },
       "example": {
-        "en": "Use kling-v3-turbo to generate a short video.",
-        "zh": "用 kling-v3-turbo 生成一条短视频。"
+        "en": "Use kling-video-v3-omni to generate a short video.",
+        "zh": "用 kling-video-v3-omni 生成一条短视频。"
+      },
+      "parameterSchema": {
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "required": true,
+            "maxLength": 3072
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "720p",
+              "1080p",
+              "4k"
+            ],
+            "default": "720p"
+          },
+          "duration": {
+            "type": "integer",
+            "enum": [
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "default": 5
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "default": "16:9"
+          },
+          "first_frame_image": {
+            "type": "string"
+          },
+          "last_frame_image": {
+            "type": "string"
+          },
+          "reference_images": {
+            "type": "string[]"
+          },
+          "reference_videos": {
+            "type": "string[]"
+          },
+          "audio": {
+            "type": "string",
+            "enum": [
+              "native",
+              "original",
+              "off"
+            ],
+            "default": "off"
+          },
+          "multi_shot": {
+            "type": "boolean",
+            "default": true
+          },
+          "contents": {
+            "type": "json"
+          },
+          "settings": {
+            "type": "json"
+          },
+          "options": {
+            "type": "json"
+          },
+          "reference_video_mode": {
+            "type": "string",
+            "enum": [
+              "feature",
+              "base"
+            ],
+            "default": "feature"
+          }
+        },
+        "constraints": {
+          "reference_video": {
+            "min_seconds": [
+              3
+            ],
+            "max_seconds": [
+              15.5
+            ],
+            "min_width": [
+              700
+            ],
+            "min_height": [
+              700
+            ],
+            "max_width": [
+              4553
+            ],
+            "max_height": [
+              4553
+            ],
+            "max_pixels": [
+              8294400
+            ],
+            "min_fps": [
+              24
+            ],
+            "max_fps": [
+              60
+            ],
+            "min_ratio": [
+              0.4
+            ],
+            "max_ratio": [
+              2
+            ],
+            "max_bytes": [
+              200000000
+            ],
+            "mime_types": [
+              "video/mp4",
+              "video/quicktime"
+            ]
+          },
+          "reference_combination": {
+            "images_and_elements_without_video": [
+              7
+            ],
+            "images_and_elements_with_video": [
+              4
+            ],
+            "max_voices": [
+              2
+            ]
+          },
+          "reference_image": {
+            "min_width": [
+              300
+            ],
+            "min_height": [
+              300
+            ],
+            "min_ratio": [
+              0.4
+            ],
+            "max_ratio": [
+              2.5
+            ],
+            "max_bytes": [
+              50000000
+            ],
+            "mime_types": [
+              "image/jpeg",
+              "image/png"
+            ]
+          },
+          "kling_contents": {
+            "types": [
+              "prompt",
+              "first_frame",
+              "last_frame",
+              "element",
+              "refer_image",
+              "feature_video",
+              "base_video",
+              "voice"
+            ]
+          },
+          "kling_settings": {
+            "native_settings_replace_flat": [
+              true
+            ],
+            "source_controls_ratio": [
+              true
+            ],
+            "feature_video_audio": [
+              "off"
+            ],
+            "feature_video_multi_shot": [
+              true
+            ],
+            "base_video_audio": [
+              "original",
+              "off"
+            ],
+            "base_video_multi_shot": [
+              false
+            ],
+            "voice_requires_audio": [
+              true
+            ],
+            "base_video_mode_parameter": [
+              "reference_video_mode"
+            ]
+          },
+          "prompt": {
+            "text_max_characters": [
+              3072
+            ],
+            "image_max_characters": [
+              3072
+            ]
+          },
+          "unsupported_inputs": {
+            "nonce": true,
+            "idempotency_key": true
+          },
+          "unsupported_operations": {
+            "native_generation": true,
+            "native_subject": true,
+            "native_voice": true,
+            "native_video_edit": true,
+            "native_feature_video": true
+          }
+        },
+        "operations": {
+          "video_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ],
+            "inputs": {
+              "reference_images": {
+                "field": "reference_images",
+                "required": false,
+                "minItems": 0,
+                "maxItems": 7,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "reference_videos": {
+                "field": "reference_videos",
+                "required": false,
+                "minItems": 0,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "image_to_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "first_frame_image"
+            ],
+            "inputs": {
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "last_frame_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "first_frame_image",
+              "last_frame_image"
+            ],
+            "inputs": {
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "last_frame_image": {
+                "field": "last_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "reference_image_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "reference_images"
+            ],
+            "inputs": {
+              "reference_images": {
+                "field": "reference_images",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 7,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "reference_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "reference_videos"
+            ],
+            "inputs": {
+              "reference_videos": {
+                "field": "reference_videos",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "native_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "contents"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "kling-video-v3-turbo",
+      "name": "kling-video-v3-turbo",
+      "provider": "Kling",
+      "vendorId": 23,
+      "capabilities": [
+        "video"
+      ],
+      "aliases": [],
+      "goodFor": {
+        "en": "Video generation",
+        "zh": "视频生成"
+      },
+      "example": {
+        "en": "Use kling-video-v3-turbo to generate a short video.",
+        "zh": "用 kling-video-v3-turbo 生成一条短视频。"
+      },
+      "parameterSchema": {
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "required": true,
+            "maxLength": 2500
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "720p",
+              "1080p"
+            ],
+            "default": "720p"
+          },
+          "duration": {
+            "type": "integer",
+            "enum": [
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15
+            ],
+            "default": 5
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "default": "16:9"
+          },
+          "first_frame_image": {
+            "type": "string"
+          },
+          "contents": {
+            "type": "json"
+          },
+          "settings": {
+            "type": "json"
+          },
+          "options": {
+            "type": "json"
+          }
+        },
+        "constraints": {
+          "reference_image": {
+            "min_width": [
+              300
+            ],
+            "min_height": [
+              300
+            ],
+            "min_ratio": [
+              0.4
+            ],
+            "max_ratio": [
+              2.5
+            ],
+            "max_bytes": [
+              50000000
+            ],
+            "mime_types": [
+              "image/jpeg",
+              "image/png"
+            ]
+          },
+          "kling_contents": {
+            "types": [
+              "prompt",
+              "first_frame"
+            ]
+          },
+          "kling_settings": {
+            "native_settings_replace_flat": [
+              true
+            ],
+            "source_controls_ratio": [
+              true
+            ]
+          },
+          "unsupported_inputs": {
+            "nonce": true,
+            "idempotency_key": true
+          },
+          "unsupported_operations": {
+            "native_generation": true
+          }
+        },
+        "operations": {
+          "video_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
+          },
+          "image_to_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "first_frame_image"
+            ],
+            "inputs": {
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "native_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "contents"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "kling-video-v4",
+      "name": "kling-video-v4",
+      "provider": "Kling",
+      "vendorId": 23,
+      "capabilities": [
+        "video"
+      ],
+      "aliases": [],
+      "goodFor": {
+        "en": "Video generation",
+        "zh": "视频生成"
+      },
+      "example": {
+        "en": "Use kling-video-v4 to generate a short video.",
+        "zh": "用 kling-video-v4 生成一条短视频。"
       },
       "parameterSchema": {
         "properties": {
@@ -1522,7 +3642,22 @@
               12,
               13,
               14,
-              15
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
             ],
             "default": 5
           },
@@ -1532,49 +3667,149 @@
               "720p",
               "1080p"
             ],
-            "default": "720p"
+            "default": "1080p"
           },
           "aspect_ratio": {
             "type": "string",
             "enum": [
+              "21:9",
               "16:9",
               "9:16",
-              "1:1"
+              "1:1",
+              "adaptive"
             ],
             "default": "16:9"
+          },
+          "first_frame_image": {
+            "type": "string"
+          },
+          "last_frame_image": {
+            "type": "string"
+          },
+          "reference_images": {
+            "type": "string[]"
+          },
+          "reference_videos": {
+            "type": "string[]"
+          },
+          "contents": {
+            "type": "json"
+          },
+          "settings": {
+            "type": "json"
+          },
+          "options": {
+            "type": "json"
+          },
+          "reference_audio_voice_ids": {
+            "type": "string[]",
+            "maxLength": 3
           }
         },
-        "lifecycle": {
-          "create": {
-            "successStatus": 200,
-            "idField": "id",
-            "object": "video",
-            "initialStatuses": [
-              "queued",
-              "in_progress"
+        "constraints": {
+          "kling_settings": {
+            "adaptive_requires_reference": [
+              true
             ]
           },
-          "poll": {
-            "method": "GET",
-            "path": "/v1/videos/{task_id}",
-            "intervalSeconds": 8,
-            "statusField": "status",
-            "pendingStatuses": [
-              "queued",
-              "in_progress"
+          "reference_image": {
+            "min_width": [
+              300
             ],
-            "successStatuses": [
-              "completed"
+            "min_height": [
+              300
             ],
-            "failureStatuses": [
-              "failed"
+            "min_ratio": [
+              0.4
             ],
-            "resultFields": [
-              "metadata.url"
+            "max_ratio": [
+              2.5
+            ],
+            "max_bytes": [
+              30000000
             ]
+          },
+          "reference_video": {
+            "min_width": [
+              700
+            ],
+            "max_width": [
+              4553
+            ],
+            "min_height": [
+              700
+            ],
+            "max_height": [
+              4553
+            ],
+            "max_pixels": [
+              8294400
+            ],
+            "min_seconds": [
+              3
+            ],
+            "max_seconds": [
+              30
+            ],
+            "max_total_seconds": [
+              30
+            ],
+            "min_fps": [
+              24
+            ],
+            "max_fps": [
+              60
+            ],
+            "max_bytes": [
+              300000000
+            ]
+          },
+          "kling_contents": {
+            "types": [
+              "prompt",
+              "first_frame",
+              "last_frame",
+              "refer_image",
+              "feature_video",
+              "element",
+              "voice"
+            ]
+          },
+          "unsupported_inputs": {
+            "nonce": true,
+            "idempotency_key": true
+          },
+          "unsupported_operations": {
+            "native_generation": true,
+            "native_subject": true,
+            "native_voice": true,
+            "native_feature_video": true
           }
         },
         "operations": {
+          "image_to_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "first_frame_image"
+            ],
+            "inputs": {
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
           "video_generation": {
             "request": {
               "method": "POST",
@@ -1584,6 +3819,116 @@
             "requiredBodyFields": [
               "model",
               "prompt"
+            ],
+            "inputs": {
+              "reference_images": {
+                "field": "reference_images",
+                "required": false,
+                "minItems": 0,
+                "maxItems": 10,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "reference_videos": {
+                "field": "reference_videos",
+                "required": false,
+                "minItems": 0,
+                "maxItems": 5,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "last_frame_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "last_frame_image",
+              "first_frame_image"
+            ],
+            "inputs": {
+              "last_frame_image": {
+                "field": "last_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "reference_image_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "reference_images"
+            ],
+            "inputs": {
+              "reference_images": {
+                "field": "reference_images",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 10,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "reference_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "reference_videos"
+            ],
+            "inputs": {
+              "reference_videos": {
+                "field": "reference_videos",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 5,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "native_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "contents"
             ]
           }
         }
@@ -1908,10 +4253,10 @@
       }
     },
     {
-      "id": "muse-video",
-      "name": "muse-video",
-      "provider": "Meta",
-      "vendorId": 21,
+      "id": "omni-flash",
+      "name": "omni-flash",
+      "provider": "Google",
+      "vendorId": 4,
       "capabilities": [
         "video"
       ],
@@ -1921,8 +4266,8 @@
         "zh": "视频生成"
       },
       "example": {
-        "en": "Use muse-video to generate a short video.",
-        "zh": "用 muse-video 生成一条短视频。"
+        "en": "Use omni-flash to generate a short video.",
+        "zh": "用 omni-flash 生成一条短视频。"
       },
       "parameterSchema": {
         "properties": {
@@ -1930,91 +4275,87 @@
             "type": "string",
             "required": true
           },
-          "duration": {
-            "type": "integer",
+          "resolution": {
+            "type": "string",
             "enum": [
-              6
+              "720p"
             ],
-            "default": 6
+            "default": "720p"
           },
           "aspect_ratio": {
             "type": "string",
             "enum": [
               "16:9",
               "9:16"
-            ]
+            ],
+            "default": "16:9"
           },
-          "reference_images": {
-            "type": "string[]",
-            "maxLength": 10
-          },
-          "extra": {
+          "first_frame_image": {
             "type": "string"
           },
-          "timeout": {
-            "type": "integer",
-            "min": 1
+          "reference_images": {
+            "type": "string[]"
           }
         },
         "constraints": {
-          "reference_transport": {
-            "reference_images": [
-              "public_https_url",
-              "image_base64",
-              "max_10"
+          "duration_control": {
+            "fixed_seconds": [
+              8
             ]
           },
-          "unsupported_inputs": {
-            "reference_videos": [
-              "not_supported"
+          "resolution_by_mode": {
+            "text": [
+              "720p"
             ],
-            "reference_audios": [
-              "not_supported"
+            "image": [
+              "720p"
             ],
-            "first_frame_image": [
-              "not_supported"
-            ],
-            "last_frame_image": [
-              "not_supported"
-            ]
-          }
-        },
-        "lifecycle": {
-          "create": {
-            "successStatus": 200,
-            "idField": "id",
-            "object": "video",
-            "initialStatuses": [
-              "queued",
-              "in_progress"
-            ]
-          },
-          "poll": {
-            "method": "GET",
-            "path": "/v1/videos/{task_id}",
-            "intervalSeconds": 5,
-            "statusField": "status",
-            "pendingStatuses": [
-              "queued",
-              "in_progress"
-            ],
-            "successStatuses": [
-              "completed"
-            ],
-            "failureStatuses": [
-              "failed"
-            ],
-            "resultFields": [
-              "metadata.url"
+            "reference": [
+              "720p"
             ]
           }
         },
         "operations": {
+          "video_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
+          },
+          "image_to_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "first_frame_image"
+            ],
+            "inputs": {
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url",
+                  "local_file_data_url"
+                ]
+              }
+            }
+          },
           "reference_image_video": {
             "request": {
               "method": "POST",
               "path": "/v1/videos",
-              "contentType": "multipart/form-data"
+              "contentType": "application/json"
             },
             "requiredBodyFields": [
               "model",
@@ -2026,478 +4367,10 @@
                 "field": "reference_images",
                 "required": true,
                 "minItems": 1,
-                "maxItems": 10,
+                "maxItems": 3,
                 "transports": [
                   "https_url",
-                  "multipart_file"
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": "nano-banana-2",
-      "name": "nano-banana-2",
-      "provider": "Google",
-      "vendorId": 4,
-      "capabilities": [
-        "image"
-      ],
-      "aliases": [
-        "nano banana 2"
-      ],
-      "goodFor": {
-        "en": "Image generation",
-        "zh": "图片生成"
-      },
-      "example": {
-        "en": "Use nano-banana-2 to generate an image.",
-        "zh": "用 nano-banana-2 生成一张图片。"
-      },
-      "parameterSchema": {
-        "properties": {
-          "prompt": {
-            "type": "string",
-            "required": true,
-            "minLength": 3
-          },
-          "n": {
-            "type": "integer",
-            "default": 1,
-            "min": 1,
-            "max": 8
-          },
-          "image_size": {
-            "type": "string",
-            "enum": [
-              "1K",
-              "2K",
-              "4K"
-            ],
-            "default": "1K"
-          },
-          "image": {
-            "type": "string[]",
-            "maxLength": 16
-          },
-          "aspect_ratio": {
-            "type": "string",
-            "enum": [
-              "1:1",
-              "2:3",
-              "3:2",
-              "3:4",
-              "4:3",
-              "4:5",
-              "5:4",
-              "9:16",
-              "16:9",
-              "21:9"
-            ]
-          }
-        },
-        "constraints": {
-          "reference_transport": {
-            "image": [
-              "public_https_url"
-            ]
-          }
-        },
-        "lifecycle": {
-          "create": {
-            "successStatus": 200,
-            "idField": "id",
-            "object": "image",
-            "initialStatuses": [
-              "pending"
-            ]
-          },
-          "poll": {
-            "method": "GET",
-            "path": "/v1/images/{image_id}",
-            "intervalSeconds": 3,
-            "statusField": "status",
-            "pendingStatuses": [
-              "pending"
-            ],
-            "successStatuses": [
-              "completed"
-            ],
-            "failureStatuses": [
-              "failed"
-            ],
-            "resultFields": [
-              "content_url",
-              "content_urls"
-            ]
-          }
-        },
-        "operations": {
-          "image_edit": {
-            "request": {
-              "method": "POST",
-              "path": "/v1/images/edits",
-              "contentType": "multipart/form-data"
-            },
-            "requiredBodyFields": [
-              "model",
-              "prompt",
-              "image"
-            ],
-            "inputs": {
-              "image": {
-                "field": "image",
-                "required": true,
-                "minItems": 1,
-                "maxItems": 16,
-                "transports": [
-                  "multipart_file"
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": "nano-banana-2-lite",
-      "name": "nano-banana-2-lite",
-      "provider": "Google",
-      "vendorId": 4,
-      "capabilities": [
-        "image"
-      ],
-      "aliases": [],
-      "goodFor": {
-        "en": "Image generation",
-        "zh": "图片生成"
-      },
-      "example": {
-        "en": "Use nano-banana-2-lite to generate an image.",
-        "zh": "用 nano-banana-2-lite 生成一张图片。"
-      },
-      "parameterSchema": {
-        "properties": {
-          "prompt": {
-            "type": "string",
-            "required": true,
-            "minLength": 3
-          },
-          "n": {
-            "type": "integer",
-            "default": 1,
-            "min": 1,
-            "max": 8
-          },
-          "image_size": {
-            "type": "string",
-            "enum": [
-              "1K"
-            ],
-            "default": "1K"
-          },
-          "image": {
-            "type": "string[]",
-            "maxLength": 16
-          },
-          "aspect_ratio": {
-            "type": "string",
-            "enum": [
-              "1:1",
-              "2:3",
-              "3:2",
-              "3:4",
-              "4:3",
-              "4:5",
-              "5:4",
-              "9:16",
-              "16:9",
-              "21:9"
-            ]
-          }
-        },
-        "constraints": {
-          "reference_transport": {
-            "image": [
-              "public_https_url"
-            ]
-          }
-        },
-        "lifecycle": {
-          "create": {
-            "successStatus": 200,
-            "idField": "id",
-            "object": "image",
-            "initialStatuses": [
-              "pending"
-            ]
-          },
-          "poll": {
-            "method": "GET",
-            "path": "/v1/images/{image_id}",
-            "intervalSeconds": 3,
-            "statusField": "status",
-            "pendingStatuses": [
-              "pending"
-            ],
-            "successStatuses": [
-              "completed"
-            ],
-            "failureStatuses": [
-              "failed"
-            ],
-            "resultFields": [
-              "content_url",
-              "content_urls"
-            ]
-          }
-        },
-        "operations": {
-          "image_edit": {
-            "request": {
-              "method": "POST",
-              "path": "/v1/images/edits",
-              "contentType": "multipart/form-data"
-            },
-            "requiredBodyFields": [
-              "model",
-              "prompt",
-              "image"
-            ],
-            "inputs": {
-              "image": {
-                "field": "image",
-                "required": true,
-                "minItems": 1,
-                "maxItems": 16,
-                "transports": [
-                  "multipart_file"
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": "nano-banana-pro",
-      "name": "nano-banana-pro",
-      "provider": "Google",
-      "vendorId": 4,
-      "capabilities": [
-        "image"
-      ],
-      "aliases": [
-        "nano banana pro"
-      ],
-      "goodFor": {
-        "en": "Image generation",
-        "zh": "图片生成"
-      },
-      "example": {
-        "en": "Use nano-banana-pro to generate an image.",
-        "zh": "用 nano-banana-pro 生成一张图片。"
-      },
-      "parameterSchema": {
-        "properties": {
-          "prompt": {
-            "type": "string",
-            "required": true,
-            "minLength": 3
-          },
-          "n": {
-            "type": "integer",
-            "default": 1,
-            "min": 1,
-            "max": 8
-          },
-          "image_size": {
-            "type": "string",
-            "enum": [
-              "1K",
-              "2K",
-              "4K"
-            ],
-            "default": "1K"
-          },
-          "image": {
-            "type": "string[]",
-            "maxLength": 16
-          },
-          "aspect_ratio": {
-            "type": "string",
-            "enum": [
-              "1:1",
-              "2:3",
-              "3:2",
-              "3:4",
-              "4:3",
-              "4:5",
-              "5:4",
-              "9:16",
-              "16:9",
-              "21:9"
-            ]
-          }
-        },
-        "constraints": {
-          "reference_transport": {
-            "image": [
-              "public_https_url"
-            ]
-          }
-        },
-        "lifecycle": {
-          "create": {
-            "successStatus": 200,
-            "idField": "id",
-            "object": "image",
-            "initialStatuses": [
-              "pending"
-            ]
-          },
-          "poll": {
-            "method": "GET",
-            "path": "/v1/images/{image_id}",
-            "intervalSeconds": 3,
-            "statusField": "status",
-            "pendingStatuses": [
-              "pending"
-            ],
-            "successStatuses": [
-              "completed"
-            ],
-            "failureStatuses": [
-              "failed"
-            ],
-            "resultFields": [
-              "content_url",
-              "content_urls"
-            ]
-          }
-        },
-        "operations": {
-          "image_edit": {
-            "request": {
-              "method": "POST",
-              "path": "/v1/images/edits",
-              "contentType": "multipart/form-data"
-            },
-            "requiredBodyFields": [
-              "model",
-              "prompt",
-              "image"
-            ],
-            "inputs": {
-              "image": {
-                "field": "image",
-                "required": true,
-                "minItems": 1,
-                "maxItems": 16,
-                "transports": [
-                  "multipart_file"
-                ]
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": "omni",
-      "name": "omni",
-      "provider": "Google",
-      "vendorId": 4,
-      "capabilities": [
-        "video"
-      ],
-      "aliases": [],
-      "goodFor": {
-        "en": "Video generation",
-        "zh": "视频生成"
-      },
-      "example": {
-        "en": "Use omni to generate a short video.",
-        "zh": "用 omni 生成一条短视频。"
-      },
-      "parameterSchema": {
-        "properties": {
-          "reference_images": {
-            "type": "string[]"
-          },
-          "video": {
-            "type": "string"
-          },
-          "prompt": {
-            "type": "string",
-            "required": true
-          },
-          "duration": {
-            "type": "integer",
-            "enum": [
-              4,
-              6,
-              8,
-              10
-            ]
-          },
-          "aspect_ratio": {
-            "type": "string",
-            "enum": [
-              "16:9",
-              "9:16"
-            ]
-          },
-          "resolution": {
-            "type": "string",
-            "enum": [
-              "360p",
-              "720p",
-              "1080p"
-            ]
-          }
-        },
-        "constraints": {
-          "resolution_by_mode": {
-            "text": [
-              "360p",
-              "720p",
-              "1080p"
-            ],
-            "image": [
-              "360p",
-              "720p",
-              "1080p"
-            ],
-            "reference": [
-              "360p",
-              "720p",
-              "1080p"
-            ]
-          }
-        },
-        "operations": {
-          "video_edit": {
-            "request": {
-              "method": "POST",
-              "path": "/v1/videos/edits",
-              "contentType": "application/json"
-            },
-            "requiredBodyFields": [
-              "model",
-              "prompt",
-              "video"
-            ],
-            "inputs": {
-              "video": {
-                "field": "video",
-                "required": true,
-                "minItems": 1,
-                "maxItems": 1,
-                "transports": [
-                  "https_url"
+                  "local_file_data_url"
                 ]
               }
             }
@@ -2526,19 +4399,51 @@
         "properties": {
           "n": {
             "type": "integer",
-            "enum": [
-              1
-            ],
-            "default": 1
+            "default": 1,
+            "min": 1,
+            "max": 6
           },
           "size": {
             "type": "string"
+          },
+          "negative_prompt": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "prompt_extend": {
+            "type": "boolean"
+          },
+          "watermark": {
+            "type": "boolean"
+          },
+          "seed": {
+            "type": "integer",
+            "min": 0,
+            "max": 2147483647
+          },
+          "prompt_extend_mode": {
+            "type": "string",
+            "enum": [
+              "direct",
+              "agent"
+            ]
+          },
+          "enable_thinking": {
+            "type": "boolean"
           }
         },
         "constraints": {
           "reference_transport": {
             "image": [
               "public_https_url"
+            ]
+          },
+          "output_count": {
+            "workspace": [
+              1
+            ],
+            "standard_max": [
+              6
             ]
           }
         },
@@ -2594,6 +4499,17 @@
                 ]
               }
             }
+          },
+          "image_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/generations",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
           }
         }
       }
@@ -2619,19 +4535,51 @@
         "properties": {
           "n": {
             "type": "integer",
-            "enum": [
-              1
-            ],
-            "default": 1
+            "default": 1,
+            "min": 1,
+            "max": 6
           },
           "size": {
             "type": "string"
+          },
+          "negative_prompt": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "prompt_extend": {
+            "type": "boolean"
+          },
+          "watermark": {
+            "type": "boolean"
+          },
+          "seed": {
+            "type": "integer",
+            "min": 0,
+            "max": 2147483647
+          },
+          "prompt_extend_mode": {
+            "type": "string",
+            "enum": [
+              "direct",
+              "agent"
+            ]
+          },
+          "enable_thinking": {
+            "type": "boolean"
           }
         },
         "constraints": {
           "reference_transport": {
             "image": [
               "public_https_url"
+            ]
+          },
+          "output_count": {
+            "workspace": [
+              1
+            ],
+            "standard_max": [
+              6
             ]
           }
         },
@@ -2687,6 +4635,17 @@
                 ]
               }
             }
+          },
+          "image_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/generations",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
           }
         }
       }
@@ -2988,6 +4947,7 @@
             "inputs": {
               "reference_images": {
                 "field": "reference_images",
+                "required": false,
                 "minItems": 0,
                 "maxItems": 9,
                 "transports": [
@@ -2996,6 +4956,7 @@
               },
               "reference_videos": {
                 "field": "reference_videos",
+                "required": false,
                 "minItems": 0,
                 "maxItems": 3,
                 "transports": [
@@ -3004,6 +4965,7 @@
               },
               "reference_audios": {
                 "field": "reference_audios",
+                "required": false,
                 "minItems": 0,
                 "maxItems": 3,
                 "transports": [
@@ -3154,7 +5116,10 @@
             "type": "string",
             "enum": [
               "480p",
-              "720p"
+              "720p",
+              "1080p",
+              "2k",
+              "4k"
             ],
             "default": "720p"
           },
@@ -3389,6 +5354,7 @@
             "inputs": {
               "reference_images": {
                 "field": "reference_images",
+                "required": false,
                 "minItems": 0,
                 "maxItems": 9,
                 "transports": [
@@ -3397,6 +5363,7 @@
               },
               "reference_videos": {
                 "field": "reference_videos",
+                "required": false,
                 "minItems": 0,
                 "maxItems": 3,
                 "transports": [
@@ -3405,6 +5372,7 @@
               },
               "reference_audios": {
                 "field": "reference_audios",
+                "required": false,
                 "minItems": 0,
                 "maxItems": 3,
                 "transports": [
@@ -3546,8 +5514,7 @@
               "4:3",
               "1:1",
               "3:4",
-              "9:16",
-              "auto"
+              "9:16"
             ],
             "default": "16:9"
           },
@@ -3555,7 +5522,10 @@
             "type": "string",
             "enum": [
               "480p",
-              "720p"
+              "720p",
+              "1080p",
+              "2k",
+              "4k"
             ],
             "default": "720p"
           },
@@ -3790,6 +5760,7 @@
             "inputs": {
               "reference_images": {
                 "field": "reference_images",
+                "required": false,
                 "minItems": 0,
                 "maxItems": 9,
                 "transports": [
@@ -3798,6 +5769,7 @@
               },
               "reference_videos": {
                 "field": "reference_videos",
+                "required": false,
                 "minItems": 0,
                 "maxItems": 3,
                 "transports": [
@@ -3806,6 +5778,7 @@
               },
               "reference_audios": {
                 "field": "reference_audios",
+                "required": false,
                 "minItems": 0,
                 "maxItems": 3,
                 "transports": [
@@ -4204,6 +6177,7 @@
             "inputs": {
               "reference_images": {
                 "field": "reference_images",
+                "required": false,
                 "minItems": 0,
                 "maxItems": 30,
                 "transports": [
@@ -4212,6 +6186,7 @@
               },
               "reference_videos": {
                 "field": "reference_videos",
+                "required": false,
                 "minItems": 0,
                 "maxItems": 10,
                 "transports": [
@@ -4220,6 +6195,7 @@
               },
               "reference_audios": {
                 "field": "reference_audios",
+                "required": false,
                 "minItems": 0,
                 "maxItems": 10,
                 "transports": [
@@ -4303,6 +6279,425 @@
                 "maxItems": 1,
                 "transports": [
                   "multipart_file"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "seedream-4-0-250828",
+      "name": "seedream-4-0-250828",
+      "provider": "ByteDance",
+      "vendorId": 15,
+      "capabilities": [
+        "image"
+      ],
+      "aliases": [],
+      "goodFor": {
+        "en": "Image generation",
+        "zh": "图片生成"
+      },
+      "example": {
+        "en": "Use seedream-4-0-250828 to generate an image.",
+        "zh": "用 seedream-4-0-250828 生成一张图片。"
+      },
+      "parameterSchema": {
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "required": true,
+            "maxLength": 4000
+          },
+          "n": {
+            "type": "integer",
+            "default": 1,
+            "min": 1,
+            "max": 1
+          },
+          "size": {
+            "type": "string",
+            "default": "2K"
+          },
+          "image_size": {
+            "type": "string",
+            "enum": [
+              "1K",
+              "2K",
+              "4K"
+            ],
+            "default": "2K"
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "auto"
+            ],
+            "default": "auto"
+          },
+          "seed": {
+            "type": "integer",
+            "min": 0,
+            "max": 2147483647
+          },
+          "watermark": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "constraints": {
+          "image_size_format": {
+            "presets": [
+              "auto",
+              "1K",
+              "2K",
+              "4K"
+            ],
+            "custom": [
+              "WIDTHxHEIGHT"
+            ],
+            "dimension_min": [
+              1024
+            ],
+            "dimension_max": [
+              4096
+            ],
+            "dimension_multiple": [
+              16
+            ],
+            "workspace_outputs": [
+              1
+            ]
+          }
+        },
+        "operations": {
+          "image_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/generations",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
+          },
+          "image_edit": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/generations",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "images"
+            ],
+            "inputs": {
+              "images": {
+                "field": "images",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 3,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "seedream-4-5-251128",
+      "name": "seedream-4-5-251128",
+      "provider": "ByteDance",
+      "vendorId": 15,
+      "capabilities": [
+        "image"
+      ],
+      "aliases": [],
+      "goodFor": {
+        "en": "Image generation",
+        "zh": "图片生成"
+      },
+      "example": {
+        "en": "Use seedream-4-5-251128 to generate an image.",
+        "zh": "用 seedream-4-5-251128 生成一张图片。"
+      },
+      "parameterSchema": {
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "required": true,
+            "maxLength": 4000
+          },
+          "n": {
+            "type": "integer",
+            "default": 1,
+            "min": 1,
+            "max": 15
+          },
+          "size": {
+            "type": "string",
+            "default": "2K"
+          },
+          "image_size": {
+            "type": "string",
+            "enum": [
+              "1K",
+              "2K",
+              "4K"
+            ],
+            "default": "2K"
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "auto"
+            ],
+            "default": "auto"
+          },
+          "seed": {
+            "type": "integer",
+            "min": 0,
+            "max": 2147483647
+          },
+          "watermark": {
+            "type": "boolean",
+            "default": true
+          },
+          "sequential_image_generation": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "auto"
+            ],
+            "default": "disabled"
+          },
+          "sequential_image_generation_options": {
+            "type": "json"
+          }
+        },
+        "constraints": {
+          "image_size_format": {
+            "presets": [
+              "auto",
+              "1K",
+              "2K",
+              "4K"
+            ],
+            "custom": [
+              "WIDTHxHEIGHT"
+            ],
+            "dimension_min": [
+              1024
+            ],
+            "dimension_max": [
+              4096
+            ],
+            "dimension_multiple": [
+              16
+            ],
+            "workspace_outputs": [
+              1
+            ]
+          },
+          "output_count": {
+            "workspace": [
+              1
+            ],
+            "standard_max": [
+              1
+            ],
+            "sequential_max": [
+              15
+            ],
+            "combined_input_output_max": [
+              15
+            ]
+          }
+        },
+        "operations": {
+          "image_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/generations",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
+          },
+          "image_edit": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/generations",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "images"
+            ],
+            "inputs": {
+              "images": {
+                "field": "images",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 14,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "seedream-5-0-lite-260128",
+      "name": "seedream-5-0-lite-260128",
+      "provider": "ByteDance",
+      "vendorId": 15,
+      "capabilities": [
+        "image"
+      ],
+      "aliases": [],
+      "goodFor": {
+        "en": "Image generation",
+        "zh": "图片生成"
+      },
+      "example": {
+        "en": "Use seedream-5-0-lite-260128 to generate an image.",
+        "zh": "用 seedream-5-0-lite-260128 生成一张图片。"
+      },
+      "parameterSchema": {
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "required": true,
+            "maxLength": 4000
+          },
+          "n": {
+            "type": "integer",
+            "default": 1,
+            "min": 1,
+            "max": 15
+          },
+          "size": {
+            "type": "string",
+            "default": "2K"
+          },
+          "image_size": {
+            "type": "string",
+            "enum": [
+              "1K",
+              "2K",
+              "4K"
+            ],
+            "default": "2K"
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "auto"
+            ],
+            "default": "auto"
+          },
+          "watermark": {
+            "type": "boolean",
+            "default": true
+          },
+          "seed": {
+            "type": "integer",
+            "min": 0,
+            "max": 2147483647
+          },
+          "sequential_image_generation": {
+            "type": "string",
+            "enum": [
+              "disabled",
+              "auto"
+            ],
+            "default": "disabled"
+          },
+          "sequential_image_generation_options": {
+            "type": "json"
+          }
+        },
+        "constraints": {
+          "image_size_format": {
+            "presets": [
+              "auto",
+              "1K",
+              "2K",
+              "4K"
+            ],
+            "custom": [
+              "WIDTHxHEIGHT"
+            ],
+            "dimension_min": [
+              1024
+            ],
+            "dimension_max": [
+              4096
+            ],
+            "dimension_multiple": [
+              16
+            ],
+            "workspace_outputs": [
+              1
+            ]
+          },
+          "output_count": {
+            "workspace": [
+              1
+            ],
+            "standard_max": [
+              1
+            ],
+            "sequential_max": [
+              15
+            ],
+            "combined_input_output_max": [
+              15
+            ]
+          }
+        },
+        "operations": {
+          "image_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/generations",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
+          },
+          "image_edit": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/generations",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "images"
+            ],
+            "inputs": {
+              "images": {
+                "field": "images",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 14,
+                "transports": [
+                  "https_url"
                 ]
               }
             }
@@ -6424,8 +8819,8 @@
       }
     },
     {
-      "id": "veo_fast",
-      "name": "veo_fast",
+      "id": "veo-3.1",
+      "name": "veo-3.1",
       "provider": "Google",
       "vendorId": 4,
       "capabilities": [
@@ -6437,11 +8832,177 @@
         "zh": "视频生成"
       },
       "example": {
-        "en": "Use veo_fast to generate a short video.",
-        "zh": "用 veo_fast 生成一条短视频。"
+        "en": "Use veo-3.1 to generate a short video.",
+        "zh": "用 veo-3.1 生成一条短视频。"
       },
       "parameterSchema": {
         "properties": {
+          "prompt": {
+            "type": "string",
+            "required": true
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "720p",
+              "1080p"
+            ],
+            "default": "720p"
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "16:9",
+              "9:16"
+            ],
+            "default": "16:9"
+          },
+          "first_frame_image": {
+            "type": "string"
+          },
+          "last_frame_image": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "integer",
+            "enum": [
+              4,
+              6,
+              8
+            ],
+            "default": 8
+          }
+        },
+        "constraints": {
+          "duration_control": {
+            "request_only": [
+              true
+            ]
+          },
+          "resolution_by_mode": {
+            "text": [
+              "720p",
+              "1080p"
+            ],
+            "image": [
+              "720p",
+              "1080p"
+            ]
+          }
+        },
+        "operations": {
+          "video_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
+          },
+          "image_to_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "first_frame_image"
+            ],
+            "inputs": {
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url",
+                  "local_file_data_url"
+                ]
+              }
+            }
+          },
+          "first_last_frame_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "first_frame_image",
+              "last_frame_image"
+            ],
+            "inputs": {
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url",
+                  "local_file_data_url"
+                ]
+              },
+              "last_frame_image": {
+                "field": "last_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url",
+                  "local_file_data_url"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "veo-3.1-fast",
+      "name": "veo-3.1-fast",
+      "provider": "Google",
+      "vendorId": 4,
+      "capabilities": [
+        "video"
+      ],
+      "aliases": [],
+      "goodFor": {
+        "en": "Video generation",
+        "zh": "视频生成"
+      },
+      "example": {
+        "en": "Use veo-3.1-fast to generate a short video.",
+        "zh": "用 veo-3.1-fast 生成一条短视频。"
+      },
+      "parameterSchema": {
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "required": true
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "720p",
+              "1080p"
+            ],
+            "default": "720p"
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "16:9",
+              "9:16"
+            ],
+            "default": "16:9"
+          },
           "first_frame_image": {
             "type": "string"
           },
@@ -6451,34 +9012,26 @@
           "reference_images": {
             "type": "string[]"
           },
-          "prompt": {
-            "type": "string",
-            "required": true
-          },
           "duration": {
             "type": "integer",
             "enum": [
+              4,
+              6,
               8
-            ]
-          },
-          "aspect_ratio": {
-            "type": "string",
-            "enum": [
-              "16:9",
-              "9:16"
-            ]
-          },
-          "resolution": {
-            "type": "string",
-            "enum": [
-              "720p"
-            ]
+            ],
+            "default": 8
           }
         },
         "constraints": {
+          "duration_control": {
+            "request_only": [
+              true
+            ]
+          },
           "resolution_by_mode": {
             "text": [
-              "720p"
+              "720p",
+              "1080p"
             ],
             "image": [
               "720p"
@@ -6487,12 +9040,108 @@
               "720p"
             ]
           }
+        },
+        "operations": {
+          "video_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
+          },
+          "image_to_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "first_frame_image"
+            ],
+            "inputs": {
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url",
+                  "local_file_data_url"
+                ]
+              }
+            }
+          },
+          "first_last_frame_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "first_frame_image",
+              "last_frame_image"
+            ],
+            "inputs": {
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url",
+                  "local_file_data_url"
+                ]
+              },
+              "last_frame_image": {
+                "field": "last_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url",
+                  "local_file_data_url"
+                ]
+              }
+            }
+          },
+          "reference_image_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "reference_images"
+            ],
+            "inputs": {
+              "reference_images": {
+                "field": "reference_images",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 3,
+                "transports": [
+                  "https_url",
+                  "local_file_data_url"
+                ]
+              }
+            }
+          }
         }
       }
     },
     {
-      "id": "veo_lite",
-      "name": "veo_lite",
+      "id": "veo-3.1-lite",
+      "name": "veo-3.1-lite",
       "provider": "Google",
       "vendorId": 4,
       "capabilities": [
@@ -6504,122 +9153,131 @@
         "zh": "视频生成"
       },
       "example": {
-        "en": "Use veo_lite to generate a short video.",
-        "zh": "用 veo_lite 生成一条短视频。"
+        "en": "Use veo-3.1-lite to generate a short video.",
+        "zh": "用 veo-3.1-lite 生成一条短视频。"
       },
       "parameterSchema": {
         "properties": {
-          "first_frame_image": {
-            "type": "string"
-          },
-          "reference_images": {
-            "type": "string[]"
-          },
           "prompt": {
             "type": "string",
             "required": true
           },
-          "duration": {
-            "type": "integer",
+          "resolution": {
+            "type": "string",
             "enum": [
-              8
-            ]
+              "720p"
+            ],
+            "default": "720p"
           },
           "aspect_ratio": {
             "type": "string",
             "enum": [
               "16:9",
               "9:16"
-            ]
-          },
-          "resolution": {
-            "type": "string",
-            "enum": [
-              "720p"
-            ]
-          }
-        },
-        "constraints": {
-          "resolution_by_mode": {
-            "text": [
-              "720p"
             ],
-            "image": [
-              "720p"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "id": "veo_quan",
-      "name": "veo_quan",
-      "provider": "Google",
-      "vendorId": 4,
-      "capabilities": [
-        "video"
-      ],
-      "aliases": [],
-      "goodFor": {
-        "en": "Video generation",
-        "zh": "视频生成"
-      },
-      "example": {
-        "en": "Use veo_quan to generate a short video.",
-        "zh": "用 veo_quan 生成一条短视频。"
-      },
-      "parameterSchema": {
-        "properties": {
+            "default": "16:9"
+          },
           "first_frame_image": {
             "type": "string"
           },
           "last_frame_image": {
             "type": "string"
           },
-          "reference_images": {
-            "type": "string[]"
-          },
-          "prompt": {
-            "type": "string",
-            "required": true
-          },
           "duration": {
             "type": "integer",
             "enum": [
+              4,
+              6,
               8
-            ]
-          },
-          "aspect_ratio": {
-            "type": "string",
-            "enum": [
-              "16:9",
-              "9:16"
-            ]
-          },
-          "resolution": {
-            "type": "string",
-            "enum": [
-              "720p",
-              "1080p",
-              "4k"
-            ]
+            ],
+            "default": 8
           }
         },
         "constraints": {
+          "duration_control": {
+            "request_only": [
+              true
+            ]
+          },
           "resolution_by_mode": {
             "text": [
-              "720p",
-              "1080p",
-              "4k"
+              "720p"
             ],
             "image": [
               "720p"
-            ],
-            "reference": [
-              "720p",
-              "1080p",
-              "4k"
             ]
+          }
+        },
+        "operations": {
+          "video_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
+          },
+          "image_to_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "first_frame_image"
+            ],
+            "inputs": {
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url",
+                  "local_file_data_url"
+                ]
+              }
+            }
+          },
+          "first_last_frame_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "first_frame_image",
+              "last_frame_image"
+            ],
+            "inputs": {
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url",
+                  "local_file_data_url"
+                ]
+              },
+              "last_frame_image": {
+                "field": "last_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url",
+                  "local_file_data_url"
+                ]
+              }
+            }
           }
         }
       }
@@ -6692,6 +9350,33 @@
           "last_frame_image": {
             "type": "string"
           },
+          "bgm": {
+            "type": "boolean"
+          },
+          "is_rec": {
+            "type": "boolean"
+          },
+          "voice_id": {
+            "type": "string"
+          },
+          "watermark": {
+            "type": "boolean"
+          },
+          "wm_position": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          "wm_url": {
+            "type": "string"
+          },
+          "meta_data": {
+            "type": "string"
+          },
           "generate_audio": {
             "type": "boolean"
           },
@@ -6707,6 +9392,27 @@
             ],
             "frames_exclusive": [
               true
+            ]
+          },
+          "parameter_modes": {
+            "voice_id": [
+              "image_to_video"
+            ],
+            "watermark": [
+              "image_to_video"
+            ],
+            "wm_position": [
+              "image_to_video"
+            ],
+            "wm_url": [
+              "image_to_video"
+            ],
+            "meta_data": [
+              "image_to_video"
+            ],
+            "is_rec": [
+              "image_to_video",
+              "last_frame_video"
             ]
           }
         },
@@ -6878,6 +9584,33 @@
           "last_frame_image": {
             "type": "string"
           },
+          "bgm": {
+            "type": "boolean"
+          },
+          "is_rec": {
+            "type": "boolean"
+          },
+          "voice_id": {
+            "type": "string"
+          },
+          "watermark": {
+            "type": "boolean"
+          },
+          "wm_position": {
+            "type": "integer",
+            "enum": [
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          "wm_url": {
+            "type": "string"
+          },
+          "meta_data": {
+            "type": "string"
+          },
           "generate_audio": {
             "type": "boolean"
           },
@@ -6893,6 +9626,27 @@
             ],
             "frames_exclusive": [
               true
+            ]
+          },
+          "parameter_modes": {
+            "voice_id": [
+              "image_to_video"
+            ],
+            "watermark": [
+              "image_to_video"
+            ],
+            "wm_position": [
+              "image_to_video"
+            ],
+            "wm_url": [
+              "image_to_video"
+            ],
+            "meta_data": [
+              "image_to_video"
+            ],
+            "is_rec": [
+              "image_to_video",
+              "last_frame_video"
             ]
           }
         },
@@ -7017,13 +9771,38 @@
         "properties": {
           "n": {
             "type": "integer",
-            "enum": [
-              1
-            ],
-            "default": 1
+            "default": 1,
+            "min": 1,
+            "max": 12
           },
           "size": {
             "type": "string"
+          },
+          "negative_prompt": {
+            "type": "string"
+          },
+          "prompt_extend": {
+            "type": "boolean"
+          },
+          "watermark": {
+            "type": "boolean"
+          },
+          "seed": {
+            "type": "integer",
+            "min": 0,
+            "max": 2147483647
+          },
+          "enable_sequential": {
+            "type": "boolean"
+          },
+          "thinking_mode": {
+            "type": "boolean"
+          },
+          "bbox_list": {
+            "type": "json"
+          },
+          "color_palette": {
+            "type": "json"
           },
           "prompt": {
             "type": "string",
@@ -7035,6 +9814,17 @@
           "reference_transport": {
             "image": [
               "public_https_url"
+            ]
+          },
+          "output_count": {
+            "workspace": [
+              1
+            ],
+            "standard_max": [
+              4
+            ],
+            "sequential_max": [
+              12
             ]
           }
         },
@@ -7084,12 +9874,23 @@
                 "field": "images",
                 "required": true,
                 "minItems": 1,
-                "maxItems": 8,
+                "maxItems": 9,
                 "transports": [
                   "https_url"
                 ]
               }
             }
+          },
+          "image_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/generations",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
           }
         }
       }
@@ -7115,13 +9916,38 @@
         "properties": {
           "n": {
             "type": "integer",
-            "enum": [
-              1
-            ],
-            "default": 1
+            "default": 1,
+            "min": 1,
+            "max": 12
           },
           "size": {
             "type": "string"
+          },
+          "negative_prompt": {
+            "type": "string"
+          },
+          "prompt_extend": {
+            "type": "boolean"
+          },
+          "watermark": {
+            "type": "boolean"
+          },
+          "seed": {
+            "type": "integer",
+            "min": 0,
+            "max": 2147483647
+          },
+          "enable_sequential": {
+            "type": "boolean"
+          },
+          "thinking_mode": {
+            "type": "boolean"
+          },
+          "bbox_list": {
+            "type": "json"
+          },
+          "color_palette": {
+            "type": "json"
           },
           "prompt": {
             "type": "string",
@@ -7133,6 +9959,32 @@
           "reference_transport": {
             "image": [
               "public_https_url"
+            ]
+          },
+          "output_count": {
+            "workspace": [
+              1
+            ],
+            "standard_max": [
+              4
+            ],
+            "sequential_max": [
+              12
+            ]
+          },
+          "resolution_by_image_mode": {
+            "text": [
+              "1k",
+              "2k",
+              "4k"
+            ],
+            "edit": [
+              "1k",
+              "2k"
+            ],
+            "sequential": [
+              "1k",
+              "2k"
             ]
           }
         },
@@ -7182,12 +10034,23 @@
                 "field": "images",
                 "required": true,
                 "minItems": 1,
-                "maxItems": 8,
+                "maxItems": 9,
                 "transports": [
                   "https_url"
                 ]
               }
             }
+          },
+          "image_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/images/generations",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ]
           }
         }
       }
@@ -7217,21 +10080,39 @@
           },
           "duration": {
             "type": "integer",
-            "min": 2,
-            "max": 30
-          },
-          "aspect_ratio": {
-            "type": "string",
             "enum": [
-              "16:9",
-              "9:16",
-              "1:1",
-              "4:3",
-              "3:4",
-              "21:9",
-              "adaptive"
+              -1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
             ],
-            "default": "16:9"
+            "default": 5
           },
           "resolution": {
             "type": "string",
@@ -7239,122 +10120,89 @@
               "480p",
               "720p",
               "1080p"
-            ]
+            ],
+            "default": "1080p"
           },
-          "reference_images": {
-            "type": "string[]",
-            "maxLength": 10
-          },
-          "reference_videos": {
-            "type": "string[]",
-            "maxLength": 5
-          },
-          "reference_audios": {
-            "type": "string[]",
-            "maxLength": 5
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "adaptive",
+              "21:9",
+              "16:9",
+              "4:3",
+              "1:1",
+              "3:4",
+              "9:16"
+            ],
+            "default": "adaptive"
           },
           "first_frame_image": {
             "type": "string"
+          },
+          "last_frame_image": {
+            "type": "string"
+          },
+          "reference_images": {
+            "type": "string[]"
+          },
+          "reference_videos": {
+            "type": "string[]"
+          },
+          "reference_audios": {
+            "type": "string[]"
+          },
+          "audio": {
+            "type": "boolean",
+            "default": true
+          },
+          "prompt_extend": {
+            "type": "boolean",
+            "default": true
+          },
+          "watermark": {
+            "type": "boolean",
+            "default": false
           }
         },
         "constraints": {
-          "reference_transport": {
-            "first_frame_image": [
-              "public_https_url",
-              "max_1"
+          "reference_video": {
+            "max_total_seconds": [
+              15
+            ]
+          },
+          "reference_audio": {
+            "max_total_seconds": [
+              15
+            ]
+          },
+          "native_media": {
+            "field": [
+              "input.media"
             ],
-            "reference_images": [
-              "public_https_url",
-              "max_10"
+            "transport": [
+              "file",
+              "link"
             ],
-            "reference_videos": [
-              "public_https_url",
-              "max_5"
-            ],
-            "reference_audios": [
-              "public_https_url",
-              "max_5"
+            "video_operations": [
+              "edit",
+              "extend"
             ]
           },
           "unsupported_inputs": {
-            "last_frame_image": [
-              "not_supported"
-            ]
-          }
-        },
-        "lifecycle": {
-          "create": {
-            "successStatus": 200,
-            "idField": "id",
-            "object": "video",
-            "initialStatuses": [
-              "queued",
-              "in_progress"
-            ]
+            "input": true,
+            "parameters": true,
+            "idempotency_key": true
           },
-          "poll": {
-            "method": "GET",
-            "path": "/v1/videos/{task_id}",
-            "intervalSeconds": 5,
-            "statusField": "status",
-            "pendingStatuses": [
-              "queued",
-              "in_progress"
-            ],
-            "successStatuses": [
-              "completed"
-            ],
-            "failureStatuses": [
-              "failed"
-            ],
-            "resultFields": [
-              "metadata.url"
-            ]
+          "unsupported_operations": {
+            "native_generation": true
           }
         },
         "operations": {
-          "video_generation": {
-            "request": {
-              "method": "POST",
-              "path": "/v1/videos",
-              "contentType": "application/json"
-            },
-            "requiredBodyFields": [
-              "model",
-              "prompt"
-            ],
-            "inputs": {
-              "reference_images": {
-                "field": "reference_images",
-                "minItems": 0,
-                "maxItems": 10,
-                "transports": [
-                  "https_url"
-                ]
-              },
-              "reference_videos": {
-                "field": "reference_videos",
-                "minItems": 0,
-                "maxItems": 5,
-                "transports": [
-                  "https_url"
-                ]
-              },
-              "reference_audios": {
-                "field": "reference_audios",
-                "minItems": 0,
-                "maxItems": 5,
-                "transports": [
-                  "https_url"
-                ]
-              }
-            }
-          },
           "image_to_video": {
             "request": {
               "method": "POST",
               "path": "/v1/videos",
-              "contentType": "multipart/form-data"
+              "contentType": "application/json"
             },
             "requiredBodyFields": [
               "model",
@@ -7368,7 +10216,80 @@
                 "minItems": 1,
                 "maxItems": 1,
                 "transports": [
-                  "multipart_file"
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "video_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ],
+            "inputs": {
+              "reference_images": {
+                "field": "reference_images",
+                "required": false,
+                "minItems": 0,
+                "maxItems": 10,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "reference_videos": {
+                "field": "reference_videos",
+                "required": false,
+                "minItems": 0,
+                "maxItems": 5,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "reference_audios": {
+                "field": "reference_audios",
+                "required": false,
+                "minItems": 0,
+                "maxItems": 5,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "last_frame_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "last_frame_image",
+              "first_frame_image"
+            ],
+            "inputs": {
+              "last_frame_image": {
+                "field": "last_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
                 ]
               }
             }
@@ -7377,7 +10298,7 @@
             "request": {
               "method": "POST",
               "path": "/v1/videos",
-              "contentType": "multipart/form-data"
+              "contentType": "application/json"
             },
             "requiredBodyFields": [
               "model",
@@ -7391,7 +10312,7 @@
                 "minItems": 1,
                 "maxItems": 10,
                 "transports": [
-                  "multipart_file"
+                  "https_url"
                 ]
               }
             }
@@ -7400,7 +10321,7 @@
             "request": {
               "method": "POST",
               "path": "/v1/videos",
-              "contentType": "multipart/form-data"
+              "contentType": "application/json"
             },
             "requiredBodyFields": [
               "model",
@@ -7414,16 +10335,16 @@
                 "minItems": 1,
                 "maxItems": 5,
                 "transports": [
-                  "multipart_file"
+                  "https_url"
                 ]
               }
             }
           },
-          "reference_audio": {
+          "reference_audio_video": {
             "request": {
               "method": "POST",
               "path": "/v1/videos",
-              "contentType": "multipart/form-data"
+              "contentType": "application/json"
             },
             "requiredBodyFields": [
               "model",
@@ -7437,7 +10358,7 @@
                 "minItems": 1,
                 "maxItems": 5,
                 "transports": [
-                  "multipart_file"
+                  "https_url"
                 ]
               }
             }
@@ -7470,21 +10391,39 @@
           },
           "duration": {
             "type": "integer",
-            "min": 2,
-            "max": 30
-          },
-          "aspect_ratio": {
-            "type": "string",
             "enum": [
-              "16:9",
-              "9:16",
-              "1:1",
-              "4:3",
-              "3:4",
-              "21:9",
-              "adaptive"
+              -1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30
             ],
-            "default": "16:9"
+            "default": 5
           },
           "resolution": {
             "type": "string",
@@ -7492,122 +10431,89 @@
               "480p",
               "720p",
               "1080p"
-            ]
+            ],
+            "default": "1080p"
           },
-          "reference_images": {
-            "type": "string[]",
-            "maxLength": 10
-          },
-          "reference_videos": {
-            "type": "string[]",
-            "maxLength": 5
-          },
-          "reference_audios": {
-            "type": "string[]",
-            "maxLength": 5
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "adaptive",
+              "21:9",
+              "16:9",
+              "4:3",
+              "1:1",
+              "3:4",
+              "9:16"
+            ],
+            "default": "adaptive"
           },
           "first_frame_image": {
             "type": "string"
+          },
+          "last_frame_image": {
+            "type": "string"
+          },
+          "reference_images": {
+            "type": "string[]"
+          },
+          "reference_videos": {
+            "type": "string[]"
+          },
+          "reference_audios": {
+            "type": "string[]"
+          },
+          "audio": {
+            "type": "boolean",
+            "default": true
+          },
+          "prompt_extend": {
+            "type": "boolean",
+            "default": true
+          },
+          "watermark": {
+            "type": "boolean",
+            "default": false
           }
         },
         "constraints": {
-          "reference_transport": {
-            "first_frame_image": [
-              "public_https_url",
-              "max_1"
+          "reference_video": {
+            "max_total_seconds": [
+              15
+            ]
+          },
+          "reference_audio": {
+            "max_total_seconds": [
+              15
+            ]
+          },
+          "native_media": {
+            "field": [
+              "input.media"
             ],
-            "reference_images": [
-              "public_https_url",
-              "max_10"
+            "transport": [
+              "file",
+              "link"
             ],
-            "reference_videos": [
-              "public_https_url",
-              "max_5"
-            ],
-            "reference_audios": [
-              "public_https_url",
-              "max_5"
+            "video_operations": [
+              "edit",
+              "extend"
             ]
           },
           "unsupported_inputs": {
-            "last_frame_image": [
-              "not_supported"
-            ]
-          }
-        },
-        "lifecycle": {
-          "create": {
-            "successStatus": 200,
-            "idField": "id",
-            "object": "video",
-            "initialStatuses": [
-              "queued",
-              "in_progress"
-            ]
+            "input": true,
+            "parameters": true,
+            "idempotency_key": true
           },
-          "poll": {
-            "method": "GET",
-            "path": "/v1/videos/{task_id}",
-            "intervalSeconds": 5,
-            "statusField": "status",
-            "pendingStatuses": [
-              "queued",
-              "in_progress"
-            ],
-            "successStatuses": [
-              "completed"
-            ],
-            "failureStatuses": [
-              "failed"
-            ],
-            "resultFields": [
-              "metadata.url"
-            ]
+          "unsupported_operations": {
+            "native_generation": true
           }
         },
         "operations": {
-          "video_generation": {
-            "request": {
-              "method": "POST",
-              "path": "/v1/videos",
-              "contentType": "application/json"
-            },
-            "requiredBodyFields": [
-              "model",
-              "prompt"
-            ],
-            "inputs": {
-              "reference_images": {
-                "field": "reference_images",
-                "minItems": 0,
-                "maxItems": 10,
-                "transports": [
-                  "https_url"
-                ]
-              },
-              "reference_videos": {
-                "field": "reference_videos",
-                "minItems": 0,
-                "maxItems": 5,
-                "transports": [
-                  "https_url"
-                ]
-              },
-              "reference_audios": {
-                "field": "reference_audios",
-                "minItems": 0,
-                "maxItems": 5,
-                "transports": [
-                  "https_url"
-                ]
-              }
-            }
-          },
           "image_to_video": {
             "request": {
               "method": "POST",
               "path": "/v1/videos",
-              "contentType": "multipart/form-data"
+              "contentType": "application/json"
             },
             "requiredBodyFields": [
               "model",
@@ -7621,7 +10527,80 @@
                 "minItems": 1,
                 "maxItems": 1,
                 "transports": [
-                  "multipart_file"
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "video_generation": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt"
+            ],
+            "inputs": {
+              "reference_images": {
+                "field": "reference_images",
+                "required": false,
+                "minItems": 0,
+                "maxItems": 10,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "reference_videos": {
+                "field": "reference_videos",
+                "required": false,
+                "minItems": 0,
+                "maxItems": 5,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "reference_audios": {
+                "field": "reference_audios",
+                "required": false,
+                "minItems": 0,
+                "maxItems": 5,
+                "transports": [
+                  "https_url"
+                ]
+              }
+            }
+          },
+          "last_frame_video": {
+            "request": {
+              "method": "POST",
+              "path": "/v1/videos",
+              "contentType": "application/json"
+            },
+            "requiredBodyFields": [
+              "model",
+              "prompt",
+              "last_frame_image",
+              "first_frame_image"
+            ],
+            "inputs": {
+              "last_frame_image": {
+                "field": "last_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
+                ]
+              },
+              "first_frame_image": {
+                "field": "first_frame_image",
+                "required": true,
+                "minItems": 1,
+                "maxItems": 1,
+                "transports": [
+                  "https_url"
                 ]
               }
             }
@@ -7630,7 +10609,7 @@
             "request": {
               "method": "POST",
               "path": "/v1/videos",
-              "contentType": "multipart/form-data"
+              "contentType": "application/json"
             },
             "requiredBodyFields": [
               "model",
@@ -7644,7 +10623,7 @@
                 "minItems": 1,
                 "maxItems": 10,
                 "transports": [
-                  "multipart_file"
+                  "https_url"
                 ]
               }
             }
@@ -7653,7 +10632,7 @@
             "request": {
               "method": "POST",
               "path": "/v1/videos",
-              "contentType": "multipart/form-data"
+              "contentType": "application/json"
             },
             "requiredBodyFields": [
               "model",
@@ -7667,16 +10646,16 @@
                 "minItems": 1,
                 "maxItems": 5,
                 "transports": [
-                  "multipart_file"
+                  "https_url"
                 ]
               }
             }
           },
-          "reference_audio": {
+          "reference_audio_video": {
             "request": {
               "method": "POST",
               "path": "/v1/videos",
-              "contentType": "multipart/form-data"
+              "contentType": "application/json"
             },
             "requiredBodyFields": [
               "model",
@@ -7690,7 +10669,7 @@
                 "minItems": 1,
                 "maxItems": 5,
                 "transports": [
-                  "multipart_file"
+                  "https_url"
                 ]
               }
             }

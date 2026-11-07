@@ -142,7 +142,7 @@ test("media contracts retain fixed endpoints, asynchronous same-task handling, a
   assert.equal(image.operations.submit.url, `${apiOrigin}/v1/images/generations`);
   assert.equal(image.operations.status.urlTemplate, `${apiOrigin}/v1/images/{task_id}`);
   assert.equal(image.operations.content.urlTemplate, `${apiOrigin}/v1/images/{task_id}/content?index={index}`);
-  assert.equal(image.parameterValidation.defaultModel, "gpt-image-2.5-flare");
+  assert.equal(image.parameterValidation.defaultModel, "gpt-image-2.6");
   assert.equal(video.parameterValidation.defaultModel, "MiniMax-H3");
   assert.equal(image.contentRetrieval.indexBase, 0);
   assert.equal(image.contentRetrieval.completeDeliveryRequiresEveryRequestedIndex, true);
@@ -161,7 +161,7 @@ test("media contracts retain fixed endpoints, asynchronous same-task handling, a
 
 test("media Skills load a compact index and only the selected model profile", async () => {
   for (const [name, capability, defaultModel] of [
-    ["puretokens-image", "image", "gpt-image-2.5-flare"],
+    ["puretokens-image", "image", "gpt-image-2.6"],
     ["puretokens-video", "video", "MiniMax-H3"]
   ]) {
     const base = path.join(repositoryRoot, "skills", name);
@@ -271,14 +271,14 @@ test("the public install prompt remains extractable in both README files", async
   }
 });
 
-test("host matrix lists twenty-one source installer hosts and bounded credential adapters", async () => {
+test("host matrix lists twenty-seven source installer hosts and bounded credential adapters", async () => {
   const support = JSON.parse(await readFile(path.join(repositoryRoot, "references", "host-support.json"), "utf8"));
-  assert.deepEqual(support.supported.map((host) => host.id), ["claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop", "oh-my-pi", "minimax-code-cli"]);
+  assert.deepEqual(support.supported.map((host) => host.id), ["claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop", "oh-my-pi", "minimax-code-cli", "qwen-code", "codebuddy-code", "copilot-cli", "factory-droid", "mimo-coder", "paseo"]);
   for (const host of support.supported) {
     assert.equal(host.delivery, "native-installer");
     assert.equal(host.directMediaExecution, "managed-native-executor");
   }
-  assert.deepEqual(support.supported.filter((host) => host.credentialAdapter === "fixture-tested").map((host) => host.id), ["claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop", "oh-my-pi", "minimax-code-cli"]);
+  assert.deepEqual(support.supported.filter((host) => host.credentialAdapter === "fixture-tested").map((host) => host.id), ["claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop", "oh-my-pi", "minimax-code-cli", "qwen-code", "codebuddy-code", "copilot-cli", "factory-droid", "mimo-coder", "paseo"]);
 });
 
 test("source installer synchronizes Skills and exactly one native executor", async (t) => {
@@ -304,7 +304,7 @@ test("source installer exposes explicit init with compact guidance and on-demand
   await execFile("sh", [installer, "sync", "--target", target, "--source", repositoryRoot], { cwd: repositoryRoot });
   const { stdout } = await execFile("sh", [installer, "init", "--target", target], { cwd: repositoryRoot });
   assert.match(stdout, /Pure Tokens Skill init: host ID was not supplied, so the connection check was deferred/);
-  assert.equal(stdout.split("Example (not executed):").length - 1, 2);
+  assert.equal(stdout.split("Example (not executed):").length - 1, 1);
   assert.match(stdout, /read the local usage guide without a network request/);
   assert.doesNotMatch(stdout, /## 操作与恢复|# Pure Tokens Skill 使用须知/);
   assert.ok(Buffer.byteLength(stdout) < 2200);

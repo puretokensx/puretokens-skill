@@ -32,5 +32,11 @@ func (issue *audioValidation) message() string {
 	if issue.Field == "response_format" {
 		return "The selected model does not support this audio output format. Use its installed profile. No API request was sent."
 	}
+	if issue.Field == "volume" {
+		return "This model's speech volume must be between 0.1 and 2. No API request was sent."
+	}
+	if issue.Field == "hotwords" {
+		return "Transcription hotwords must be a JSON array of nonempty strings for a supporting model. No API request was sent."
+	}
 	return fmt.Sprintf("The %s field failed local validation (%s). Use the selected audio profile and declared request fields. No API request was sent.", issue.Field, issue.Reason)
 }

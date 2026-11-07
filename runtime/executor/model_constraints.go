@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 )
 
 // Query and submission use the same value and cross-field rules. Queries infer
@@ -13,7 +15,7 @@ func validateModelParameter(schema parameterSchema, operation mediaOperation, na
 	}
 	rule, exists := schema.Properties[name]
 	input, declaredInput := operation.Inputs[name]
-	if declaredInput && !multipart {
+	if declaredInput {
 		if !contains(input.Transports, "public_https_url") && !contains(input.Transports, "https_url") {
 			return errors.New("This JSON attachment transport is not supported by the model.")
 		}
@@ -88,6 +90,126 @@ func validateModelConstraints(schema parameterSchema, operation string, paramete
 			return 1
 		}
 		return len(array(parameters[key]))
+	}
+	effective := func(key string) any {
+		if value, exists := parameters[key]; exists {
+			return value
+		}
+		return schema.Properties[key]["default"]
+	}
+	if _, kling := schema.Constraints["kling_settings"]; kling {
+		variant := "v3"
+		if _, ok := schema.Constraints["kling_settings"]["adaptive_requires_reference"]; ok {
+			variant = "v4"
+		} else if _, ok := schema.Constraints["kling_settings"]["feature_video_audio"]; ok {
+			variant = "omni"
+		} else if _, ok := schema.Constraints["motion_control"]; ok {
+			variant = "motion"
+		}
+		if err := validateKlingParameters(variant, parameters, counts); err != nil {
+			return err
+		}
+	}
+	if value := effective("n"); value != nil {
+		count, ok := number(value)
+		if !ok || count < 1 || count > maxImageCount || count != float64(int(count)) {
+			return errors.New("The executor supports an integer output count from 1 through 8.")
+		}
+	}
+	for field, modes := range schema.Constraints["parameter_modes"] {
+		if present(field) && !hasValue(array(modes), operation) {
+			return errors.New("A supplied parameter is unavailable for this operation. Choose the declared operation before submitting.")
+		}
+	}
+	imageMode := "text"
+	if operation == "image_edit" || operation == "masked_image_edit" || present("image") || present("images") || present("image_urls") {
+		imageMode = "edit"
+	}
+	sequential := parameters["enable_sequential"] == true || parameters["sequential_image_generation"] == "auto"
+	if allowed, exists := schema.Constraints["output_format_by_image_mode"][imageMode]; exists && effective("output_format") != nil && !hasValue(array(allowed), effective("output_format")) {
+		return errors.New("This output format is unavailable for the selected image operation.")
+	}
+	size := effective("image_size")
+	if parameters["size"] != nil {
+		size = parameters["size"]
+	}
+	if size == nil {
+		size = effective("size")
+	}
+	if allowed, exists := schema.Constraints["output_format_resolutions"][fmt.Sprint(effective("output_format"))]; exists && size != nil && !hasValue(array(allowed), strings.ToLower(fmt.Sprint(size))) {
+		return errors.New("This output format is unavailable at the selected image size.")
+	}
+	resolutionMode := imageMode
+	if sequential {
+		resolutionMode = "sequential"
+	}
+	resolution := strings.ToLower(fmt.Sprint(size))
+	// Mode limits describe named tiers, not explicit WIDTHxHEIGHT dimensions.
+	namedResolution := resolution == "1k" || resolution == "2k" || resolution == "4k"
+	if allowed, exists := schema.Constraints["resolution_by_image_mode"][resolutionMode]; exists && namedResolution && !hasValue(array(allowed), resolution) {
+		return errors.New("This image size is unavailable for the selected operation or sequence.")
+	}
+	if rules, exists := schema.Constraints["image_size_format"]; exists && size != nil && !hasValue(array(rules["presets"]), size) {
+		parts := strings.Split(fmt.Sprint(size), "x")
+		valid := len(parts) == 2 && hasValue(array(rules["custom"]), "WIDTHxHEIGHT")
+		for _, part := range parts {
+			n, err := strconv.Atoi(part)
+			min, _ := number(firstConstraintValue(rules["dimension_min"]))
+			max, _ := number(firstConstraintValue(rules["dimension_max"]))
+			multiple, _ := number(firstConstraintValue(rules["dimension_multiple"]))
+			if err != nil || n <= 0 || strconv.Itoa(n) != part || float64(n) < min || (max > 0 && float64(n) > max) || (multiple > 0 && (multiple < 1 || multiple > float64(n) || multiple != float64(int(multiple)) || n%int(multiple) != 0)) {
+				valid = false
+			}
+		}
+		if !valid {
+			return errors.New("Image size must use a declared preset or bounded WIDTHxHEIGHT dimensions.")
+		}
+	}
+	if _, exists := schema.Constraints["image_size_format"]; exists && parameters["size"] != nil && parameters["image_size"] != nil && parameters["size"] != parameters["image_size"] {
+		return errors.New("The explicit size and image_size values conflict. Choose one consistent size.")
+	}
+	if rules, exists := schema.Constraints["output_count"]; exists {
+		n, ok := number(effective("n"))
+		if !ok {
+			n = 1
+		}
+		if _, declared := schema.Properties["sequential_image_generation_options"]; declared {
+			options, hasOptions := parameters["sequential_image_generation_options"]
+			count := float64(1)
+			if hasOptions {
+				object, ok := options.(map[string]any)
+				if !ok || !sequential {
+					return errors.New("Sequential options require the declared sequence mode.")
+				}
+				for key := range object {
+					if key != "max_images" {
+						return errors.New("Unknown sequential option.")
+					}
+				}
+				if value, exists := object["max_images"]; exists {
+					count, ok = number(value)
+					if !ok || count < 1 || count > maxImageCount || count != float64(int(count)) {
+						return errors.New("Sequential output count must be an integer from 1 through 8.")
+					}
+				}
+			}
+			if n != count {
+				return errors.New("The output count must match sequential max_images; no values were changed.")
+			}
+		}
+		limit := "standard_max"
+		if sequential {
+			limit = "sequential_max"
+		}
+		if maximum, ok := number(firstConstraintValue(rules[limit])); ok && n > maximum {
+			return errors.New("The output count exceeds the selected standard or sequential mode limit.")
+		}
+		if maximum, ok := number(firstConstraintValue(rules["combined_input_output_max"])); ok {
+			inputs := referenceCount("image") + referenceCount("images") + referenceCount("image_urls")
+			if float64(inputs)+n > maximum {
+				return errors.New("The combined input and output image count exceeds the model limit.")
+			}
+		}
 	}
 	if limits, exists := schema.Constraints["reference_counts"]; exists {
 		total := 0
@@ -166,11 +288,18 @@ func validateModelConstraints(schema parameterSchema, operation string, paramete
 	if present("image") || present("first_frame_image") || present("last_frame_image") || operation == "image_to_video" {
 		mode = "image"
 	}
-	if operation == "reference_image_video" || operation == "reference_video" || operation == "reference_audio" {
+	if present("reference_images") || present("reference_videos") || present("reference_audios") || operation == "reference_image_video" || operation == "reference_video" || operation == "reference_audio" || operation == "reference_audio_video" {
 		mode = "reference"
 	}
 	if allowed, exists := schema.Constraints["resolution_by_mode"][mode]; exists && parameters["resolution"] != nil && !hasValue(array(allowed), parameters["resolution"]) {
 		return errors.New("This resolution is unavailable for the selected reference mode. Choose a declared resolution.")
 	}
 	return nil
+}
+
+func firstConstraintValue(value any) any {
+	if values := array(value); len(values) > 0 {
+		return values[0]
+	}
+	return value
 }

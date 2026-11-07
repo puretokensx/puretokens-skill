@@ -23,7 +23,8 @@
     "music",
     "operationsReceipts",
     "embedding",
-    "rerank"
+    "rerank",
+    "asynchronousAudio"
   ],
   "properties": {
     "$schema": {
@@ -255,8 +256,13 @@
         "transportErrorField": "transport_error_code",
         "transportErrorRule": "typed_local_error_for_latest_http_attempt_without_response_only_no_raw_text_no_extra_requests",
         "transportErrorCodes": [
-          "api_request_timeout", "api_request_cancelled", "api_dns_failed",
-          "api_tls_failed", "api_network_permission_denied", "api_connection_failed", "api_transport_failed"
+          "api_request_timeout",
+          "api_request_cancelled",
+          "api_dns_failed",
+          "api_tls_failed",
+          "api_network_permission_denied",
+          "api_connection_failed",
+          "api_transport_failed"
         ],
         "transportErrorBoundary": "No response is not an HTTP status or proof of non-acceptance; preserve unknown submissions and same-task recovery, never retry or relax TLS/sandbox protection automatically. Request timing remains invocation-local timings_ms, outside support and task records."
       }
@@ -565,6 +571,26 @@
         "neverAutomaticallyRetries": true,
         "onePostPerInvocation": true,
         "neverPoll": true
+      }
+    },
+    "asynchronousAudio": {
+      "const": {
+        "kind": "audio_task",
+        "models": [
+          "gemini-3.8-flash-tts",
+          "lyria-3.5",
+          "lyria-3-pro-preview"
+        ],
+        "submitUrl": "https://api.puretokensx.com/v1/tasks/product-yutoux",
+        "statusUrlTemplate": "https://api.puretokensx.com/v1/tasks/{task_id}",
+        "contentUrlTemplate": "https://api.puretokensx.com/v1/tasks/{task_id}/artifacts/audio/content",
+        "asynchronous": true,
+        "neverAutomaticallyResubmits": true,
+        "neverUsesSynchronousAudio": true,
+        "maxOutputs": 1,
+        "maxOutputBytes": 33554432,
+        "statusPlatform": "product-yutoux",
+        "deliveredOnlyAfterHostHandoff": true
       }
     }
   },

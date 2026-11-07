@@ -6,6 +6,22 @@
 
 ## Unreleased
 
+- Shorten install and special-media entry guidance; reuse one host-specific activation example after same-version verification without downloading, writing or repeating init. Split release metadata/archive timeouts, report safe download stages and bound stalled curl transfers. Add sanitized new-request media validation with a one-time intent-preserving assembly correction, preserve existing/unknown task boundaries, and choose new retrieval filenames only inside an already authorized directory. Keep native delivery and independent video/tail-frame indexes; no new user runtime or automatic paid retry.
+
+- Split installed all-client manuals into a short index and per-host execution/delivery references, with one common native delivery protocol per Skill. Preserve host-neutral shared roots, one platform executor and explicit current-host credentials. Add generated-file/link/stale-host checks and shared-root no-op/upgrade/customization regressions; do not install other clients, migrate separate roots or add a runtime dependency.
+
+- Add Qwen Code, CodeBuddy Code, Copilot CLI, Factory Droid and MiMo Coder installation/credential adapters, plus conditional local Codex-backed Paseo support. Keep same-host Key isolation, reject ambiguous/overridden connections, preserve harmless preferences and reuse existing dedicated API commands. Sync host contracts and synthetic macOS/Windows writer fixtures; real-client loading/API/attachment acceptance remains pending. Antigravity CLI remains unsupported.
+
+- Set the image default to exact `gpt-image-2.6` and the embedding default to `qwen3.7-text-embedding`. Preserve explicit choices, existing task identities and the `MiniMax-H3` video default; keep request model IDs explicit.
+- Preserve explicit image output formats across retrieval and recovery, including original GIF bytes and attachments. Reject mismatched static output without resubmitting; allow explicitly requested same-index recovery into a new directory without overwriting old files.
+- Add reviewed GPT 2.6 JSON editing with HTTPS originals and one local PNG mask, including the missing-installed-profile path.
+- Add explicit GPT 2.6 static SVG file delivery with bounded security validation, reviewed Super Vega Pro video/tail-frame artifacts with independent recovery, and strictly validated native Kling contents/settings/options for six exact IDs. Reuse existing resource IDs without resource creation, voice cloning or realtime voice. Audio translation remains unexposed until an exact-model protocol is confirmed.
+
+- Refresh current image/video model profiles and parameter limits; add reviewed Kling flat operations and remove retired Kling IDs from new-task selection without changing historical recovery.
+- Preserve typed local image/frame references through bounded in-memory JSON encoding. Add dedicated asynchronous Gemini TTS/Lyria tasks with same-task recovery, validated WAV/MP3 delivery and no automatic resubmission.
+
+- Add source-only Claude Desktop mapped Skills authentication from the same client's Switch-applied connection record. Bind it to the active profile and media task connection identity; preserve direct profiles and stop on changed credentials without resubmission. No borrowed host Keys, credential exchange, new proxy or additional consent dialog. Real-host and Windows ACL acceptance remain pending.
+
 - Bound same-task media retrieval to a 90-second response-header wait and a 30-second body-read idle interval while retaining the 10-minute total transfer ceiling. Preserve timeout errors during media-prefix reads, separate response waiting from body timing, and explicitly stop automatic retries after download failures. No new submissions, credentials or transports are introduced.
 
 - Align MiniMax installer directory trimming with credential resolution and preserve pending CLI legacy migration without creating a new default root. Extend per-host dedicated-call fixtures to embeddings/rerank and verify local audio/evaluation/retrieval results; real-host delivery remains pending.
@@ -13,7 +29,7 @@
 - Add source-only Oh My Pi and MiniMax Code CLI saved-default adapters, independent installation entries and strict unsupported-scope handling. Real-host acceptance remains separate.
 - Accept the strict legacy flat DSH credential-reference store without migration or environment fallback.
 - Synchronize Wan 3.0 video aspect ratios with the production catalog; keep the current image and video defaults.
-- Clarify that Claude Desktop loopback mapping and Antigravity process-only credentials do not support direct Skills authentication. Recognized mapped profiles stop locally with a specific explanation instead of implying an installation failure; no credential exchange or media proxy is added.
+- Legacy Claude mapped profiles without the new companion and Antigravity process-only credentials stop locally with a specific explanation, never an installation-failure claim or another-host fallback.
 
 ## 0.19.8 - 2026-10-24
 

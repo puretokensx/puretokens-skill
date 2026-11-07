@@ -30,11 +30,16 @@ creation, file ingestion or automatic expansion into paid batches is provided.
 | Skill | `puretokens-embedding` | `puretokens-rerank` |
 | Fixed full API URL | `https://api.puretokensx.com/v1/embeddings` | `https://api.puretokensx.com/v1/rerank` |
 | Reviewed exact IDs | `qwen3.7-text-embedding`, `qwen3.7-text-embedding-flash` | `qwen3.7-text-rerank` |
+| Skill selection when unspecified | `qwen3.7-text-embedding`; preserve an explicit flash choice | `qwen3.7-text-rerank` (the only reviewed ID) |
 | Request fields | `model`, `input`, `output_file` | `model`, `query`, `documents`, optional `top_n`, `output_file` |
 | API body | `model`, `input`, fixed `encoding_format=float` | `model`, `query`, `documents`, `top_n`, fixed `return_documents=false` |
 | Array bound | 1–64 nonempty input strings | 1–64 candidate strings |
 | Text bound | 32768 Unicode runes per item | 32768 runes per item, nonempty query up to 8192 runes |
 | Output | New absolute `.jsonl` file | New absolute `.json` file |
+
+The Skill writes the chosen exact model into the request. The executor still
+requires `model`; defaults do not authorize fallback, retries or model changes
+for an existing task.
 
 Both request files are at most 1048576 bytes (1 MiB); responses are at most
 2097152 bytes (2 MiB). `top_n` is an integer from 1 to the candidate count,
@@ -42,6 +47,12 @@ defaulting to that count. Local output_file never enters the API body. Output
 parents must already exist and be writable; existing files are never overwritten
 or deleted. These bounds are local resource controls, not token, price or
 upstream capacity guarantees.
+
+If the output directory is already explicit and authorized by the user or the
+active workspace task, the Skill may choose a unique new filename there without
+asking for a basename. Ask only when the directory is unclear. An arbitrary
+working directory, system directory or Skill installation is not authorization.
+The executor still requires the full absolute output_file and never overwrites.
 
 Embedding writes one `{index,dimensions,embedding}` object per JSONL line,
 ordered by original zero-based input index. Entries, dimensions and finite

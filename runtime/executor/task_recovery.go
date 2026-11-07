@@ -138,8 +138,9 @@ func finishKnownTask(output io.Writer, result receipt) error {
 }
 
 var (
-	errInvalidMedia  = errors.New("invalid media content")
-	errMediaTooLarge = errors.New("media exceeds size limit")
+	errInvalidMedia        = errors.New("invalid media content")
+	errMediaTooLarge       = errors.New("media exceeds size limit")
+	errMediaFormatMismatch = errors.New("media differs from requested output format")
 )
 
 func contentFailure(err error, status, retry int, code, message string) receipt {
@@ -152,6 +153,10 @@ func contentFailure(err error, status, retry int, code, message string) receipt 
 	result.NextAction = "Keep this task ID and any verified local file. Inspect the existing receipt before offering another same-task retrieval; the cause is not yet classified."
 	var network net.Error
 	switch {
+	case errors.Is(err, errMediaFormatMismatch):
+		result.LocalErrorCode = "media_output_format_mismatch"
+		result.ErrorMessage = "The result does not match the originally requested output format. It has not been delivered as the requested file."
+		result.NextAction = "Keep the original task and any existing files. Contact Pure Tokens support; retrieve this same task only when explicitly requested, using a new output directory if needed. Do not convert the file, switch models or submit again automatically."
 	case errors.Is(err, errContentResponseTimeout):
 		result.LocalErrorCode = "media_content_response_timeout"
 		result.ErrorMessage = "The content request exceeded its response-wait limit before response headers were available. This does not identify the slow network or server component."

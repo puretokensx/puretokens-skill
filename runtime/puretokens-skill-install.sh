@@ -17,7 +17,7 @@ report_unexpected_failure() {
 trap 'report_unexpected_failure $?' EXIT
 
 usage() {
-  printf '%s\n' "Usage: puretokens-skill-install.sh <check|verify-installed|init|sync|repair|locate> (--host <claude-code|codex|workbuddy|gemini-cli|grok-build|opencode|trae|claude-desktop|dsh-desktop|deepseek-harness|minimax-code|zcode|kimi-code|qoder|pi|hermes|evox|vscode|octop|oh-my-pi|minimax-code-cli> | --target <absolute-skill-directory>) [--source <absolute-official-source-directory>]"
+  printf '%s\n' "Usage: puretokens-skill-install.sh <check|verify-installed|init|sync|repair|locate> (--host <claude-code|codex|workbuddy|gemini-cli|grok-build|opencode|trae|claude-desktop|dsh-desktop|deepseek-harness|minimax-code|zcode|kimi-code|qoder|pi|hermes|evox|vscode|octop|oh-my-pi|minimax-code-cli|qwen-code|codebuddy-code|copilot-cli|factory-droid|mimo-coder|paseo> | --target <absolute-skill-directory>) [--source <absolute-official-source-directory>]"
 }
 
 fail() {
@@ -118,6 +118,25 @@ target_for_host() {
   host=$1
   [ -n "${HOME:-}" ] || fail "cannot resolve a host Skill directory because HOME is unavailable"
   case "$host" in
+    qwen-code|codebuddy-code|copilot-cli|factory-droid|mimo-coder|paseo)
+      case "$host" in
+        qwen-code) client_root=${QWEN_HOME:-$HOME/.qwen} ;;
+        codebuddy-code) client_root=${CODEBUDDY_CONFIG_DIR:-$HOME/.codebuddy} ;;
+        copilot-cli) client_root=${COPILOT_HOME:-$HOME/.copilot} ;;
+        factory-droid) [ -z "${FACTORY_HOME_OVERRIDE:-}" ] || fail "Factory home override is unsupported"; client_root=$HOME/.factory ;;
+        mimo-coder)
+          if [ -n "${MIMOCODE_HOME:-}" ]; then
+            validate_client_root "$MIMOCODE_HOME"; client_root=$MIMOCODE_HOME/config
+          else
+            client_root=${XDG_CONFIG_HOME:-$HOME/.config}; validate_client_root "$client_root"; client_root=$client_root/mimocode
+          fi ;;
+        paseo)
+          [ -z "${PASEO_HOME:-}" ] || validate_client_root "$PASEO_HOME"
+          client_root=$HOME/.agents ;;
+      esac
+      validate_client_root "$client_root"
+      printf '%s\n' "$client_root/skills"
+      ;;
     claude-code|claude-desktop) printf '%s\n' "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/skills" ;;
     kimi-code) printf '%s\n' "${KIMI_CODE_HOME:-$HOME/.kimi-code}/skills" ;;
     oh-my-pi)
@@ -347,13 +366,13 @@ verify_installed() {
 installation_summary() {
   case "$1" in
     zcode)
-      printf '%s\n' 'Next: Refresh and enable the installed Skills in ZCode, then start a new conversation. Loading has not been verified in this session.' 'Available instructions: images, video, audio/music, Jev evaluation, embeddings, reranking, models and balance. Connection and task results remain separate checks.' 'Example (not executed): Generate an image of a lake at sunset.' 'Example (not executed): Generate a 5-second video of a paper boat on a river.' 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
+      printf '%s\n' 'Next: If Skills are already available in this ZCode conversation, use them directly. Otherwise refresh and enable the installed Skills in ZCode; start a new conversation if this session still cannot load them.' 'Example (not executed): Generate an image of a lake at sunset.' 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
       ;;
     trae)
-      printf '%s\n' 'Next: Refresh or enable Pure Tokens Skills in TRAE Settings > Skills, then start a new conversation. Requires the TRAE adapter in this installed release and a saved Switch-managed connection; actual loading and API results remain separate checks.' 'Available instructions: images, video, audio/music, Jev evaluation, embeddings, reranking, models and balance. Connection and task results remain separate checks.' 'Example (not executed): Generate an image of a lake at sunset.' 'Example (not executed): Generate a 5-second video of a paper boat on a river.' 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
+      printf '%s\n' 'Next: If Skills are already available in this TRAE conversation, use them directly. Otherwise refresh or enable Pure Tokens Skills in TRAE Settings > Skills; start a new conversation if this session still cannot load them. API use requires a saved supported connection.' 'Example (not executed): Generate an image of a lake at sunset.' 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
       ;;
     *)
-      printf '%s\n' 'Next: Follow this client'"'"'s Skill loading controls, then start a new conversation. Loading has not been verified in this session.' 'Available instructions: images, video, audio/music, Jev evaluation, embeddings, reranking, models and balance. Connection and task results remain separate checks.' 'Example (not executed): Generate an image of a lake at sunset.' 'Example (not executed): Generate a 5-second video of a paper boat on a river.' 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
+      printf '%s\n' 'Next: If Pure Tokens Skills are already available in this conversation, use them directly. Otherwise use this client'"'"'s Skill loading controls; open a new conversation only when required by the client. Loading is not verified by installation.' 'Example (not executed): Generate an image of a lake at sunset.' 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
       ;;
   esac
 }
@@ -690,8 +709,8 @@ while [ "$#" -gt 0 ]; do
 done
 
 [ -n "$target" ] || [ -n "$host" ] || fail "--host or --target is required"
-case "$host" in ''|claude-code|codex|workbuddy|gemini-cli|grok-build|opencode|trae|claude-desktop|dsh-desktop|deepseek-harness|minimax-code|zcode|kimi-code|qoder|pi|hermes|evox|vscode|octop|oh-my-pi|minimax-code-cli) ;; *) fail "unsupported host" ;; esac
-case "$host" in pi|hermes|evox|oh-my-pi|minimax-code-cli) target_for_host "$host" >/dev/null ;; esac
+case "$host" in ''|claude-code|codex|workbuddy|gemini-cli|grok-build|opencode|trae|claude-desktop|dsh-desktop|deepseek-harness|minimax-code|zcode|kimi-code|qoder|pi|hermes|evox|vscode|octop|oh-my-pi|minimax-code-cli|qwen-code|codebuddy-code|copilot-cli|factory-droid|mimo-coder|paseo) ;; *) fail "unsupported host" ;; esac
+case "$host" in pi|hermes|evox|oh-my-pi|minimax-code-cli|qwen-code|codebuddy-code|copilot-cli|factory-droid|mimo-coder|paseo) target_for_host "$host" >/dev/null ;; esac
 if [ "$host" = octop ] && [ -n "$target" ]; then
   validate_client_root "$target"
   case "$target" in */.octop/skills|*/skills) ;; *) fail "Octop target must be the current local workspace's .octop/skills or skills directory" ;; esac
@@ -711,6 +730,8 @@ fi
 if [ "$command_name" = "verify-installed" ]; then
   stage=verify_installed
   verify_installed "$target"
+  printf '%s\n' "init_status=not_run; this integrity check does not recheck the connection."
+  installation_summary "$host"
   exit 0
 fi
 

@@ -46,7 +46,9 @@ $process_row
 EOF
     case "$parent_id" in ''|*[!0-9]*) break ;; esac
     case "${executable##*/}" in
-      codex) printf '%s\n' codex; return 0 ;;
+      codex) [ -z "${PASEO_HOME:-}" ] || break; printf '%s\n' codex; return 0 ;;
+      mimo) printf '%s\n' mimo-coder; return 0 ;;
+      droid) printf '%s\n' factory-droid; return 0 ;;
       opencode) printf '%s\n' opencode; return 0 ;;
       grok) printf '%s\n' grok-build; return 0 ;;
       qoder|qodercli) printf '%s\n' qoder; return 0 ;;
@@ -56,7 +58,7 @@ EOF
     [ "$parent_id" -gt 1 ] && [ "$parent_id" != "$process_id" ] || break
     process_id=$parent_id
   done
-  fail "stage=detect_host error_code=current_host_unconfirmed installation_status=not_started installed_files_changed=false next_step=confirm_current_client; confirm this client's host ID and run once with --host <id>. Supported IDs: claude-code, codex, workbuddy, gemini-cli, grok-build, opencode, trae, claude-desktop, dsh-desktop, deepseek-harness, minimax-code, zcode, kimi-code, qoder, pi, hermes, evox, vscode, octop, oh-my-pi, minimax-code-cli. No network request or installation write was made."
+  fail "stage=detect_host error_code=current_host_unconfirmed installation_status=not_started installed_files_changed=false next_step=confirm_current_client; confirm this client's host ID and run once with --host <id>. Supported IDs: claude-code, codex, workbuddy, gemini-cli, grok-build, opencode, trae, claude-desktop, dsh-desktop, deepseek-harness, minimax-code, zcode, kimi-code, qoder, pi, hermes, evox, vscode, octop, oh-my-pi, minimax-code-cli, qwen-code, codebuddy-code, copilot-cli, factory-droid, mimo-coder, paseo. No network request or installation write was made."
 }
 command_name=${1:-}
 case "$command_name" in detect-host|check-update|install|update|repair) ;; *) fail "use detect-host, check-update, install, update or explicitly requested repair; --host and --target are optional when the current launcher can be identified" ;; esac
@@ -92,8 +94,11 @@ download_root=$(mktemp -d "${TMPDIR:-/tmp}/puretokens-download.XXXXXX" 2>/dev/nu
 download() {
   stage=$3
   # URLs are constructed below from fixed official origins and validated IDs.
+  download_budget=45
+  [ "$stage" != download_platform_archive ] || download_budget=180
+  printf '%s\n' "Pure Tokens download progress: stage=$stage status=started" >&2
   download_exit=0
-  download_status=$(curl --silent --show-error --location --proto '=https' --proto-redir '=https' --tlsv1.2 --connect-timeout 15 --max-time 180 \
+  download_status=$(curl --silent --show-error --location --proto '=https' --proto-redir '=https' --tlsv1.2 --connect-timeout 15 --max-time "$download_budget" --speed-limit 1 --speed-time 30 \
     --header 'Accept: application/vnd.github+json' --user-agent 'puretokens-skill-installer' --output "$2" --write-out '%{http_code}' "$1" 2>/dev/null) || download_exit=$?
   case "$download_status" in [1-5][0-9][0-9]) ;; *) download_status=0 ;; esac
   download_error=

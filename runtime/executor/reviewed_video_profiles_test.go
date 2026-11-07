@@ -30,7 +30,7 @@ func TestReviewedVideoBoundariesWithoutInstalledFiles(t *testing.T) {
 		{"MiniMax-H3", "", map[string]any{"duration": 1, "resolution": "768p", "reference_audios": []any{ref}}, true},
 		{"MiniMax-H3", "", map[string]any{"resolution": "720p"}, false},
 		{"MiniMax-H3", "image_to_video", map[string]any{"first_frame_image": ref, "reference_images": []any{ref}}, false},
-		{"kling-v3", "image_to_video", map[string]any{"first_frame_image": ref, "duration": 15, "resolution": "4k"}, true},
+		{"kling-v3", "image_to_video", map[string]any{"first_frame_image": ref, "duration": 15, "resolution": "4k"}, false},
 		{"kling-v3-turbo", "image_to_video", map[string]any{"first_frame_image": ref}, false},
 		{"kling-v3-turbo", "", map[string]any{"resolution": "4k"}, false},
 		{"kling-v3", "", map[string]any{"duration": 2}, false},
@@ -123,15 +123,31 @@ func TestViduPromptOptionalOnlyForDeclaredImageOperation(t *testing.T) {
 
 func TestReviewedVideoDiscoveryCannotExpandStaleLiveDeclarations(t *testing.T) {
 	// Live schemas remain a prerequisite. Source review only narrows matches.
-	live := map[string]any{"id": "kling-v3-turbo", "capabilities": []any{"video"},
+	live := map[string]any{"id": "viduq3-pro", "capabilities": []any{"video"},
 		"input_schema": map[string]any{"properties": map[string]any{"resolution": map[string]any{"type": "string", "enum": []any{"720p", "4k"}}}}}
 	if modelQueryMatches(modelQuery{Kind: "video", Parameters: map[string]any{"resolution": "4k"}}, live) {
-		t.Fatal("stale live schema expanded Turbo resolution")
+		t.Fatal("stale live schema expanded Vidu resolution")
 	}
 	if !modelQueryMatches(modelQuery{Kind: "video", Parameters: map[string]any{"resolution": "720p"}}, live) {
 		t.Fatal("compatible live intersection disappeared")
 	}
 	if modelQueryMatches(modelQuery{Kind: "video", Operation: "video_generation"}, live) {
 		t.Fatal("source profile invented a missing live operation")
+	}
+}
+
+func TestRetiredKlingStopsNewTasksWithoutBlockingRecovery(t *testing.T) {
+	for _, id := range []string{"kling-v3", "kling-v3-turbo"} {
+		request := taskRequest{Kind: "video", Operation: "generate", Model: id, Prompt: "test"}
+		if prepareProfileRequest(&request, service{}) == nil {
+			t.Fatal("retired model can submit without installed profile")
+		}
+		if modelQueryMatches(modelQuery{Kind: "video"}, map[string]any{"id": id, "capabilities": []any{"video"}}) {
+			t.Fatal("retired model remains selectable")
+		}
+		result, err := applyTaskStatus(receipt{OK: true, Kind: "video", Model: id, TaskID: "old_task"}, []byte(`{"id":"old_task","status":"completed"}`), 200)
+		if err != nil || !result.OK || result.Model != id || result.TaskID != "old_task" {
+			t.Fatal("historical task recovery changed")
+		}
 	}
 }

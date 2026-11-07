@@ -6,7 +6,9 @@
     "ok"
   ],
   "properties": {
-    "timings_ms": {"$ref": "timings.schema.json"},
+    "timings_ms": {
+      "$ref": "timings.schema.json"
+    },
     "support": {
       "$ref": "support-summary.schema.json"
     },
@@ -17,7 +19,8 @@
       "enum": [
         "image",
         "video",
-        "music"
+        "music",
+        "audio_task"
       ]
     },
     "operation": {
@@ -91,6 +94,16 @@
     "local_error_code": {
       "type": "string"
     },
+    "validation": {
+      "type": "object",
+      "required": ["field", "reason"],
+      "properties": {
+        "field": {"enum": ["parameters", "prompt", "quality", "size", "n", "duration", "aspect_ratio", "resolution", "output_format", "background", "seed"]},
+        "reason": {"enum": ["type", "range", "min_length", "max_length", "enum"]},
+        "allowed": {"type": "array", "minItems": 1, "maxItems": 5, "uniqueItems": true, "items": {"enum": ["auto", "low", "medium", "high", "png", "jpeg", "webp", "gif", "svg", "transparent", "opaque"]}}
+      },
+      "additionalProperties": false
+    },
     "error_message": {
       "type": "string"
     },
@@ -153,6 +166,7 @@
         "wait",
         "content",
         "deliver",
+        "correct_request",
         "await_user",
         "done"
       ],
@@ -189,6 +203,23 @@
   "additionalProperties": false,
   "$id": "https://puretokensx.com/schemas/executor-receipt.schema.json",
   "allOf": [
+    {
+      "if": {"anyOf": [{"required": ["validation"]}, {"required": ["next_step"], "properties": {"next_step": {"const": "correct_request"}}}]},
+      "then": {
+        "required": ["validation", "kind", "operation", "submission_outcome", "failure_phase", "local_error_code", "next_step"],
+        "properties": {
+          "ok": {"const": false},
+          "kind": {"enum": ["image", "video"]},
+          "operation": {"enum": ["generate", "edit"]},
+          "submission_outcome": {"const": "not_submitted"},
+          "failure_phase": {"const": "validation"},
+          "local_error_code": {"const": "media_request_invalid"},
+          "next_step": {"const": "correct_request"},
+          "reconciliation_required": {"const": false}
+        },
+        "not": {"anyOf": [{"required": ["task_id"]}, {"required": ["status"]}, {"required": ["downloaded_paths"]}, {"required": ["delivery_status"]}]}
+      }
+    },
     {
       "if": {
         "properties": {
@@ -347,6 +378,53 @@
               "instrumental": {
                 "type": "boolean"
               },
+              "response_format": {
+                "enum": [
+                  "mp3",
+                  "wav"
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "redelivery_index": {
+            "const": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "audio_task"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "model"
+        ],
+        "properties": {
+          "model": {
+            "enum": [
+              "gemini-3.8-flash-tts",
+              "lyria-3.5",
+              "lyria-3-pro-preview"
+            ]
+          },
+          "requested_count": {
+            "maximum": 1
+          },
+          "index": {
+            "const": 0
+          },
+          "parameters": {
+            "type": "object",
+            "properties": {
               "response_format": {
                 "enum": [
                   "mp3",

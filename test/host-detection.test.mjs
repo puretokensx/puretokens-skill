@@ -35,6 +35,7 @@ exit 99
       ...process.env,
       PATH: `${tools}${path.delimiter}${process.env.PATH}`,
       HOME: root,
+      PASEO_HOME: "",
       PT_PROCESS_NAME: name,
       PT_PARENT_NAME: parentName,
       PT_PROCESS_CALLS: path.join(root, "calls"),
@@ -51,6 +52,8 @@ for (const [executable, host] of [
   ["/Applications/ChatGPT.app/Contents/Resources/codex-cli/CodexCLI.app/Contents/MacOS/codex", "codex"],
   ["/opt/opencode/bin/opencode", "opencode"],
   ["/opt/grok/bin/grok", "grok-build"],
+  ["/opt/mimo/bin/mimo", "mimo-coder"],
+  ["/opt/factory/bin/droid", "factory-droid"],
   ["/opt/qoder/bin/qodercli", "qoder"],
   ["/opt/qoder/bin/qoder", "qoder"]
 ]) {
@@ -82,6 +85,13 @@ test("host detection is bounded when only shell ancestors are visible", async t 
   const f = await fixture(t, "/bin/bash", "/bin/sh");
   await assert.rejects(execFile("sh", [fetch, "detect-host"], { env: f.env }), /current_host_unconfirmed/);
   assert.ok((await readFile(f.env.PT_PROCESS_CALLS, "utf8")).trim().split("\n").length <= 8);
+});
+
+test("Paseo Codex engine is never detected as independent Codex", async t => {
+  const f = await fixture(t, "/opt/codex");
+  f.env.PASEO_HOME = path.join(f.root, ".paseo");
+  await assert.rejects(execFile("sh", [fetch, "detect-host"], { env: f.env }), /current_host_unconfirmed/);
+  assert.doesNotMatch(await readFile(f.env.PT_PROCESS_CALLS, "utf8"), /unexpected-network/);
 });
 
 test("temporary-directory creation failure reports the stage and does not download or change installation", async t => {

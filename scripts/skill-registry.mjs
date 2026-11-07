@@ -6,7 +6,8 @@ import { validModelID } from "./model-id.mjs";
 
 export const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const skillsRoot = path.join(repositoryRoot, "skills");
-export const mediaDefaultModels = Object.freeze({ image: "gpt-image-2.5-flare", video: "MiniMax-H3" });
+export const mediaDefaultModels = Object.freeze({ image: "gpt-image-2.6", video: "MiniMax-H3" });
+export const embeddingDefaultModel = "qwen3.7-text-embedding";
 
 const forbiddenPattern = /(BEGIN [A-Z ]*PRIVATE|127\.0\.0\.1:|\/Users\/)/i;
 const directApiOrigin = "https://api.puretokensx.com";
@@ -17,7 +18,7 @@ const balanceScopeRule = "unlimited_quota_true_account_wallet_else_key_allowance
 const balanceCalculation = "each_returned_quota_divided_by_public_quota_per_unit_in_USD_never_subtract_used_from_available";
 const balanceBearerNormalization = "add_sk_prefix_if_missing_in_memory_for_usage_header_only";
 const balanceLocalFailureCodes = ["balance_usage_unavailable", "balance_usage_auth_rejected", "balance_unit_metadata_unavailable"];
-const directAcceptanceScenarioIds = ["api-identity-read", "catalog-read", "media-submit", "same-task-status", "native-media-delivery", "executor-request-start"];
+const directAcceptanceScenarioIds = ["api-identity-read", "catalog-read", "media-submit", "same-task-status", "native-media-delivery", "explicit-image-format", "reviewed-local-mask", "executor-request-start"];
 const directExecutorCapabilities = ["fixed_full_url_request", "json_task_response", "same_task_status_read", "native_media_byte_delivery", "bounded_local_resource_use"];
 const mediaRoutingPriority = "when_current_host_connection_uses_puretokens_select_the_matching_puretokens_specialist_before_generic_imagegen_imagen_or_video_skills";
 const mediaRoutingMetadataLimitation = "skill_metadata_expresses_routing_priority_but_cannot_override_a_host_that_ignores_installed_skill_selection";
@@ -369,6 +370,12 @@ async function validateSpecialistReferences(errors, record) {
   }
   validateExecutionContract(errors, directory, references.executionContract);
   validateBehaviorScenarios(errors, directory, references.behaviorScenarios);
+  if (directory === "puretokens-embedding" &&
+      (manifest.rules?.defaultModel !== embeddingDefaultModel ||
+       references.executionContract?.parameterValidation?.defaultModel !== embeddingDefaultModel ||
+       !record.skillText.includes(`默认使用 \`${embeddingDefaultModel}\``))) {
+    errors.push(`${directory}: Skill entry, manifest and execution contract must match the embedding default`);
+  }
   if (references.modelIndex) {
     await validateModelIndex(errors, directory, skillDir, references.modelIndex);
     const defaultModel = references.modelIndex.defaultModel;
@@ -716,8 +723,8 @@ function validateUpdateContract(errors, label, contract) {
     result.reportsSynchronizedVersion !== true ||
     result.doesNotClaimSuccessWithoutVersionReceipt !== true ||
     result.neverModifiesOfficialCheckout !== true ||
-    result.requiresNewHostConversationAfterSuccess !== true) {
-    errors.push(`${label} must preserve the official checkout, install only the checksum-verified native executor, preserve unmanaged directories, report the synchronized version, and require a new host conversation`);
+    result.requiresNewHostConversationAfterSuccess !== false) {
+    errors.push(`${label} must preserve the official checkout, install only the checksum-verified native executor, preserve unmanaged directories, report the synchronized version, and avoid forcing a new conversation when Skills are already loaded`);
   }
 }
 

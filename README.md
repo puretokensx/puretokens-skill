@@ -131,7 +131,8 @@ They validate the request and new output path before reading credentials, reuse
 the current host's verified Pure Tokens connection in memory, and make one
 synchronous 90-second request without polling or automatic retry.
 
-Embedding uses reviewed exact IDs `qwen3.7-text-embedding` and
+Embedding defaults to `qwen3.7-text-embedding` when unspecified and preserves
+explicit model choices. Reviewed exact IDs are `qwen3.7-text-embedding` and
 `qwen3.7-text-embedding-flash` at fixed `POST /v1/embeddings`, with
 `encoding_format=float`. JSONL rows contain `index`, `dimensions`, `embedding`
 in original input order; chat reports only count, dimensions and the user path.
@@ -189,6 +190,13 @@ The priority is carried by the installed Skill metadata and the host's current c
 | EvoX | `~/.evox/agent/skills` | Canonical default-instance settings/auth fixtures; legacy stores unsupported |
 | VS Code | `~/.copilot/skills` | Default local profile; one supported multi-model connection sharing one Key in 0.18.7 |
 | Octop | Explicit current workspace `.octop/skills` target | Read-only local SQLite connection; no assumed global Skill installation |
+| Oh My Pi / MiniMax Code CLI | `~/.omp/agent/skills` / `~/.minimax/skills` | Existing source/fixture coverage; separate host binding from Pi/Desktop |
+| Qwen Code | `~/.qwen/skills` | New source/fixture coverage; saved selection and overlay guards |
+| CodeBuddy Code | `~/.codebuddy/skills` | New source/fixture coverage; never borrow WorkBuddy credentials |
+| Copilot CLI | `~/.copilot/skills` | New source/fixture coverage for its own BYOK providers.json |
+| Factory Droid | `~/.factory/skills` | New source/fixture coverage; same-service models require one Key |
+| MiMo Coder | `~/.config/mimocode/skills` | New source/fixture coverage; harmless preferences preserved, connection overrides rejected |
+| Paseo | `~/.agents/skills` | Conditional local Codex-backed source support; matching saved and inherited connection required; other engines/remote unsupported |
 
 Connection adapters have fixture coverage; real-host acceptance is recorded separately.
 The [Switch × dedicated-task matrix](references/switch-skill-compatibility.md)
@@ -201,10 +209,10 @@ requires `--host octop --target <absolute-workspace>/.octop/skills` (PowerShell:
 `-HostId octop -Target <absolute-workspace>/.octop/skills`); do not enumerate
 agents or write the global skill-package database. Cursor is not registered.
 
-Switch's current source directory lists 23 clients; Skills registers 19 hosts.
-DeepSeek Bot is distinct from both Harness hosts and has no supported Skills
-adapter, as is also the case for Paseo, Rakazo and OpenMausBot. Configuring
-these clients in Switch does not enable direct Skill execution.
+The current source registers 27 hosts. New clients are not yet in a stable
+release, and real-host acceptance is separate. DeepSeek Bot, Rakazo,
+OpenMausBot and Antigravity CLI remain unsupported direct Skill hosts.
+Configuring these clients in Switch does not enable direct Skill execution.
 
 `references/host-support.json` defines the registered hosts. The table shows defaults; Claude/WorkBuddy honor explicit configuration-directory overrides, Pi honors an absolute `PI_CODING_AGENT_DIR` without parent traversal, and DSH honors the local Harness's explicit `DSH_HOME`. Gemini updates an existing higher-priority `.agents/skills` installation and reports managed duplicates. Provider labels never determine support.
 
@@ -214,7 +222,7 @@ For Claude Desktop, use a local Code session and host ID `claude-desktop`; its a
 
 ## Images and videos
 
-Normal generation reads only the selected profile for a default or exact model ID; the small index is needed only for model selection or alias resolution. It does not load every model or fetch the catalog before every task. `puretokens-image` defaults to `gpt-image-2.5-flare`; `puretokens-video` defaults to `MiniMax-H3`. The new H3 profile uses public HTTPS reference URLs, not local multipart attachments; never silently switch models or rehost an attachment. An explicit user model choice takes precedence; an existing task retains its original model. The live catalog is read only when a user explicitly asks for current models, requests an option or media operation absent from the selected profile, or needs a post-rejection diagnosis.
+Normal generation reads only the selected profile for a default or exact model ID; the small index is needed only for model selection or alias resolution. It does not load every model or fetch the catalog before every task. `puretokens-image` defaults to `gpt-image-2.6`; `puretokens-video` defaults to `MiniMax-H3`. The new H3 profile uses public HTTPS reference URLs, not local multipart attachments; never silently switch models or rehost an attachment. An explicit user model choice takes precedence; an existing task retains its original model. The live catalog is read only when a user explicitly asks for current models, requests an option or media operation absent from the selected profile, or needs a post-rejection diagnosis.
 
 A normal wait window ending means the task is still processing, not failed. The active authorized delivery can continue for one more bounded foreground window, then pauses for user input. Task records preserve this budget; errors, reconciliation and deferred retries stop automatic continuation. Videos, multiple outputs and cross-session work use explicit workspace task records by default. A failed attachment handoff reuses the verified existing file rather than submitting or downloading again.
 
@@ -227,7 +235,7 @@ The selected installed profile governs ordinary requests. An explicit authentica
 <!-- media-model-catalog:start -->
 ## Media model catalog
 
-Synchronized with the base model catalog: 2026-11-03T02:14:24.310Z.
+Synchronized with the base model catalog: 2026-11-07T09:20:36.335Z.
 
 This list is an installed selection aid, not a per-request authorization check. Ordinary generation reads only the selected profile; live discovery is limited to explicit requests, profile gaps or rejection diagnosis. Reviewed local compatibility supplements are separately sourced.
 
@@ -237,19 +245,26 @@ README is generated only from base-catalog models with explicit image/video capa
 
 | Model ID | Provider | You can also say | Good for | Example |
 | --- | --- | --- | --- | --- |
+| `dola-seedream-5-0-pro-260628` | ByteDance | Exact ID only | Image generation | `Use dola-seedream-5-0-pro-260628 to generate an image.` |
+| `gemini-3.0-pro-image` | Google | Exact ID only | Image generation | `Use gemini-3.0-pro-image to generate an image.` |
+| `gemini-3.1-flash-image` | Google | Exact ID only | Image generation | `Use gemini-3.1-flash-image to generate an image.` |
 | `gemini-nano-banana-2.1` | Google | Exact ID only | Image generation | `Use gemini-nano-banana-2.1 to generate an image.` |
 | `gpt-image-2` | OpenAI | `image2` | Image generation | `Use gpt-image-2 to generate an image.` |
 | `gpt-image-2.5` | OpenAI | Exact ID only | Image generation | `Use gpt-image-2.5 to generate an image.` |
 | `gpt-image-2.5-flare` | OpenAI | Exact ID only | Image generation | `Use gpt-image-2.5-flare to generate an image.` |
 | `gpt-image-2.5-sunburst` | OpenAI | Exact ID only | Image generation | `Use gpt-image-2.5-sunburst to generate an image.` |
+| `gpt-image-2.6` | OpenAI | Exact ID only | Image generation | `Use gpt-image-2.6 to generate an image.` |
+| `gpt-image-2.6-flare` | OpenAI | Exact ID only | Image generation | `Use gpt-image-2.6-flare to generate an image.` |
+| `gpt-image-2.6-sunburst` | OpenAI | Exact ID only | Image generation | `Use gpt-image-2.6-sunburst to generate an image.` |
 | `gpt-image-2(Sub)` | OpenAI | Exact ID only | Image generation | `Use gpt-image-2(Sub) to generate an image.` |
 | `grok-imagine-image` | xAI | `grok image` | Image generation | `Use grok-imagine-image to generate an image.` |
+| `grok-imagine-image-2.0` | xAI | Exact ID only | Image generation | `Use grok-imagine-image-2.0 to generate an image.` |
 | `grok-imagine-image-quality` | xAI | Exact ID only | Image generation | `Use grok-imagine-image-quality to generate an image.` |
-| `nano-banana-2` | Google | `nano banana 2` | Image generation | `Use nano-banana-2 to generate an image.` |
-| `nano-banana-2-lite` | Google | Exact ID only | Image generation | `Use nano-banana-2-lite to generate an image.` |
-| `nano-banana-pro` | Google | `nano banana pro` | Image generation | `Use nano-banana-pro to generate an image.` |
 | `qwen-image-3.0` | Alibaba | Exact ID only | Image generation | `Use qwen-image-3.0 to generate an image.` |
 | `qwen-image-3.0-pro` | Alibaba | Exact ID only | Image generation | `Use qwen-image-3.0-pro to generate an image.` |
+| `seedream-4-0-250828` | ByteDance | Exact ID only | Image generation | `Use seedream-4-0-250828 to generate an image.` |
+| `seedream-4-5-251128` | ByteDance | Exact ID only | Image generation | `Use seedream-4-5-251128 to generate an image.` |
+| `seedream-5-0-lite-260128` | ByteDance | Exact ID only | Image generation | `Use seedream-5-0-lite-260128 to generate an image.` |
 | `wan2.7-image` | Alibaba | Exact ID only | Image generation | `Use wan2.7-image to generate an image.` |
 | `wan2.7-image-pro` | Alibaba | Exact ID only | Image generation | `Use wan2.7-image-pro to generate an image.` |
 
@@ -258,12 +273,15 @@ README is generated only from base-catalog models with explicit image/video capa
 | Model ID | Provider | You can also say | Good for | Example |
 | --- | --- | --- | --- | --- |
 | `grok-imagine-video` | xAI | `grok video` | Video generation | `Use grok-imagine-video to generate a video.` |
-| `grok-imagine-video-1.5` | xAI | Exact ID only | Video generation | `Use grok-imagine-video-1.5 to generate a short video.` |
-| `kling-v3` | Kling | Exact ID only | Video generation | `Use kling-v3 to generate a short video.` |
-| `kling-v3-turbo` | Kling | Exact ID only | Video generation | `Use kling-v3-turbo to generate a short video.` |
+| `grok-imagine-video-1.5-preview` | xAI | Exact ID only | Video generation | `Use grok-imagine-video-1.5-preview to generate a short video.` |
+| `kling-video-motion-control-v2.6` | Kling | Exact ID only | Video generation | `Use kling-video-motion-control-v2.6 to generate a short video.` |
+| `kling-video-motion-control-v3.0` | Kling | Exact ID only | Video generation | `Use kling-video-motion-control-v3.0 to generate a short video.` |
+| `kling-video-v3` | Kling | Exact ID only | Video generation | `Use kling-video-v3 to generate a short video.` |
+| `kling-video-v3-omni` | Kling | Exact ID only | Video generation | `Use kling-video-v3-omni to generate a short video.` |
+| `kling-video-v3-turbo` | Kling | Exact ID only | Video generation | `Use kling-video-v3-turbo to generate a short video.` |
+| `kling-video-v4` | Kling | Exact ID only | Video generation | `Use kling-video-v4 to generate a short video.` |
 | `MiniMax-H3` | MiniMax | Exact ID only | Video generation | `Use MiniMax-H3 to generate a short video.` |
-| `muse-video` | Meta | Exact ID only | Video generation | `Use muse-video to generate a short video.` |
-| `omni` | Google | Exact ID only | Video generation | `Use omni to generate a short video.` |
+| `omni-flash` | Google | Exact ID only | Video generation | `Use omni-flash to generate a short video.` |
 | `seedance-2.0` | ByteDance | Exact ID only | Video generation | `Use seedance-2.0 to generate a video.` |
 | `seedance-2.0-fast` | ByteDance | Exact ID only | Video generation | `Use seedance-2.0-fast to generate a video.` |
 | `seedance-2.0-mini` | ByteDance | Exact ID only | Video generation | `Use seedance-2.0-mini to generate a video.` |
@@ -273,9 +291,9 @@ README is generated only from base-catalog models with explicit image/video capa
 | `Super Vega 1.0-pro-fast` | Tencent Cloud | Exact ID only | Video generation | `Use Super Vega 1.0-pro-fast to generate a short video.` |
 | `Super Vega 1.0-pro-mini` | Tencent Cloud | Exact ID only | Video generation | `Use Super Vega 1.0-pro-mini to generate a short video.` |
 | `Super Vega 1.5-pro` | Tencent Cloud | Exact ID only | Video generation | `Use Super Vega 1.5-pro to generate a short video.` |
-| `veo_fast` | Google | Exact ID only | Video generation | `Use veo_fast to generate a short video.` |
-| `veo_lite` | Google | Exact ID only | Video generation | `Use veo_lite to generate a short video.` |
-| `veo_quan` | Google | Exact ID only | Video generation | `Use veo_quan to generate a short video.` |
+| `veo-3.1` | Google | Exact ID only | Video generation | `Use veo-3.1 to generate a short video.` |
+| `veo-3.1-fast` | Google | Exact ID only | Video generation | `Use veo-3.1-fast to generate a short video.` |
+| `veo-3.1-lite` | Google | Exact ID only | Video generation | `Use veo-3.1-lite to generate a short video.` |
 | `viduq3-pro` | Vidu | Exact ID only | Video generation | `Use viduq3-pro to generate a short video.` |
 | `viduq3-turbo` | Vidu | Exact ID only | Video generation | `Use viduq3-turbo to generate a short video.` |
 | `wan3.0-video` | Alibaba | Exact ID only | Video generation | `Use wan3.0-video to generate a short video.` |
@@ -300,6 +318,8 @@ the newly confirmed status.
 ## Updating
 
 `puretokens-update` resolves the latest published stable manifest and pins its version, source commit, selector and platform archive checksums. It downloads only the current OS/architecture archive; version 0.19.5 contains ten shared Skills, one executor and only the current system's scripts. Missing assets never fall back to main or a source archive. Check-update does not write files or run init. Same-version install/update verifies the selected release's executor checksum and all eleven managed inventories, then returns without archive download, writes or init. Missing/modified files or unresolved transactions stop without automatic repair. Explicit local source sync remains available for maintainers.
+
+Client count does not multiply installations. Only the selected client's supported Skill root is written; clients that already use that same root share its ten Skills and one executor. The platform package retains small host references for compatibility, not other clients' applications or separate per-client executors. On-demand guidance reads a short index and only `references/hosts/<bound-host>.md`; media delivery reads shared rules plus `references/delivery/<bound-host>.md`. Installation paths never select credentials. Separate roots are not automatically merged or migrated, and local customizations stop overwrites.
 
 A fresh installation or actual update still runs init automatically, with at most two read-only requests sharing one 20-second deadline and no automatic retry. File synchronization and connection verification are reported separately; an init timeout does not roll back installation, trigger reinstallation or prove an invalid credential. A versioned synchronization receipt confirms a completed installation; a same-version verification receipt confirms the existing installation without changing files.
 
@@ -331,8 +351,12 @@ npm run release:validate
 
 Maintain shared guidance in `references/desktop-hosts.md`,
 `references/skill-fragments/host-binding.md` and the host registry, then run
-`npm run docs:sync-guidance`. It produces ten self-contained installed copies
-and entrypoint hashes; the engineering gate rejects drift. No user runtime is added.
+`npm run docs:sync-guidance`. It produces a short host index, per-host execution
+references and conditional delivery references in ten self-contained Skills.
+The common delivery protocol is stored once per Skill, not repeated per host.
+The engineering gate checks generated content, nested packaged links and stale
+host files, while preserving explicit host binding and entrypoint hashes.
+No user runtime is added.
 
 PNG/JPEG download and reuse validate pixel data with a 33,554,432-pixel decode
 limit. WebP checks complete containers and nonempty image chunks, not full

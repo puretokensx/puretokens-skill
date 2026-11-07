@@ -5,12 +5,16 @@ $target = Join-Path $root 'skills'
 $installer = Join-Path $repository 'runtime/puretokens-skill-install.ps1'
 $savedEnvironment = @{}
 foreach ($name in @('USERPROFILE', 'HOME', 'CODEX_HOME', 'APPDATA', 'LOCALAPPDATA', 'HERMES_HOME', 'EVOX_AGENT_DIR', 'EVOX_CODING_AGENT_DIR', 'OCTOP_HOME', 'DSH_HOME', 'CLAUDE_CONFIG_DIR', 'ZCODE_DATA_BASE_DIR', 'KIMI_CODE_HOME', 'QODER_CONFIG_DIR', 'QODER_CLI_HOME', 'QODER_CONFIG_DIR_NAME', 'PI_CODING_AGENT_DIR', 'XDG_CONFIG_HOME', 'OPENCODE_CONFIG_DIR', 'PI_CONFIG_DIR', 'PI_CONFIG_FILES', 'PI_PROFILE', 'OMP_PROFILE', 'OMP_CONFIG_DIR', 'OMP_CODING_AGENT_DIR', 'MINIMAX_DATA_DIR', 'MAVIS_DATA_DIR', 'MAVIS_PROFILE', 'MINIMAX_PROFILE', 'AGENTARCHON_PROFILE', 'AGENTARCHON_DATA_DIR', '__MAVIS_RUNTIME_PROFILE', '__MAVIS_RUNTIME_DATA_DIR')) { $savedEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, 'Process') }
+$switchVariables = @('QWEN_HOME', 'CODEBUDDY_CONFIG_DIR', 'COPILOT_HOME', 'FACTORY_HOME_OVERRIDE', 'MIMOCODE_HOME', 'PASEO_HOME')
+foreach ($name in $switchVariables) { $savedEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, 'Process') }
 try {
+  foreach ($name in $switchVariables) { [Environment]::SetEnvironmentVariable($name, '', 'Process') }
   New-Item -ItemType Directory $root | Out-Null
   $env:USERPROFILE = Join-Path $root 'home'
   $env:HOME = $env:USERPROFILE
   $env:CODEX_HOME = Join-Path $env:USERPROFILE '.codex'
   $env:LOCALAPPDATA = Join-Path $env:USERPROFILE 'local'
+  $env:XDG_CONFIG_HOME = ''
   foreach ($variable in @('PI_CONFIG_DIR', 'PI_CONFIG_FILES', 'PI_PROFILE', 'OMP_PROFILE', 'OMP_CONFIG_DIR', 'OMP_CODING_AGENT_DIR', 'MINIMAX_DATA_DIR', 'MAVIS_DATA_DIR', 'MAVIS_PROFILE', 'MINIMAX_PROFILE', 'AGENTARCHON_PROFILE', 'AGENTARCHON_DATA_DIR', '__MAVIS_RUNTIME_PROFILE', '__MAVIS_RUNTIME_DATA_DIR')) { [Environment]::SetEnvironmentVariable($variable, '', 'Process') }
   $env:HERMES_HOME = ''
   $env:EVOX_AGENT_DIR = ''
@@ -42,6 +46,42 @@ try {
       & $command.Source -NoProfile -ExecutionPolicy Bypass -File $installer locate -HostId $newHost *> $null
       if ($LASTEXITCODE -eq 0) { throw "$engine accepted relative new host directory" }
       [Environment]::SetEnvironmentVariable($variable, '', 'Process')
+    }
+    foreach ($case in @(
+      @('qwen-code', '.qwen', 'QWEN_HOME'),
+      @('codebuddy-code', '.codebuddy', 'CODEBUDDY_CONFIG_DIR'),
+      @('copilot-cli', '.copilot', 'COPILOT_HOME'),
+      @('factory-droid', '.factory', ''),
+      @('mimo-coder', '.config\mimocode', 'MIMOCODE_HOME'),
+      @('paseo', '.agents', '')
+    )) {
+      $hostId, $folder, $variable = $case
+      $expected = Join-Path (Join-Path $env:USERPROFILE $folder) 'skills'
+      $location = & $command.Source -NoProfile -ExecutionPolicy Bypass -File $installer locate -HostId $hostId
+      if ($LASTEXITCODE -ne 0 -or $location -ne $expected) { throw "$engine Switch host default mismatch: $hostId" }
+      & $command.Source -NoProfile -ExecutionPolicy Bypass -File $installer sync -HostId $hostId
+      if ($LASTEXITCODE -ne 0) { throw "$engine Switch host sync failed: $hostId" }
+      & $command.Source -NoProfile -ExecutionPolicy Bypass -File $installer verify-installed -HostId $hostId
+      if ($LASTEXITCODE -ne 0) { throw "$engine Switch host inventory failed: $hostId" }
+      if ($variable) {
+        $customRoot = Join-Path $root "$hostId $engine custom"
+        [Environment]::SetEnvironmentVariable($variable, $customRoot, 'Process')
+        $selectedRoot = if ($hostId -eq 'mimo-coder') { Join-Path $customRoot 'config' } else { $customRoot }
+        $location = & $command.Source -NoProfile -ExecutionPolicy Bypass -File $installer locate -HostId $hostId
+        if ($LASTEXITCODE -ne 0 -or $location -ne (Join-Path $selectedRoot 'skills')) { throw "$engine Switch host override mismatch: $hostId" }
+        foreach ($invalid in @('relative', 'C:relative', '\rooted', (Join-Path $root 'invalid\..\unexpected'))) {
+          [Environment]::SetEnvironmentVariable($variable, $invalid, 'Process')
+          & $command.Source -NoProfile -ExecutionPolicy Bypass -File $installer locate -HostId $hostId -Target $target *> $null
+          if ($LASTEXITCODE -eq 0) { throw "$engine accepted invalid Switch host override: $hostId" }
+        }
+        [Environment]::SetEnvironmentVariable($variable, '', 'Process')
+      }
+    }
+    foreach ($case in @(@('factory-droid', 'FACTORY_HOME_OVERRIDE'), @('paseo', 'PASEO_HOME'))) {
+      [Environment]::SetEnvironmentVariable($case[1], 'relative', 'Process')
+      & $command.Source -NoProfile -ExecutionPolicy Bypass -File $installer locate -HostId $case[0] -Target $target *> $null
+      if ($LASTEXITCODE -eq 0) { throw "$engine accepted unsupported Switch root: $($case[0])" }
+      [Environment]::SetEnvironmentVariable($case[1], '', 'Process')
     }
     $minimaxRoot = Join-Path $root "minimax whitespace $engine"
     foreach ($hostId in @('minimax-code-cli', 'minimax-code')) {

@@ -1,0 +1,156 @@
+{
+  "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
+  "schemaVersion": 1,
+  "capability": "video",
+  "catalogUpdatedAt": "2026-11-07",
+  "catalogCapturedAt": "2026-11-07T09:20:36.335Z",
+  "id": "kling-video-v3-turbo",
+  "parameterSchema": {
+    "properties": {
+      "prompt": {
+        "type": "string",
+        "required": true,
+        "maxLength": 2500
+      },
+      "resolution": {
+        "type": "string",
+        "enum": [
+          "720p",
+          "1080p"
+        ],
+        "default": "720p"
+      },
+      "duration": {
+        "type": "integer",
+        "enum": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "default": 5
+      },
+      "aspect_ratio": {
+        "type": "string",
+        "enum": [
+          "16:9",
+          "9:16",
+          "1:1"
+        ],
+        "default": "16:9"
+      },
+      "first_frame_image": {
+        "type": "string"
+      },
+      "contents": {
+        "type": "json"
+      },
+      "settings": {
+        "type": "json"
+      },
+      "options": {
+        "type": "json"
+      }
+    },
+    "constraints": {
+      "reference_image": {
+        "min_width": [
+          300
+        ],
+        "min_height": [
+          300
+        ],
+        "min_ratio": [
+          0.4
+        ],
+        "max_ratio": [
+          2.5
+        ],
+        "max_bytes": [
+          50000000
+        ],
+        "mime_types": [
+          "image/jpeg",
+          "image/png"
+        ]
+      },
+      "kling_contents": {
+        "types": [
+          "prompt",
+          "first_frame"
+        ]
+      },
+      "kling_settings": {
+        "native_settings_replace_flat": [
+          true
+        ],
+        "source_controls_ratio": [
+          true
+        ]
+      },
+      "unsupported_inputs": {
+        "nonce": true,
+        "idempotency_key": true
+      },
+      "unsupported_operations": {
+        "native_generation": true
+      }
+    },
+    "operations": {
+      "video_generation": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt"
+        ]
+      },
+      "image_to_video": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt",
+          "first_frame_image"
+        ],
+        "inputs": {
+          "first_frame_image": {
+            "field": "first_frame_image",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 1,
+            "transports": [
+              "https_url"
+            ]
+          }
+        }
+      },
+      "native_video": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "contents"
+        ]
+      }
+    }
+  }
+}

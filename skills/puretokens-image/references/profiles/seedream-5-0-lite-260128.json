@@ -1,0 +1,138 @@
+{
+  "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
+  "schemaVersion": 1,
+  "capability": "image",
+  "catalogUpdatedAt": "2026-11-07",
+  "catalogCapturedAt": "2026-11-07T09:20:36.335Z",
+  "id": "seedream-5-0-lite-260128",
+  "parameterSchema": {
+    "properties": {
+      "prompt": {
+        "type": "string",
+        "required": true,
+        "maxLength": 4000
+      },
+      "n": {
+        "type": "integer",
+        "default": 1,
+        "min": 1,
+        "max": 15
+      },
+      "size": {
+        "type": "string",
+        "default": "2K"
+      },
+      "image_size": {
+        "type": "string",
+        "enum": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "default": "2K"
+      },
+      "aspect_ratio": {
+        "type": "string",
+        "enum": [
+          "auto"
+        ],
+        "default": "auto"
+      },
+      "watermark": {
+        "type": "boolean",
+        "default": true
+      },
+      "seed": {
+        "type": "integer",
+        "min": 0,
+        "max": 2147483647
+      },
+      "sequential_image_generation": {
+        "type": "string",
+        "enum": [
+          "disabled",
+          "auto"
+        ],
+        "default": "disabled"
+      },
+      "sequential_image_generation_options": {
+        "type": "json"
+      }
+    },
+    "constraints": {
+      "image_size_format": {
+        "presets": [
+          "auto",
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "custom": [
+          "WIDTHxHEIGHT"
+        ],
+        "dimension_min": [
+          1024
+        ],
+        "dimension_max": [
+          4096
+        ],
+        "dimension_multiple": [
+          16
+        ],
+        "workspace_outputs": [
+          1
+        ]
+      },
+      "output_count": {
+        "workspace": [
+          1
+        ],
+        "standard_max": [
+          1
+        ],
+        "sequential_max": [
+          15
+        ],
+        "combined_input_output_max": [
+          15
+        ]
+      }
+    },
+    "operations": {
+      "image_generation": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/images/generations",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt"
+        ]
+      },
+      "image_edit": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/images/generations",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt",
+          "images"
+        ],
+        "inputs": {
+          "images": {
+            "field": "images",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 14,
+            "transports": [
+              "https_url"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

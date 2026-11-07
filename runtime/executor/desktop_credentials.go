@@ -48,6 +48,10 @@ func credentialFromClaudeDesktop() (string, error) {
 var desktopProfileID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
 func credentialFromClaudeDesktopRoot(root string) (string, error) {
+	return credentialFromClaudeDesktopConnection(root, nil)
+}
+
+func credentialFromClaudeDesktopConnection(root string, connectionID *string) (string, error) {
 	config, err := readJSONObject(filepath.Join(root, "claude_desktop_config.json"))
 	if err != nil {
 		return "", err
@@ -76,7 +80,7 @@ func credentialFromClaudeDesktopRoot(root string) (string, error) {
 	}
 	endpoint := jsonString(profile["inferenceGatewayBaseUrl"])
 	if endpoint == "http://127.0.0.1:15722/claude-desktop" {
-		return "", credentialFailure("active_connection_endpoint_unsupported", "Claude Desktop model mapping uses a local chat token, not a credential for the fixed Pure Tokens dedicated APIs. This is not an installation failure; reinstalling Skills cannot change this connection mode. No credential authentication or API request was performed.", "")
+		return credentialFromClaudeMappedConnection(root, id, connectionID)
 	}
 	return matchingCredential(endpoint, jsonString(profile["inferenceGatewayApiKey"]), "", "/", "/v1", "/v1/")
 }

@@ -37,8 +37,8 @@ test("offline tool stubs produce receipts and require a verified same-task file 
   const current = await session(t, "image-short-path"), run = action => applyAgentAction(current.session, action);
   await run({ type: "select", skill: "puretokens-image" });
   await run({ type: "read", path: "skills/puretokens-image/SKILL.md" });
-  await run({ type: "read", path: "skills/puretokens-image/references/profiles/gpt-image-2.5-flare.json" });
-  const submitted = await run({ type: "command", command: "submit", host: "codex", request: { kind: "image", operation: "generate", model: "gpt-image-2.5-flare", prompt: "synthetic blue cup", parameters: {} } });
+  await run({ type: "read", path: "skills/puretokens-image/references/profiles/gpt-image-2.6.json" });
+  const submitted = await run({ type: "command", command: "submit", host: "codex", request: { kind: "image", operation: "generate", model: "gpt-image-2.6", prompt: "synthetic blue cup", parameters: {} } });
   assert.equal(submitted.next_step, "wait");
   await run({ type: "say", text: `已接受，任务编号 ${submitted.task_id}。` });
   const completed = await run({ type: "command", command: "wait", host: "codex", request: { task_id: submitted.task_id } });
@@ -106,7 +106,7 @@ test("parallel independent reads are serialized without lost state or a forced r
 });
 
 test("public group absence cannot become a guessed brand group or a permission guarantee", () => {
-  const prefix = [event("select", { skill: "puretokens-models" }), command("model-groups", { request: { model: "nano-banana-2" } }, { readDelta: 1 })];
+  const prefix = [event("select", { skill: "puretokens-models" }), command("model-groups", { request: { model: "gemini-nano-banana-2.1" } }, { readDelta: 1 })];
   assert.equal(assess("model-group-unavailable", [...prefix, event("finish", { text: "暂时无法确认分组名称，请在 Switch 保留原分组并查找包含该精确型号的组。" })]).passed, true);
   const bad = assess("model-group-unavailable", [...prefix, event("finish", { text: "请选择 Gemini，已确认权限。" })]);
   assert.ok(bad.violations.includes("unsupported_user_claim:Gemini"));
@@ -114,7 +114,7 @@ test("public group absence cannot become a guessed brand group or a permission g
 
 test("known service-failure alternatives use one catalog read before a single new-task confirmation", () => {
   const choose = event("select", { skill: "puretokens-image" });
-  const ask = event("ask", { text: "可以用 nano-banana-2 创建新任务，可能产生费用，是否继续？" });
+  const ask = event("ask", { text: "可以用 gemini-nano-banana-2.1 创建新任务，可能产生费用，是否继续？" });
   const good = assess("service-failure-alternative", [choose, command("models", {}, { readDelta: 1 }), ask, event("finish", { text: "等待选择。" })]);
   assert.equal(good.passed, true, JSON.stringify(good));
   const bad = assess("service-failure-alternative", [choose, event("ask", { text: "要查询其他模型吗？" }), command("models", {}, { readDelta: 1 }), ask, event("finish", { text: "等待选择。" })]);
@@ -138,7 +138,7 @@ function imageListTrace() {
     ...["红色茶壶", "蓝色陶瓷杯", "绿色玻璃瓶"].flatMap((subject, i) => {
       const id = `image-${i}`, record = `/fixture/records/${i}.json`, file = `/fixture/artifacts/${i}.png`;
       return [
-        { ...command("submit", { record, request: { model: "gpt-image-2.5-flare", prompt: subject, parameters: { n: 1 } } }, { postDelta: 1 }), outcome: { ok: true, task_id: id, submission_outcome: "accepted", next_step: "wait" } },
+        { ...command("submit", { record, request: { model: "gpt-image-2.6", prompt: subject, parameters: { n: 1 } } }, { postDelta: 1 }), outcome: { ok: true, task_id: id, submission_outcome: "accepted", next_step: "wait" } },
         event("say", { text: `已提交 ${id}` }),
         { ...command("wait", { record }), outcome: { ok: true, task_id: id, next_step: "content" } },
         { ...command("content", { record }), outcome: { ok: true, task_id: id, downloaded_paths: [file], next_step: "deliver" } },
@@ -152,6 +152,81 @@ test("distinct image scoring accepts three separate prompts, task records and ac
   const result = assess("image-distinct-assets", imageListTrace());
   assert.equal(result.passed, true, JSON.stringify(result));
   assert.equal(result.metrics.attachmentHandoffs, 3);
+});
+
+function correctedImageListTrace() {
+  const rows = imageListTrace();
+  const corrected = rows.find(row => row.action.command === "submit");
+  Object.assign(corrected.action.request, { kind: "image", operation: "generate" });
+  corrected.action.request.parameters.quality = "high";
+  const invalid = structuredClone(corrected);
+  invalid.action.request.parameters.quality = "hgh";
+  invalid.postDelta = 0;
+  invalid.outcome = { ok: false, kind: "image", operation: "generate",
+    failure_phase: "validation", submission_outcome: "not_submitted",
+    local_error_code: "media_request_invalid", next_step: "correct_request",
+    validation: { field: "quality", reason: "enum", allowed: ["auto", "low", "medium", "high"] } };
+  rows.splice(rows.indexOf(corrected), 0, invalid);
+  return rows;
+}
+
+const correctionRule = { ...criteria["image-distinct-assets"],
+  requestCorrection: { field: "quality", value: "high" } };
+const assessCorrection = rows => evaluateAgentTrace(
+  rows.map((row, i) => ({ ...row, sequence: i + 1 })), correctionRule);
+
+test("independent images permit one unsubmitted assembly correction without an extra paid task", () => {
+  const result = assessCorrection(correctedImageListTrace());
+  assert.equal(result.passed, true, JSON.stringify(result));
+  assert.equal(result.metrics.simulatedPaidPosts, 3);
+  assert.equal(result.metrics.attachmentHandoffs, 3);
+});
+
+test("local correction scoring rejects uncertain, repeated or intent-changing submissions", () => {
+  const defects = {
+    unknown: (bad) => { bad.outcome.submission_outcome = "unknown"; },
+    transmitted: (bad) => { bad.postDelta = 1; },
+    task: (bad) => { bad.outcome.task_id = "existing-task"; },
+    reconciliation: (bad) => { bad.outcome.reconciliation_required = true; },
+    untyped: (bad) => { delete bad.outcome.validation; },
+    wrongStage: (bad) => { bad.outcome.failure_phase = "submission"; },
+    wrongCode: (bad) => { bad.outcome.local_error_code = "active_connection_selection_unconfirmed"; },
+    continuation: (bad) => { bad.action.request.task_id = "existing-task"; },
+    model: (_, next) => { next.action.request.model = "gpt-image-2.5-flare"; },
+    prompt: (_, next) => { next.action.request.prompt += " changed"; },
+    count: (_, next) => { next.action.request.parameters.n = 2; },
+    format: (_, next) => { next.action.request.parameters.output_format = "gif"; },
+    output: (_, next) => { next.action.request.output_dir = "/different-output"; },
+    record: (_, next) => { next.action.record = "/fixture/records/replacement.json"; },
+    host: (_, next) => { next.action.host = "opencode"; },
+    attachment: (_, next) => { next.action.request.reference_images = ["https://example.test/image.png"]; },
+    wrongChoice: (_, next) => { next.action.request.parameters.quality = "low"; },
+    repeat: (bad, _, rows) => { rows.splice(rows.indexOf(bad) + 1, 0, structuredClone(bad)); },
+    extraCommand: (bad, _, rows) => { rows.splice(rows.indexOf(bad) + 1, 0, command("wait")); }
+  };
+  for (const [name, mutate] of Object.entries(defects)) {
+    const rows = correctedImageListTrace();
+    const submissions = rows.filter(row => row.action.command === "submit");
+    mutate(submissions[0], submissions[1], rows);
+    const result = assessCorrection(rows);
+    assert.equal(result.passed, false, name);
+    assert.ok(result.violations.includes("invalid_local_request_correction"), `${name}: ${JSON.stringify(result)}`);
+  }
+  assert.equal(assess("image-distinct-assets", correctedImageListTrace()).passed, false, "No user-intent evidence authorizes a correction");
+});
+
+test("a failed correction stops the list without another correction or paid task", () => {
+  const rows = correctedImageListTrace();
+  const next = rows.filter(row => row.action.command === "submit")[1];
+  next.outcome = { ok: false, failure_phase: "credentials", next_step: "await_user" };
+  next.postDelta = 0;
+  const stop = rows.slice(0, rows.indexOf(next) + 1);
+  stop.push(event("finish", { text: "The current connection could not be confirmed; stopped without submission." }));
+  const rule = { ...correctionRule, postCount: 0, attachmentCount: 0, attachmentRequired: false, requiredCommands: ["submit"] };
+  const score = trace => evaluateAgentTrace(trace.map((row, i) => ({ ...row, sequence: i + 1 })), rule);
+  assert.equal(score(stop).passed, true, JSON.stringify(score(stop)));
+  stop.splice(-1, 0, command("submit", structuredClone(next.action), { postDelta: 1 }));
+  assert.ok(score(stop).violations.includes("independent_asset:command_after_stop"));
 });
 
 test("distinct image scoring rejects collage prompts, n-based substitution and reused task records", () => {
@@ -186,7 +261,7 @@ test("one composed image cannot drop a subject or become three separate paid tas
 });
 
 async function deliverListItem(run, record, prompt) {
-  const submitted = await run({ type: "command", command: "submit", host: "codex", record, request: { kind: "image", operation: "generate", model: "gpt-image-2.5-flare", prompt, parameters: { n: 1 } } });
+  const submitted = await run({ type: "command", command: "submit", host: "codex", record, request: { kind: "image", operation: "generate", model: "gpt-image-2.6", prompt, parameters: { n: 1 } } });
   assert.equal(submitted.next_step, "wait");
   await run({ type: "say", text: `已提交任务 ${submitted.task_id}。` });
   await run({ type: "command", command: "resume", host: "codex", record });
@@ -225,14 +300,14 @@ test("interruption of item two preserves item one's handoff and stops before ite
   const first = path.join(current.publicWorkspace, "records", "first.json");
   await deliverListItem(run, first, "红色茶壶");
   const before = await readFile(first, "utf8");
-  const result = await run({ type: "command", command: "submit", host: "codex", record: path.join(current.publicWorkspace, "records", "second.json"), request: { model: "gpt-image-2.5-flare", prompt: "蓝色陶瓷杯", parameters: { n: 1 } } });
+  const result = await run({ type: "command", command: "submit", host: "codex", record: path.join(current.publicWorkspace, "records", "second.json"), request: { model: "gpt-image-2.6", prompt: "蓝色陶瓷杯", parameters: { n: 1 } } });
   assert.equal(result.submission_outcome, "unknown");
   await run({ type: "finish", text: "第一份已交付，第二份提交结果未知，第三份尚未尝试；不自动重提。" });
   assert.equal(await readFile(first, "utf8"), before);
   const assessed = await evaluateAgentSession(current.session);
   assert.equal(assessed.passed, true, JSON.stringify(assessed));
   const trace = (await readFile(path.join(current.session, "private", "trace.jsonl"), "utf8")).trim().split("\n").map(JSON.parse);
-  const bad = [...trace.slice(0, -1), { ...command("submit", { request: { model: "gpt-image-2.5-flare", prompt: "绿色玻璃瓶" } }, { postDelta: 1 }), sequence: trace.at(-1).sequence }, { ...trace.at(-1), sequence: trace.at(-1).sequence + 1 }];
+  const bad = [...trace.slice(0, -1), { ...command("submit", { request: { model: "gpt-image-2.6", prompt: "绿色玻璃瓶" } }, { postDelta: 1 }), sequence: trace.at(-1).sequence }, { ...trace.at(-1), sequence: trace.at(-1).sequence + 1 }];
   assert.ok(evaluateAgentTrace(bad, criteria["image-list-interrupted"]).violations.includes("independent_asset:command_after_stop"));
 });
 
@@ -253,7 +328,7 @@ test("independent image lists stop at exhausted pending windows or failed delive
 });
 
 test("same-brief variations use a profile-supported count and three sequential output handoffs", async () => {
-  const model = "nano-banana-2", record = "/fixture/records/variants.json", task_id = "same-brief-task";
+  const model = "qwen-image-3.0", record = "/fixture/records/variants.json", task_id = "same-brief-task";
   const profile = JSON.parse(await readFile(new URL(`../skills/puretokens-image/references/profiles/${model}.json`, import.meta.url), "utf8"));
   const n = profile.parameterSchema.properties.n;
   assert.ok(n.enum ? n.enum.includes(3) : 3 >= (n.minimum ?? n.min ?? 1) && 3 <= (n.maximum ?? n.max ?? Infinity));

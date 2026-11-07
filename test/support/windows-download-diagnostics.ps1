@@ -30,6 +30,8 @@ public sealed class PureTokensDownloadFixtureException : System.Exception {
 function Invoke-WebRequest {
   param($Uri, $OutFile, $TimeoutSec, $Headers, $UserAgent, [switch]$UseBasicParsing, [switch]$PassThru)
   $script:calls++
+  $script:observedTimeout = $TimeoutSec
+  $script:observedProgress = $ProgressPreference
   $private = 'private-fixture https://example.invalid/private token-fixture'
   switch ($script:fixtureKind) {
     'timeout' { throw [System.Net.WebException]::new($private, [System.Net.WebExceptionStatus]::Timeout) }
@@ -96,3 +98,11 @@ $script:calls = 0
 $result = Get-OfficialFile 'https://example.invalid/private' 'unused' read_release_manifest
 if ($result -ne 200 -or $script:calls -ne 1) { throw 'Explicit continuation did not make exactly one successful request' }
 Write-Output "Download diagnostics: $($cases.Count) failure cases and one explicit successful continuation passed (offline)."
+foreach ($stage in @('read_release_manifest', 'download_selector', 'download_platform_archive')) {
+  $script:calls = 0
+  $result = Get-OfficialFile 'https://example.invalid/private' 'unused' $stage
+  $expectedTimeout = if ($stage -eq 'download_platform_archive') { 180 } else { 45 }
+  if ($result -ne 200 -or $script:calls -ne 1 -or $script:observedTimeout -ne $expectedTimeout -or $script:observedProgress -ne 'SilentlyContinue') {
+    throw "Unexpected timeout or progress policy for $stage"
+  }
+}

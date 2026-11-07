@@ -94,6 +94,30 @@
     "minimaxCodeCli": {
       "manualInstallationSupported": true,
       "globalSkillDirectory": "~/.minimax/skills"
+    },
+    "qwenCode": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.qwen/skills"
+    },
+    "codebuddyCode": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.codebuddy/skills"
+    },
+    "copilotCli": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.copilot/skills"
+    },
+    "factoryDroid": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.factory/skills"
+    },
+    "mimoCoder": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.config/mimocode/skills"
+    },
+    "paseo": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.agents/skills"
     }
   },
   "supportedClients": [
@@ -117,7 +141,13 @@
     "vscode",
     "octop",
     "oh-my-pi",
-    "minimax-code-cli"
+    "minimax-code-cli",
+    "qwen-code",
+    "codebuddy-code",
+    "copilot-cli",
+    "factory-droid",
+    "mimo-coder",
+    "paseo"
   ],
   "rules": {
     "usesFixedPureTokensApiOrigin": true,
@@ -130,7 +160,7 @@
     "doesNotUseComputerUseOrUiAutomation": true,
     "doesNotInvokeOtherMediaSkillsAsApiFallback": true,
     "neverExposesCredentialsOrHostConfiguration": true,
-    "defaultModel": "gpt-image-2.5-flare",
+    "defaultModel": "gpt-image-2.6",
     "imagesAlwaysAsync": true,
     "normalSubmissionUsesSelectedProfileAndIndexWhenNeeded": true,
     "usesLazyModelProfileLoading": true,
@@ -174,5 +204,5 @@
     "supportsOptionalContinuationRecord": true,
     "userReceiptIsConcise": true
   },
-  "sourceSha256": "87b6e508bf7d996457a4381c2db24207ae578d3a9d7a636da20d5c806a48db51"
+  "sourceSha256": "5f9553b12aef9814a92f5f4bd1a3df89eee94af8d21eb79cf21186a9be2f20d1"
 }

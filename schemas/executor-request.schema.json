@@ -10,7 +10,8 @@
       "enum": [
         "image",
         "video",
-        "music"
+        "music",
+        "audio_task"
       ]
     },
     "operation": {
@@ -129,6 +130,16 @@
   "$id": "https://puretokensx.com/schemas/executor-request.schema.json",
   "anyOf": [
     {
+      "required": ["kind", "operation", "model", "media_operation", "parameters"],
+      "properties": {
+        "kind": { "const": "video" },
+        "operation": { "const": "generate" },
+        "model": { "enum": ["kling-video-v4", "kling-video-v3", "kling-video-v3-turbo", "kling-video-v3-omni", "kling-video-motion-control-v3.0", "kling-video-motion-control-v2.6"] },
+        "media_operation": { "const": "native_video" },
+        "parameters": { "required": ["contents"], "properties": { "contents": { "type": "array", "minItems": 1, "maxItems": 16 } } }
+      }
+    },
+    {
       "required": [
         "task_id"
       ]
@@ -178,6 +189,31 @@
             },
             "media_operation": {
               "const": "image_to_video"
+            }
+          }
+        },
+        {
+          "required": [
+            "kind",
+            "operation",
+            "model",
+            "media_operation"
+          ],
+          "properties": {
+            "kind": {
+              "const": "video"
+            },
+            "operation": {
+              "const": "generate"
+            },
+            "model": {
+              "enum": [
+                "kling-video-motion-control-v3.0",
+                "kling-video-motion-control-v2.6"
+              ]
+            },
+            "media_operation": {
+              "const": "reference_video"
             }
           }
         }
@@ -394,6 +430,190 @@
                   ]
                 }
               }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "audio_task"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "model"
+        ],
+        "properties": {
+          "model": {
+            "enum": [
+              "gemini-3.8-flash-tts",
+              "lyria-3.5",
+              "lyria-3-pro-preview"
+            ]
+          },
+          "requested_count": {
+            "maximum": 1
+          },
+          "index": {
+            "const": 0
+          },
+          "operation": {
+            "enum": [
+              "generate",
+              "continue"
+            ]
+          },
+          "media_operation": {
+            "const": ""
+          },
+          "attachments": {
+            "maxItems": 0
+          },
+          "poll": {
+            "properties": {
+              "max_status_reads": {
+                "maximum": 7
+              }
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "task_id"
+              ]
+            },
+            "then": {
+              "properties": {
+                "prompt": {
+                  "const": ""
+                },
+                "parameters": {
+                  "type": "object",
+                  "properties": {
+                    "response_format": {
+                      "enum": [
+                        "mp3",
+                        "wav"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "else": {
+              "required": [
+                "output_dir"
+              ],
+              "properties": {
+                "prompt": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 8000,
+                  "pattern": "\\S"
+                },
+                "output_dir": {
+                  "type": "string",
+                  "pattern": "^(?:/|[A-Za-z]:[\\\\/]|\\\\\\\\)[^\\u0000]+$"
+                }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "model": {
+                        "const": "gemini-3.8-flash-tts"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "parameters": {
+                        "type": "object",
+                        "properties": {
+                          "voice": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120,
+                            "pattern": "\\S"
+                          },
+                          "instructions": {
+                            "type": "string",
+                            "maxLength": 4000
+                          },
+                          "speakers": {
+                            "type": "array",
+                            "minItems": 2,
+                            "maxItems": 2,
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "name",
+                                "voice"
+                              ],
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 120,
+                                  "pattern": "\\S"
+                                },
+                                "voice": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 120,
+                                  "pattern": "\\S"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          },
+                          "temperature": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 2
+                          },
+                          "response_format": {
+                            "const": "wav"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "else": {
+                    "properties": {
+                      "parameters": {
+                        "type": "object",
+                        "properties": {
+                          "lyrics": {
+                            "type": "string",
+                            "maxLength": 8000
+                          },
+                          "temperature": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 2
+                          },
+                          "response_format": {
+                            "const": "mp3"
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    }
+                  }
+                }
+              ]
             }
           }
         ]

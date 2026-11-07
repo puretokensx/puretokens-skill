@@ -2,21 +2,20 @@
   "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
   "schemaVersion": 1,
   "capability": "image",
-  "catalogUpdatedAt": "2026-11-03",
-  "catalogCapturedAt": "2026-11-03T02:14:24.310Z",
+  "catalogUpdatedAt": "2026-11-07",
+  "catalogCapturedAt": "2026-11-07T09:20:36.335Z",
   "id": "gemini-nano-banana-2.1",
   "parameterSchema": {
     "properties": {
       "prompt": {
         "type": "string",
-        "required": true,
-        "minLength": 3
+        "required": true
       },
       "n": {
         "type": "integer",
         "default": 1,
         "min": 1,
-        "max": 8
+        "max": 1
       },
       "image_size": {
         "type": "string",
@@ -26,10 +25,6 @@
           "4K"
         ],
         "default": "1K"
-      },
-      "image": {
-        "type": "string[]",
-        "maxLength": 16
       },
       "aspect_ratio": {
         "type": "string",
@@ -44,73 +39,51 @@
           "9:16",
           "16:9",
           "21:9",
-          "4:1",
           "1:4",
-          "8:1",
-          "1:8"
-        ]
-      }
-    },
-    "constraints": {
-      "reference_transport": {
-        "image": [
-          "public_https_url"
-        ]
-      }
-    },
-    "lifecycle": {
-      "create": {
-        "successStatus": 200,
-        "idField": "id",
-        "object": "image",
-        "initialStatuses": [
-          "pending"
-        ]
-      },
-      "poll": {
-        "method": "GET",
-        "path": "/v1/images/{image_id}",
-        "intervalSeconds": 3,
-        "statusField": "status",
-        "pendingStatuses": [
-          "pending"
+          "4:1",
+          "1:8",
+          "8:1"
         ],
-        "successStatuses": [
-          "completed"
-        ],
-        "failureStatuses": [
-          "failed"
-        ],
-        "resultFields": [
-          "content_url",
-          "content_urls"
-        ]
+        "default": "1:1"
       }
     },
     "operations": {
+      "image_generation": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/images/generations",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt"
+        ]
+      },
       "image_edit": {
         "request": {
           "method": "POST",
           "path": "/v1/images/edits",
-          "contentType": "multipart/form-data"
+          "contentType": "application/json"
         },
         "requiredBodyFields": [
           "model",
           "prompt",
-          "image"
+          "images"
         ],
         "inputs": {
-          "image": {
-            "field": "image",
+          "images": {
+            "field": "images",
             "required": true,
             "minItems": 1,
-            "maxItems": 16,
+            "maxItems": 14,
             "transports": [
-              "multipart_file"
+              "https_url",
+              "local_file_data_url"
             ]
           }
         }
       }
-    }
+    },
+    "constraints": {}
   }
 }

@@ -92,6 +92,30 @@
     "minimaxCodeCli": {
       "manualInstallationSupported": true,
       "globalSkillDirectory": "~/.minimax/skills"
+    },
+    "qwenCode": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.qwen/skills"
+    },
+    "codebuddyCode": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.codebuddy/skills"
+    },
+    "copilotCli": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.copilot/skills"
+    },
+    "factoryDroid": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.factory/skills"
+    },
+    "mimoCoder": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.config/mimocode/skills"
+    },
+    "paseo": {
+      "manualInstallationSupported": true,
+      "globalSkillDirectory": "~/.agents/skills"
     }
   },
   "supportedClients": [
@@ -115,7 +139,13 @@
     "vscode",
     "octop",
     "oh-my-pi",
-    "minimax-code-cli"
+    "minimax-code-cli",
+    "qwen-code",
+    "codebuddy-code",
+    "copilot-cli",
+    "factory-droid",
+    "mimo-coder",
+    "paseo"
   ],
   "rules": {
     "usesFixedPureTokensApiOrigin": true,
@@ -135,5 +165,5 @@
     "asynchronousMusicWithExplicitTaskRecord": true,
     "requiresActualAudioBytesForDelivery": true
   },
-  "sourceSha256": "1e992b0668fb830eb176e18423b34e2e530e9192c8deb93775759f0d2d719e10"
+  "sourceSha256": "9b0ad4d3e66d7c3bb748283bf120ea70132a80a31ff0db17df2584acbd61d2bf"
 }

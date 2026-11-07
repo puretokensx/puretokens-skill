@@ -1,20 +1,19 @@
 {
   "schemaVersion": 1,
   "default": {
-    "activation": "Follow this client's Skill loading controls, then start a new conversation. Loading has not been verified in this session.",
+    "activation": "If Pure Tokens Skills are already available in this conversation, use them directly. Otherwise use this client's Skill loading controls; open a new conversation only when required by the client. Loading is not verified by installation.",
     "apiSupport": "implementation_available",
     "examples": [
-      "Generate an image of a lake at sunset.",
-      "Generate a 5-second video of a paper boat on a river."
+      "Generate an image of a lake at sunset."
     ]
   },
   "hosts": {
     "zcode": {
-      "activation": "Refresh and enable the installed Skills in ZCode, then start a new conversation. Loading has not been verified in this session.",
+      "activation": "If Skills are already available in this ZCode conversation, use them directly. Otherwise refresh and enable the installed Skills in ZCode; start a new conversation if this session still cannot load them.",
       "evidence": "references/desktop-hosts.md#zcode"
     },
     "trae": {
-      "activation": "Refresh or enable Pure Tokens Skills in TRAE Settings > Skills, then start a new conversation. Requires the TRAE adapter in this installed release and a saved Switch-managed connection; actual loading and API results remain separate checks.",
+      "activation": "If Skills are already available in this TRAE conversation, use them directly. Otherwise refresh or enable Pure Tokens Skills in TRAE Settings > Skills; start a new conversation if this session still cannot load them. API use requires a saved supported connection.",
       "evidence": "references/switch-skill-compatibility.md#trae"
     }
   }

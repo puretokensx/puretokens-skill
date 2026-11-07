@@ -12,16 +12,16 @@ Resolve the executable from this Skill's absolute directory: sibling `.puretoken
 
 Create UTF-8 JSON using the host file tool; use escaped backslashes or forward slashes for Windows paths. Remove the request file after the command. Never put credentials in requests or prompts on the command line.
 
-Generation:
+Generation (the default when no model was requested):
 
 ```json
-{"kind":"image","operation":"generate","model":"gpt-image-2.5-flare","prompt":"A mountain lake at sunrise","parameters":{"image_size":"1K"}}
+{"kind":"image","operation":"generate","model":"gpt-image-2.6","prompt":"A mountain lake at sunrise","parameters":{"image_size":"1K"}}
 ```
 
 Current local image edit:
 
 ```json
-{"kind":"image","operation":"edit","media_operation":"image_edit","model":"gpt-image-2.5-flare","prompt":"Change only the sky","attachments":[{"field":"image","path":"/absolute/current.png"}]}
+{"kind":"image","operation":"edit","media_operation":"image_edit","model":"gpt-image-2.6","prompt":"Change only the sky","attachments":[{"field":"image","path":"/absolute/current.png"}]}
 ```
 
 `submit` returns the task ID immediately; it never polls or downloads. Do not repeat a submission with unknown output. `status` reads once and `wait` performs one bounded window. Carry the original operation as `original_operation`, model, confirmed count, safe parameters and the exact returned `retry_not_before` into a same-task request. The timestamp below is illustrative; copy the actual receipt value without recalculating it, or use `--record`:
@@ -29,7 +29,7 @@ Current local image edit:
 Task IDs are opaque and must be preserved exactly, including dots in model-labelled IDs and colons in legacy output IDs. Never remove punctuation, derive a model from the ID, or construct a replacement ID. The executor accepts 1-256 ASCII characters: a letter, digit, `_` or `-` first, then those characters plus `.` and `:`. URLs, paths, whitespace and percent-encoded input are not task IDs; only the executor encodes the validated ID for the request path.
 
 ```json
-{"kind":"image","original_operation":"generate","task_id":"RETURNED_ID","model":"gpt-image-2.5-flare","requested_count":1,"parameters":{"image_size":"1K"},"retry_not_before":"2026-09-06T00:00:05Z"}
+{"kind":"image","original_operation":"generate","task_id":"RETURNED_ID","model":"gpt-image-2.6","requested_count":1,"parameters":{"image_size":"1K"},"retry_not_before":"2026-09-06T00:00:05Z"}
 ```
 
 For a newly accepted pending image, `submit` sets `retry_not_before` to 5 seconds after receipt of the accepted response, unless the API supplied a valid positive `Retry-After`. This timestamp survives tool handoff and task records, so time already spent processing the receipt is not waited again. Do not add a separate sleep. `wait` checks when the timestamp is reached, then waits 3 seconds between reads. Expired or absent timestamps (including older task records) allow an immediate first read; continuation never invents another initial wait. API `Retry-After` remains authoritative. Each window allows at most 40 status reads and 120 seconds including network time, whichever ends first; stop when the next wait cannot fit. Optional `poll.max_status_reads` and `poll.deadline_seconds` may shorten these limits. Waiting stops immediately on completion, reconciliation, unknown state or an unrecoverable status error; it never submits another task.
@@ -37,12 +37,31 @@ For a newly accepted pending image, `submit` sets `retry_not_before` to 5 second
 After a completed same-task receipt, `content --host codex --request <file>` downloads one index:
 
 ```json
-{"kind":"image","original_operation":"generate","task_id":"RETURNED_ID","model":"gpt-image-2.5-flare","requested_count":1,"parameters":{"image_size":"1K"},"task_status":"completed","index":0,"output_dir":"/absolute/existing/output-directory"}
+{"kind":"image","original_operation":"generate","task_id":"RETURNED_ID","model":"gpt-image-2.6","requested_count":1,"parameters":{"image_size":"1K"},"task_status":"completed","index":0,"output_dir":"/absolute/existing/output-directory"}
 ```
 
 For multiple images, preserve the accepted count and retrieve indexes 0..n-1. Attach the returned `downloaded_paths` file before requesting another index. Downloading is not delivery. Reuse requires a matching SHA-256, byte count and media type in an explicit task record. Without that proof, preserve any existing file and select another output directory for this same task index.
 
 ## Choose the next command
+
+Explicit GIF generation, only for a declared model/operation/size combination:
+
+```json
+{"kind":"image","operation":"generate","model":"gpt-image-2.6-flare","prompt":"A gentle looping water ripple","parameters":{"image_size":"1K","output_format":"gif"}}
+```
+
+Public originals plus one local PNG mask, only for the reviewed GPT 2.6 family:
+
+```json
+{"kind":"image","operation":"edit","media_operation":"masked_image_edit","model":"gpt-image-2.6-flare","prompt":"Change only the masked region","parameters":{"image_urls":["https://example.com/user-original.png"],"image_size":"1K","output_format":"png"},"attachments":[{"field":"mask","path":"/absolute/user-mask.png"}]}
+```
+
+Use the user's actual public URL and local mask. The executor validates and
+encodes original PNG bytes in memory; never put a data URL in the request,
+rehost or fetch originals. All-local originals/masks retain their declared
+multipart `image_edit`. GIF is unavailable for base 2.6 edits; flare/sunburst
+GIF output is limited to 1K. Preserve original GIF bytes and attach the GIF when
+preview is unavailable; attachment success does not prove animation playback.
 
 | Latest result | Next action |
 | --- | --- |
@@ -53,6 +72,7 @@ For multiple images, preserve the accepted count and retrieve indexes 0..n-1. At
 | Deferred retry or actual status failure | Preserve the ID and retry timestamp; offer explicit later continuation. Do not POST again. |
 | Reconciliation required | Stop automatic waiting; an explicit recorded `resume` reads status once. |
 | Output conflict or missing proof | Preserve files and fetch the same index into another output directory. |
+| Explicit output format mismatch | Preserve the task and old files. Stop; only an explicit user request may retrieve that same index into a new directory. No conversion, model switch or POST. |
 | Submission unknown with no ID | Stop; records cannot discover the missing task and must not trigger another POST. |
 
 ## Continuation record
@@ -95,7 +115,14 @@ Always retain `reconciliation_required` and the exact `retry_not_before` when pr
 
 ## Foreground continuation and delivery
 
-Machine `next_step` is one of `wait`, `content`, `deliver`, `await_user`, `done`. It never authorizes a new submission or bypasses user cancellation or host policy. A normal bounded wait ending returns `ok=true`, the actual pending status and `wait_outcome=window_ended`. Carry `wait_windows_completed` (0..2, saturated) into every same-task request; records preserve it automatically. At count 1, the active authorized delivery may continue one more foreground window without asking again. At count 2, pause and offer explicit continuation. An explicit later resume allows one bounded window but does not reset that counter. No background timers or queues.
+`next_step` never expands the currently authorized indexes. If the user requests
+only one index, deliver and acknowledge that index, then stop even when other
+indexes remain. Wrong-format historical files do not block explicit recovery of
+another index and are not exposed as verified requested output.
+
+Machine `next_step` is one of `wait`, `content`, `deliver`, `correct_request`, `await_user`, `done`. It never independently authorizes a paid request or bypasses user cancellation or host policy. `correct_request` applies only to a fresh `validation` + `not_submitted` + `media_request_invalid` receipt with controlled `validation` and no task ID/reconciliation: correct one agent-authored assembly mistake while preserving the original authorized model, content, attachments and output scope. Ask if the user's choice would change, ambiguity remains, or correction fails again. Existing records, unknown submissions, permission/attachment/transport failures never qualify.
+
+A normal bounded wait ending returns `ok=true`, the actual pending status and `wait_outcome=window_ended`. Carry `wait_windows_completed` (0..2, saturated) into every same-task request; records preserve it automatically. At count 1, the active authorized delivery may continue one more foreground window without asking again. At count 2, pause and offer explicit continuation. An explicit later resume allows one bounded window but does not reset that counter. No background timers or queues.
 
 `wait_outcome=retry_deferred` means an existing retry timestamp cannot fit the current window: preserve it and offer later continuation. It does not identify whether the timestamp came from the API or the executor's initial delay. A 429 inside a window may recover only when its positive Retry-After fits the remaining budget. A returned failure receipt (including exhausted 429), 5xx/network timeout, unknown status or reconciliation stops host automatic continuation. Older receipts/records may omit these fields; retain the same task and never submit to upgrade its state.
 

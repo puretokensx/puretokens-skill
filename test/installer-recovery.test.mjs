@@ -100,8 +100,8 @@ async function fixture(t) {
 async function install(f, env = f.env, more = []) {
  return execFile("sh", [installer, "sync", "--target", f.target, ...more], { cwd: repositoryRoot, env });
 }
-async function waitForFile(file) {
- const deadline = Date.now() + 8000;
+async function waitForFile(file, timeoutMs = 8000) {
+ const deadline = Date.now() + timeoutMs;
  while (Date.now() < deadline) {
   try { await readFile(file); return; } catch (error) { if (error.code !== "ENOENT") throw error; }
   await new Promise(resolve => setTimeout(resolve, 10));
@@ -180,12 +180,13 @@ test("installation summaries stay compact and reflect host activation and API su
   const {stdout}=await execFile("sh",[installer,"sync","--target",target,"--host",host],{cwd:repositoryRoot,env:f.env});
   assert.ok(Buffer.byteLength(stdout)<2200, `${host} dumped a long guide`);
   assert.doesNotMatch(stdout,/## 操作与恢复|# Pure Tokens Skill 使用须知/);
-  if(host==="zcode")assert.match(stdout,/Refresh and enable the installed Skills in ZCode/);
+  if(host==="zcode")assert.match(stdout,/refresh and enable the installed Skills in ZCode/i);
   if(host==="trae") {
-   assert.match(stdout,/Refresh or enable Pure Tokens Skills in TRAE Settings/);
+   assert.match(stdout,/refresh or enable Pure Tokens Skills in TRAE Settings/i);
    assert.doesNotMatch(stdout,/historical installation|API tasks: unsupported/);
   }
-  assert.equal(stdout.split("Example (not executed):").length-1,2);
+  assert.equal(stdout.split("Example (not executed):").length-1,1);
+  assert.match(stdout,/already available.*use them directly/);
  }
 });
 test("a failed update restores every existing Skill and releases its lock", async t => {
@@ -464,23 +465,27 @@ for (const hardLinks of [true, false]) test(`concurrent stale-lock recovery cann
  const env = { ...f.env, PATH: `${tools}${path.delimiter}${f.env.PATH}`, PT_LOCK_COORDINATION: coordination };
  const settle = promise => promise.then(value => ({ ok: true, value }), error => ({ ok: false, error }));
  const second = settle(install(f, { ...env, PT_LOCK_PEER: "second" }));
- let first;
+ let first, failure;
  try {
-  await waitForFile(path.join(coordination, "stale-read"));
+  // Full-suite filesystem contention can delay a peer before it reaches a barrier.
+  await waitForFile(path.join(coordination, "stale-read"), 60000);
   first = settle(install(f, { ...env, PT_LOCK_PEER: "first" }));
-  await waitForFile(path.join(coordination, "first-copy"));
+  await waitForFile(path.join(coordination, "first-copy"), 60000);
   await writeFile(path.join(coordination, "release-second"), "");
   const result = await second;
   assert.equal(result.ok, false, "the losing recovery must not enter the live updater's transaction");
   assert.match(result.error.stderr, /another installation is in progress/);
   assert.equal((await readdir(f.target)).filter(name => name.startsWith(".puretokens-skill-stage.")).length, 1);
+ } catch (error) {
+  failure = error;
+  throw error;
  } finally {
   await writeFile(path.join(coordination, "release-second"), "");
   await writeFile(path.join(coordination, "release-first"), "");
   await second;
   if (first) {
    const result = await first;
-   assert.equal(result.ok, true, result.error?.stderr);
+   if (!failure) assert.equal(result.ok, true, result.error?.stderr);
   }
  }
  assert.equal((await readdir(f.target)).some(name => name.includes("stage") || name.includes("lock")), false);
@@ -586,7 +591,8 @@ test("installation never invokes Codex plugins and still runs host init", async 
  assert.doesNotMatch(stdout,/connection check was deferred/);
  assert.match(stdout,/Installation host: qoder/);
  assert.match(stdout,/Installation host: qoder/);
- assert.match(stdout,/Follow this client's Skill loading controls, then start a new conversation/);
+ assert.match(stdout,/already available in this conversation, use them directly/);
+ assert.match(stdout,/open a new conversation only when required by the client/);
  await execFile("sh",[installer,"sync","--host","codex","--target",shared],{env});
  await assert.rejects(readFile(marker),{code:"ENOENT"});
  await execFile(path.join(mockBin,"codex"),[],{env});

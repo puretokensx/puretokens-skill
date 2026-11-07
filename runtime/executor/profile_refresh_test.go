@@ -109,7 +109,7 @@ func TestExistingProfileRefreshesMissingOptionalFieldOnce(t *testing.T) {
 
 func TestExistingProfileRefreshesMissingOperationOnce(t *testing.T) {
 	profile := readInstalledProfileFixture(t, "video", "seedance-2.0")
-	edit := readInstalledProfileFixture(t, "video", "grok-imagine-video")
+	edit := readHistoricalProfileFixture(t, "grok-imagine-video")
 	profile.Parameters.Operations["video_edit"] = edit.Parameters.Operations["video_edit"]
 	svc, transport := catalogProfileService(t, profile)
 	request := taskRequest{
@@ -242,19 +242,50 @@ func TestInstalledProfileFieldsAndNativeOperationsNeedNoRefresh(t *testing.T) {
 			t.Run(id, func(t *testing.T) {
 				svc, transport := catalogProfileService(t, profile)
 				for name, rule := range profile.Parameters.Properties {
+					if reviewedKlingVariant(id) != "" && contains([]string{"contents", "settings", "options"}, name) {
+						// These form one bounded envelope, not independently valid flat fields.
+						// All six envelopes and fields are exercised by TestKlingNativeProfilePreparationPreservesIntent.
+						continue
+					}
 					if name == "prompt" || name == "model" {
 						continue
 					}
 					for _, value := range profileFieldValues(t, name, rule) {
+						if name == "n" {
+							if n, ok := number(value); ok && n > maxImageCount {
+								r := taskRequest{Kind: kind, Operation: "generate", Model: id, Prompt: "fixture", Parameters: map[string]any{"n": value}}
+								if prepareProfileRequest(&r, svc) == nil {
+									t.Fatal("executor count bound bypassed")
+								}
+								continue
+							}
+						}
 						request := taskRequest{
 							Kind: kind, Operation: "generate", Model: id, Prompt: "fixture prompt",
 							Parameters: requiredProfileFixtureParameters(t, profile),
 						}
 						request.Parameters[name] = value
+						if name == "size" && profile.Parameters.Constraints["resolution_by_image_mode"] != nil {
+							request.Parameters[name] = firstConstraintValue(profile.Parameters.Constraints["resolution_by_image_mode"]["text"])
+						}
+						if modes := array(profile.Parameters.Constraints["parameter_modes"][name]); len(modes) > 0 {
+							request.MediaOperation = fmt.Sprint(modes[0])
+							if strings.HasSuffix(request.MediaOperation, "_edit") {
+								request.Operation = "edit"
+							}
+							if name == "mask" {
+								delete(request.Parameters, name)
+								request.Attachments = []attachment{{Field: "image", Path: attachmentPath}, {Field: "mask", Path: attachmentPath}}
+							}
+						}
+						if name == "sequential_image_generation_options" {
+							request.Parameters[name] = map[string]any{"max_images": 1}
+							request.Parameters["sequential_image_generation"] = "auto"
+						}
 						if name == "last_frame_image" && profile.Parameters.Constraints["frame_exclusivity"] != nil {
 							request.Parameters["first_frame_image"] = "https://example.invalid/first.png"
 						}
-						if mediaReferenceField(name) && profile.Parameters.Constraints["reference_transport"][name] == nil {
+						if mediaReferenceField(name) && !mediaControlField(name, rule) && profile.Parameters.Constraints["reference_transport"][name] == nil {
 							for opName, op := range profile.Parameters.Operations {
 								if _, ok := op.Inputs[name]; ok && op.Request.ContentType == "application/json" {
 									request.MediaOperation = opName
@@ -290,6 +321,21 @@ func TestInstalledProfileFieldsAndNativeOperationsNeedNoRefresh(t *testing.T) {
 					}
 				}
 				for name, op := range profile.Parameters.Operations {
+					if name == "native_video" {
+						request := klingNativeFixture(id)
+						if reviewedKlingVariant(id) == "motion" {
+							request.Parameters["contents"] = []any{klingContent("image", "url", "https://example.com/character.png"), klingContent("video", "url", "https://example.com/motion.mp4")}
+							request.Parameters["settings"] = map[string]any{"character_orientation": "video"}
+						}
+						before := transport.calls
+						if err := prepareProfileRequest(&request, svc); err != nil || transport.calls != before {
+							t.Fatalf("native envelope refreshed or failed: %v", err)
+						}
+						if _, _, _, err := taskRequestBody(request); err != nil {
+							t.Fatal(err)
+						}
+						continue
+					}
 					for _, upperBound := range []bool{false, true} {
 						request := taskRequest{Kind: kind, Operation: "generate", Model: id, MediaOperation: name, Prompt: "fixture prompt", Parameters: requiredProfileFixtureParameters(t, profile)}
 						if strings.HasSuffix(name, "_edit") {
@@ -300,7 +346,7 @@ func TestInstalledProfileFieldsAndNativeOperationsNeedNoRefresh(t *testing.T) {
 							if upperBound && input.Max > 0 {
 								count = input.Max
 							}
-							if op.Request.ContentType == "multipart/form-data" {
+							if op.Request.ContentType == "multipart/form-data" || (contains(input.Transports, "local_file_data_url") && !contains(input.Transports, "https_url")) {
 								for i := 0; i < count; i++ {
 									request.Attachments = append(request.Attachments, attachment{Field: input.Field, Path: attachmentPath})
 								}
@@ -365,10 +411,67 @@ func TestInstalledProfileFieldsAndNativeOperationsNeedNoRefresh(t *testing.T) {
 // Construct a valid context for an individual field. A field's allowed values
 // never imply that companions, visual input or a combined count can be omitted.
 func completeProfileFixtureContext(request *taskRequest, profile modelProfile) {
+	ref := "https://example.invalid/reference.png"
+	if _, motion := profile.Parameters.Constraints["motion_control"]; motion {
+		request.MediaOperation = "reference_video"
+	}
+	op := profile.Parameters.Operations[request.MediaOperation]
+	if op.Request.ContentType == "application/json" {
+		for _, input := range op.Inputs {
+			hasAttachment := false
+			for _, attachment := range request.Attachments {
+				if attachment.Field == input.Field {
+					hasAttachment = true
+					break
+				}
+			}
+			if input.Required && request.Parameters[input.Field] == nil && !hasAttachment {
+				request.Parameters[input.Field] = []any{ref}
+				if profile.Parameters.Properties[input.Field]["type"] == "string" {
+					request.Parameters[input.Field] = ref
+				}
+			}
+		}
+	}
+	if _, kling := profile.Parameters.Constraints["kling_settings"]; kling {
+		if profile.ID == "kling-video-v4" && request.Parameters["aspect_ratio"] == "adaptive" && request.Parameters["reference_images"] == nil && request.Parameters["reference_videos"] == nil && request.Parameters["reference_audio_voice_ids"] == nil {
+			request.Parameters["reference_images"] = []any{ref}
+			request.MediaOperation = "reference_image_video"
+		}
+		if request.Parameters["last_frame_image"] != nil {
+			request.Parameters["first_frame_image"] = ref
+		}
+		if profile.ID == "kling-video-v3-omni" {
+			if request.Parameters["audio"] == "original" || request.Parameters["reference_video_mode"] != nil {
+				request.Parameters["reference_videos"] = []any{"https://example.invalid/video.mp4"}
+				if request.Parameters["reference_video_mode"] == nil {
+					request.Parameters["reference_video_mode"] = "base"
+				}
+			}
+			if request.Parameters["reference_videos"] != nil {
+				request.MediaOperation = "reference_video"
+				if request.Parameters["reference_images"] != nil {
+					request.MediaOperation = "video_generation"
+				}
+				if request.Parameters["reference_video_mode"] == "base" {
+					request.Parameters["audio"] = "original"
+					request.Parameters["multi_shot"] = false
+				} else {
+					request.Parameters["audio"] = "off"
+					request.Parameters["multi_shot"] = true
+				}
+				if a := array(request.Parameters["reference_images"]); len(a) > 4 {
+					request.Parameters["reference_images"] = a[:4]
+				}
+			}
+		}
+		if request.Parameters["first_frame_image"] != nil || request.Parameters["reference_videos"] != nil {
+			delete(request.Parameters, "aspect_ratio")
+		}
+	}
 	if _, reviewed := reviewedVideoProfile(profile.ID); !reviewed {
 		return
 	}
-	ref := "https://example.invalid/reference.png"
 	for key, companions := range profile.Parameters.Constraints["requires_together"] {
 		if request.Parameters[key] != nil {
 			for _, companion := range array(companions) {
@@ -464,8 +567,7 @@ func profileFieldValues(t *testing.T, name string, rule map[string]any) []any {
 }
 
 func TestReferenceURLHostNormalizationAndStrictObjects(t *testing.T) {
-	profile := readInstalledProfileFixture(t, "image", "grok-imagine-image")
-	svc, transport := catalogProfileService(t, profile)
+	profile, svc, transport := retiredProfileService(t, "grok-imagine-image")
 	for _, host := range []string{
 		"localhost.", "LOCALHOST.", "camera.local.", "camera.local...", "sub.localhost.",
 		"127.0.0.1.", "10.0.0.1.", "[::1]", "[fe80::1%25en0]", "[ff02::1%25en0]",

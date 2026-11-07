@@ -41,6 +41,7 @@
     "chatSummaryFields": ["item_count", "dimensions", "path"]
   },
   "parameterValidation": {
+    "defaultModel": "qwen3.7-text-embedding",
     "requestFields": ["model", "input", "output_file"],
     "reviewedModelIds": ["qwen3.7-text-embedding", "qwen3.7-text-embedding-flash"],
     "maxRequestBytes": 1048576,
@@ -48,6 +49,7 @@
     "minItems": 1,
     "maxItems": 64,
     "maxTextRunes": 32768,
-    "outputFile": "explicit_absolute_new_jsonl_file_existing_writable_parent"
+    "outputFile": "explicit_absolute_new_jsonl_file_existing_writable_parent",
+    "filenameSelection": "skill_may_choose_unique_name_only_in_already_explicit_authorized_output_directory_otherwise_ask"
   }
 }

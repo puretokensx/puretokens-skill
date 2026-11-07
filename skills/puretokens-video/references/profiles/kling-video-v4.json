@@ -1,0 +1,320 @@
+{
+  "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
+  "schemaVersion": 1,
+  "capability": "video",
+  "catalogUpdatedAt": "2026-11-07",
+  "catalogCapturedAt": "2026-11-07T09:20:36.335Z",
+  "id": "kling-video-v4",
+  "parameterSchema": {
+    "properties": {
+      "prompt": {
+        "type": "string",
+        "required": true
+      },
+      "duration": {
+        "type": "integer",
+        "enum": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30
+        ],
+        "default": 5
+      },
+      "resolution": {
+        "type": "string",
+        "enum": [
+          "720p",
+          "1080p"
+        ],
+        "default": "1080p"
+      },
+      "aspect_ratio": {
+        "type": "string",
+        "enum": [
+          "21:9",
+          "16:9",
+          "9:16",
+          "1:1",
+          "adaptive"
+        ],
+        "default": "16:9"
+      },
+      "first_frame_image": {
+        "type": "string"
+      },
+      "last_frame_image": {
+        "type": "string"
+      },
+      "reference_images": {
+        "type": "string[]"
+      },
+      "reference_videos": {
+        "type": "string[]"
+      },
+      "contents": {
+        "type": "json"
+      },
+      "settings": {
+        "type": "json"
+      },
+      "options": {
+        "type": "json"
+      },
+      "reference_audio_voice_ids": {
+        "type": "string[]",
+        "maxLength": 3
+      }
+    },
+    "constraints": {
+      "kling_settings": {
+        "adaptive_requires_reference": [
+          true
+        ]
+      },
+      "reference_image": {
+        "min_width": [
+          300
+        ],
+        "min_height": [
+          300
+        ],
+        "min_ratio": [
+          0.4
+        ],
+        "max_ratio": [
+          2.5
+        ],
+        "max_bytes": [
+          30000000
+        ]
+      },
+      "reference_video": {
+        "min_width": [
+          700
+        ],
+        "max_width": [
+          4553
+        ],
+        "min_height": [
+          700
+        ],
+        "max_height": [
+          4553
+        ],
+        "max_pixels": [
+          8294400
+        ],
+        "min_seconds": [
+          3
+        ],
+        "max_seconds": [
+          30
+        ],
+        "max_total_seconds": [
+          30
+        ],
+        "min_fps": [
+          24
+        ],
+        "max_fps": [
+          60
+        ],
+        "max_bytes": [
+          300000000
+        ]
+      },
+      "kling_contents": {
+        "types": [
+          "prompt",
+          "first_frame",
+          "last_frame",
+          "refer_image",
+          "feature_video",
+          "element",
+          "voice"
+        ]
+      },
+      "unsupported_inputs": {
+        "nonce": true,
+        "idempotency_key": true
+      },
+      "unsupported_operations": {
+        "native_generation": true,
+        "native_subject": true,
+        "native_voice": true,
+        "native_feature_video": true
+      }
+    },
+    "operations": {
+      "image_to_video": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt",
+          "first_frame_image"
+        ],
+        "inputs": {
+          "first_frame_image": {
+            "field": "first_frame_image",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 1,
+            "transports": [
+              "https_url"
+            ]
+          }
+        }
+      },
+      "video_generation": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt"
+        ],
+        "inputs": {
+          "reference_images": {
+            "field": "reference_images",
+            "required": false,
+            "minItems": 0,
+            "maxItems": 10,
+            "transports": [
+              "https_url"
+            ]
+          },
+          "reference_videos": {
+            "field": "reference_videos",
+            "required": false,
+            "minItems": 0,
+            "maxItems": 5,
+            "transports": [
+              "https_url"
+            ]
+          }
+        }
+      },
+      "last_frame_video": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt",
+          "last_frame_image",
+          "first_frame_image"
+        ],
+        "inputs": {
+          "last_frame_image": {
+            "field": "last_frame_image",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 1,
+            "transports": [
+              "https_url"
+            ]
+          },
+          "first_frame_image": {
+            "field": "first_frame_image",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 1,
+            "transports": [
+              "https_url"
+            ]
+          }
+        }
+      },
+      "reference_image_video": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt",
+          "reference_images"
+        ],
+        "inputs": {
+          "reference_images": {
+            "field": "reference_images",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 10,
+            "transports": [
+              "https_url"
+            ]
+          }
+        }
+      },
+      "reference_video": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt",
+          "reference_videos"
+        ],
+        "inputs": {
+          "reference_videos": {
+            "field": "reference_videos",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 5,
+            "transports": [
+              "https_url"
+            ]
+          }
+        }
+      },
+      "native_video": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "contents"
+        ]
+      }
+    }
+  }
+}

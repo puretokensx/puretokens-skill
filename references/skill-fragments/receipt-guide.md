@@ -6,9 +6,16 @@
 ## 先判断是否必须停止
 
 优先处理 `reconciliation_required=true`、`submission_outcome=unknown`、
-`ok=false` 或 `next_step=await_user`，不能被 `status=completed`、已有路径或编号覆盖。
+`ok=false` 或 `next_step=await_user`，不能被 `status=completed`、已有路径或编号覆盖。下述明确的新请求本地拼装修正是唯一窄例外。
 有编号仅表示能关联原任务，不证明已完成或已扣费。回执缺失／无法解析时也可能已经提交，
 停止自动操作，不重发；保留用户原任务及已有记录。
+
+仅图片／视频新请求同时返回 `next_step=correct_request`、`failure_phase=validation`、
+`submission_outcome=not_submitted`、`local_error_code=media_request_invalid`、受控 `validation` 且无 task_id／对账时，
+可依据所选 profile 修正一次 Agent 自己的拼装错误，继续原已授权请求。不得改变用户模型、内容、附件、数量、格式或输出范围；
+用户明确值不受支持、修正有歧义或再次失败时，简短说明并询问，不把 JSON 编辑交给用户。
+仅有 validation 阶段不够；unknown、已有记录、权限／传输／附件失败不适用，不自动换模型、补预检或重提。
+`validation` 只含受控字段、原因及有限公开选项，不含输入值，不进入任务记录或支持摘要。
 
 ## 根据回执展示
 
@@ -39,6 +46,8 @@
 | 异步 content 失败 | 原任务不重做；按回执在用户明确继续后取原结果 |
 | 同步音频 accepted + content 失败 | 响应已接受但未保存为可用文件；没有结果查询，不能照搬异步 content 恢复 |
 | 宿主附件未交付 | 执行器未证明宿主交付；异步用原记录 resume，同步音频用原 artifact 的 audio-verify |
+
+`task_connection_changed` 表示映射任务的连接已改变；本次未发请求。保留原任务与已下载文件，不修改 connection_id、不借 Key、不重提；已验证本地文件可继续交付，远程恢复需支持方核对原连接。
 
 跨会话失败回执的 `failure_source=task_record` 表示原任务记录的受控分类，
 不是本次再次调用的结果。按 `failure_category` 与已有公开 `api_error_code` 处理；

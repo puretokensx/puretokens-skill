@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-10-21",
+  "reviewedAt": "2026-11-07",
   "model": "music_v2_5",
   "operation": "music_sync",
   "path": "/v1/audio/generate",

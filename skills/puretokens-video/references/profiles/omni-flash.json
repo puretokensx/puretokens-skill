@@ -1,0 +1,116 @@
+{
+  "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
+  "schemaVersion": 1,
+  "capability": "video",
+  "catalogUpdatedAt": "2026-11-07",
+  "catalogCapturedAt": "2026-11-07T09:20:36.335Z",
+  "id": "omni-flash",
+  "parameterSchema": {
+    "properties": {
+      "prompt": {
+        "type": "string",
+        "required": true
+      },
+      "resolution": {
+        "type": "string",
+        "enum": [
+          "720p"
+        ],
+        "default": "720p"
+      },
+      "aspect_ratio": {
+        "type": "string",
+        "enum": [
+          "16:9",
+          "9:16"
+        ],
+        "default": "16:9"
+      },
+      "first_frame_image": {
+        "type": "string"
+      },
+      "reference_images": {
+        "type": "string[]"
+      }
+    },
+    "constraints": {
+      "duration_control": {
+        "fixed_seconds": [
+          8
+        ]
+      },
+      "resolution_by_mode": {
+        "text": [
+          "720p"
+        ],
+        "image": [
+          "720p"
+        ],
+        "reference": [
+          "720p"
+        ]
+      }
+    },
+    "operations": {
+      "video_generation": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt"
+        ]
+      },
+      "image_to_video": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt",
+          "first_frame_image"
+        ],
+        "inputs": {
+          "first_frame_image": {
+            "field": "first_frame_image",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 1,
+            "transports": [
+              "https_url",
+              "local_file_data_url"
+            ]
+          }
+        }
+      },
+      "reference_image_video": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt",
+          "reference_images"
+        ],
+        "inputs": {
+          "reference_images": {
+            "field": "reference_images",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 3,
+            "transports": [
+              "https_url",
+              "local_file_data_url"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

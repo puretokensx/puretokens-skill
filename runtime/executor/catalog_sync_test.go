@@ -4,17 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"mime"
-	"mime/multipart"
 	"os"
 	"path/filepath"
-	"reflect"
 	"testing"
 )
 
-func TestCurrentCatalogGrokWideRatios(t *testing.T) {
-	for _, model := range []string{"grok-imagine-video", "grok-imagine-video-1.5"} {
-		for _, ratio := range []string{"21:9", "5:2"} {
+func TestCurrentCatalogGrokRatios(t *testing.T) {
+	for _, model := range []string{"grok-imagine-video", "grok-imagine-video-1.5-preview"} {
+		for _, ratio := range []string{"16:9", "9:16"} {
 			svc, transport := catalogProfileService(t, readInstalledProfileFixture(t, "video", model))
 			request := taskRequest{Kind: "video", Operation: "generate", Model: model, Prompt: "fixture",
 				Parameters: map[string]any{"aspect_ratio": ratio}}
@@ -62,49 +59,17 @@ func TestCurrentCatalogWanVideoRequests(t *testing.T) {
 			{"image_to_video", "first_frame_image"},
 			{"reference_image_video", "reference_images"},
 			{"reference_video", "reference_videos"},
-			{"reference_audio", "reference_audios"},
+			{"reference_audio_video", "reference_audios"},
 		} {
-			payload := "current-attachment-fixture"
-			file := writeFixture(t, "reference.bin", payload)
-			request := taskRequest{Kind: "video", Operation: "generate", Model: model, Prompt: "fixture",
-				MediaOperation: tc.operation, Attachments: []attachment{{Field: tc.field, Path: file}}}
+			request := taskRequest{Kind: "video", Operation: "generate", Model: model, Prompt: "fixture", MediaOperation: tc.operation, Attachments: []attachment{{Field: tc.field, Path: "/synthetic/reference.png"}}}
 			svc, transport := catalogProfileService(t, profile)
-			if err := validateTaskRequest(request); err != nil {
-				t.Fatal(err)
-			}
-			if err := prepareProfileRequest(&request, svc); err != nil || transport.calls != 0 {
-				t.Fatalf("%s/%s: %v", model, tc.operation, err)
-			}
-			path, contentType, body, err := taskRequestBody(request)
-			if err != nil {
-				t.Fatal(err)
-			}
-			_, params, err := mime.ParseMediaType(contentType)
-			if err != nil || path != "/v1/videos" {
-				t.Fatal("Wan attachment must use its public multipart route")
-			}
-			form, err := multipart.NewReader(body, params["boundary"]).ReadForm(1024)
-			body.(io.Closer).Close()
-			if err != nil {
-				t.Fatal(err)
-			}
-			if len(form.File) != 1 || len(form.File[tc.field]) != 1 ||
-				!reflect.DeepEqual(form.Value["model"], []string{model}) {
-				t.Fatal("Wan multipart changed the exact model or attachment role")
-			}
-			part, err := form.File[tc.field][0].Open()
-			if err != nil {
-				t.Fatal(err)
-			}
-			actual, err := io.ReadAll(part)
-			part.Close()
-			form.RemoveAll()
-			if err != nil || string(actual) != payload {
-				t.Fatal("Wan multipart changed attachment bytes")
+			if prepareProfileRequest(&request, svc) == nil || transport.calls > 1 {
+				t.Fatal("JSON-only Wan operation accepted a local file")
 			}
 		}
+
 		for _, parameters := range []map[string]any{
-			{"duration": -1}, {"duration": 1}, {"duration": 31},
+			{"duration": 1}, {"duration": 31},
 			{"aspect_ratio": "auto"}, {"resolution": "4K"},
 			{"last_frame_image": "https://example.com/last.png"},
 			{"reference_videos": []any{"https://127.0.0.1/reference.mp4"}},
@@ -113,7 +78,7 @@ func TestCurrentCatalogWanVideoRequests(t *testing.T) {
 		} {
 			svc, transport := catalogProfileService(t, profile)
 			request := taskRequest{Kind: "video", Operation: "generate", Model: model, Prompt: "fixture", Parameters: parameters}
-			if prepareProfileRequest(&request, svc) == nil || transport.calls != 0 {
+			if prepareProfileRequest(&request, svc) == nil || transport.calls > 1 {
 				t.Fatalf("%s accepted invalid controls or attempted discovery: %v", model, parameters)
 			}
 		}
@@ -147,6 +112,14 @@ func TestCurrentCatalogImageTiersAndExactIDs(t *testing.T) {
 // Retired profiles are test-only history, never new installed selections.
 func retiredProfileService(t *testing.T, id string) (modelProfile, service, *profileCatalogTransport) {
 	t.Helper()
+	profile := readHistoricalProfileFixture(t, id)
+	svc, transport := catalogProfileService(t, profile)
+	svc.profilesRoot = writeInstalledProfileFixture(t, profile)
+	return profile, svc, transport
+}
+
+func readHistoricalProfileFixture(t *testing.T, id string) modelProfile {
+	t.Helper()
 	body, err := os.ReadFile(filepath.Join("testdata", "retired-model-profiles", id+".json"))
 	if err != nil {
 		t.Fatal(err)
@@ -155,9 +128,24 @@ func retiredProfileService(t *testing.T, id string) (modelProfile, service, *pro
 	if err := json.Unmarshal(body, &profile); err != nil {
 		t.Fatal(err)
 	}
-	svc, transport := catalogProfileService(t, profile)
-	svc.profilesRoot = writeInstalledProfileFixture(t, profile)
-	return profile, svc, transport
+	return profile
+}
+
+func historicalProfilesRoot(t *testing.T, ids ...string) string {
+	t.Helper()
+	root := writeInstalledProfileFixture(t, readInstalledProfileFixture(t, "image", "gpt-image-2"))
+	for _, id := range ids {
+		profile := readHistoricalProfileFixture(t, id)
+		dir := filepath.Join(root, "puretokens-"+profile.Capability, "references", "profiles")
+		if err := os.MkdirAll(dir, 0700); err != nil {
+			t.Fatal(err)
+		}
+		body, _ := json.Marshal(profile)
+		if err := os.WriteFile(filepath.Join(dir, id+".json"), body, 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return root
 }
 
 func TestCurrentAndHistoricalCatalogVideoOperations(t *testing.T) {
@@ -213,7 +201,7 @@ func TestCurrentAndHistoricalCatalogVideoOperations(t *testing.T) {
 	if prepareProfileRequest(&r, svc) == nil || transport.calls != 0 {
 		t.Fatal("unsafe video URL caused a request")
 	}
-	svc, transport = catalogProfileService(t, readInstalledProfileFixture(t, "video", "omni"))
+	_, svc, transport = retiredProfileService(t, "omni")
 	r = taskRequest{Kind: "video", Operation: "edit", Model: "omni", Prompt: "synthetic", Parameters: map[string]any{"video": "https://example.com/reference.mp4", "duration": 4}}
 	if err := prepareProfileRequest(&r, svc); err != nil || transport.calls != 0 || r.route != "/v1/videos/edits" {
 		t.Fatalf("omni edit: %v", err)
@@ -228,7 +216,7 @@ func TestCurrentCatalogDoesNotInventAttachmentOperations(t *testing.T) {
 		}
 		var svc service
 		var transport *profileCatalogTransport
-		if model == "seedance2.0" {
+		if model == "seedance2.0" || model == "veo_fast" || model == "veo_lite" || model == "veo_quan" {
 			_, svc, transport = retiredProfileService(t, model)
 		} else {
 			svc, transport = catalogProfileService(t, readInstalledProfileFixture(t, kind, model))

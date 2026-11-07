@@ -2,44 +2,54 @@
   "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
   "schemaVersion": 1,
   "capability": "image",
-  "catalogUpdatedAt": "2026-11-03",
-  "catalogCapturedAt": "2026-11-03T02:14:24.310Z",
+  "catalogUpdatedAt": "2026-11-07",
+  "catalogCapturedAt": "2026-11-07T09:20:36.335Z",
   "id": "grok-imagine-image",
   "parameterSchema": {
     "properties": {
+      "prompt": {
+        "type": "string",
+        "required": true
+      },
       "n": {
         "type": "integer",
+        "default": 1,
+        "min": 1,
+        "max": 1
+      },
+      "aspect_ratio": {
+        "type": "string",
         "enum": [
-          1
+          "16:9"
         ],
-        "default": 1
+        "default": "16:9"
       },
-      "size": {
-        "type": "string"
-      },
-      "image": {
-        "type": "json"
-      }
-    },
-    "constraints": {
-      "response_format": {
-        "value": [
-          "url"
-        ]
-      },
-      "reference_transport": {
-        "image": [
-          "public_https_url",
-          "max_1"
-        ]
+      "resolution": {
+        "type": "string",
+        "enum": [
+          "1k",
+          "2k"
+        ],
+        "default": "1k"
       }
     },
     "operations": {
+      "image_generation": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/images/generations",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt"
+        ]
+      },
       "image_edit": {
         "request": {
           "method": "POST",
           "path": "/v1/images/edits",
-          "contentType": "multipart/form-data"
+          "contentType": "application/json"
         },
         "requiredBodyFields": [
           "model",
@@ -53,7 +63,7 @@
             "minItems": 1,
             "maxItems": 1,
             "transports": [
-              "multipart_file"
+              "https_url"
             ]
           }
         }

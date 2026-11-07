@@ -79,6 +79,7 @@ async function mockDownloads(f, mode = "platform") {
   } }, null, 2));
   const curl = path.join(tools, "curl");
   await writeFile(curl, `#!/bin/sh
+printf '%s\\n' "$*" >> "$PT_FETCH_FIXTURE/download-options"
 while [ "$#" -gt 0 ]; do
   case "$1" in --output) destination=$2; shift 2 ;; https:*) request_url=$1; shift ;; *) shift ;; esac
 done
@@ -121,6 +122,23 @@ test("check-update reads stable metadata and its verified selector only", async 
   assert.ok(requests[0].includes("/releases/latest/download/"));
   assert.ok(requests[1].includes(`/releases/download/v${version}/`));
   assert.deepEqual(await readdir(path.join(f.root, "tmp")), []);
+});
+
+test("downloads bound metadata separately and stop stalled archive reads without retry", async t => {
+  const f = await fixture(t);
+  const env = await mockDownloads(f);
+  const { stderr } = await execFile("sh", [path.join(f.source, "runtime/puretokens-skill-fetch.sh"), "install", "--target", f.target], { env });
+  const calls = (await readFile(path.join(f.root, "download-options"), "utf8")).trim().split("\n");
+  assert.equal(calls.length, 3);
+  for (const call of calls.slice(0, 2)) assert.match(call, /--max-time 45(?: |$)/);
+  assert.match(calls[2], /--max-time 180(?: |$)/);
+  assert.match(calls[2], /--speed-limit 1 --speed-time 30(?: |$)/);
+  for (const call of calls) {
+    assert.match(call, /--connect-timeout 15(?: |$)/);
+    assert.doesNotMatch(call, /--retry/);
+  }
+  assert.equal((stderr.match(/stage=download_platform_archive status=started/g) ?? []).length, 1);
+  assert.doesNotMatch(stderr, /https:|source\.zip|token=/);
 });
 
 for (const [options, detected, relativeTarget] of [
@@ -397,11 +415,94 @@ test("same-version install and update verify inventories without archive, writes
     const {stdout} = await execFile("sh", [wrapper, command, "--target", f.target, "--host", "codex"], {env});
     assert.match(stdout, /already current and verified/);
     assert.doesNotMatch(stdout, /Pure Tokens Skill init:/);
+    assert.match(stdout, /init_status=not_run/);
+    assert.match(stdout, /Next:/);
+    assert.equal((stdout.match(/Example \(not executed\):/g) ?? []).length, 1);
+    assert.doesNotMatch(stdout, /then start a new conversation/);
     assert.deepEqual(await snapshot(f.target), before);
     const requests = (await readFile(path.join(f.root, "requests"), "utf8")).trim().split("\n");
     assert.equal(requests.length, 2);
     assert.ok(requests.every(url=>!url.endsWith(".zip")));
   }
+});
+
+test("clients sharing a root retain one host-neutral installation without archive downloads or rewrites", async t => {
+  const f = await fixture(t);
+  const env = { ...await mockDownloads(f), PASEO_HOME: "", COPILOT_HOME: "", CLAUDE_CONFIG_DIR: "", MINIMAX_DATA_DIR: "", MAVIS_DATA_DIR: "" };
+  const wrapper = path.join(f.source, "runtime/puretokens-skill-fetch.sh");
+  const registry = JSON.parse(await readFile(path.join(repositoryRoot, "references/host-support.json"), "utf8"));
+  const groups = new Map();
+  for (const host of registry.supported) {
+    if (!host.globalSkillDirectory) continue;
+    const list = groups.get(host.globalSkillDirectory) ?? [];
+    list.push(host.id);
+    groups.set(host.globalSkillDirectory, list);
+  }
+  async function snapshot(directory) {
+    const result = {};
+    for (const entry of await readdir(directory, { withFileTypes: true })) {
+      const full = path.join(directory, entry.name);
+      result[entry.name] = entry.isDirectory() ? await snapshot(full) : {
+        sha: createHash("sha256").update(await readFile(full)).digest("hex"),
+        mtime: (await stat(full)).mtimeMs
+      };
+    }
+    return result;
+  }
+  for (const [directory, hosts] of groups) {
+    if (hosts.length < 2) continue;
+    const target = path.join(env.HOME, directory.slice(2));
+    await execFile("sh", [wrapper, "install", "--target", target], { env });
+    const before = await snapshot(target);
+    for (const host of hosts) {
+      await writeFile(path.join(f.root, "requests"), "");
+      const { stdout } = await execFile("sh", [wrapper, "update", "--host", host], { env });
+      assert.match(stdout, /already current and verified/);
+      assert.doesNotMatch(stdout, /Pure Tokens Skill init:/);
+      assert.deepEqual(await snapshot(target), before, `${host}: shared files were rewritten`);
+      const requests = (await readFile(path.join(f.root, "requests"), "utf8")).trim().split("\n");
+      assert.equal(requests.length, 2);
+      assert.ok(requests.every(url => !url.endsWith(".zip")));
+      await readFile(path.join(target, "puretokens-image/references/hosts", `${host}.md`));
+    }
+    assert.equal((await readdir(target)).filter(name => name.startsWith(".puretokens-executor")).length, 1);
+    assert.ok(!(await readdir(target)).some(name => /stage|backup|lock/.test(name)));
+  }
+});
+
+test("shared-root upgrades retain both host references and refuse local customizations", async t => {
+  const f = await fixture(t);
+  const env = { ...f.env, PASEO_HOME: "", PTP_OPERATIONS_RECEIPTS: "" };
+  const installer = path.join(f.source, "runtime/puretokens-skill-install.sh");
+  const target = path.join(env.HOME, ".agents/skills");
+  const old = path.join(f.root, "old-source");
+  await cp(f.source, old, { recursive: true });
+  await writeFile(path.join(old, "package.json"), JSON.stringify({ version: "0.16.0" }, null, 2));
+  const retired = "puretokens-image/references/hosts/retired-host.md";
+  await writeFile(path.join(old, "skills", retired), "obsolete managed reference\n");
+  const sync = source => execFile("sh", [installer, "sync", "--target", target, "--source", source], { env });
+  await sync(old);
+  await sync(f.source);
+  assert.equal(JSON.parse(await readFile(path.join(target, ".puretokens-executor/runtime.json"), "utf8")).version, version);
+  await assert.rejects(readFile(path.join(target, retired)), { code: "ENOENT" });
+  for (const host of ["codex", "paseo"]) {
+    await execFile("sh", [installer, "verify-installed", "--host", host], { env });
+    const file = `puretokens-image/references/hosts/${host}.md`;
+    assert.deepEqual(await readFile(path.join(target, file)), await readFile(path.join(f.source, "skills", file)));
+  }
+  const peer = path.join(target, "puretokens-image/references/hosts/paseo.md");
+  const peerBytes = await readFile(peer);
+  for (const filename of ["codex.md", "personal-notes.md"]) {
+    const local = path.join(target, "puretokens-image/references/hosts", filename);
+    const original = await readFile(local).catch(error => { if (error.code === "ENOENT") return null; throw error; });
+    await writeFile(local, "preserve this local customization\n");
+    await assert.rejects(sync(f.source), /ownership|file changes/);
+    assert.equal(await readFile(local, "utf8"), "preserve this local customization\n");
+    assert.deepEqual(await readFile(peer), peerBytes);
+    if (original) await writeFile(local, original); else await rm(local);
+  }
+  assert.equal((await readdir(target)).filter(name => name.startsWith(".puretokens-executor")).length, 1);
+  assert.ok(!(await readdir(target)).some(name => /stage|backup|lock/.test(name)));
 });
 
 test("Gemini same-version verification accepts shared roots, HOME aliases and trailing slashes", async t => {

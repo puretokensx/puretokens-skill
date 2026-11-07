@@ -1,249 +1,10 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-10-21",
+  "reviewedAt": "2026-11-07",
   "scope": "reviewed_source_not_live_availability",
   "source": "PureTokenPlus_web/config/model-metadata-official.json",
-  "sourceSha256": "5675956b9c2c24e18d17054f7e0c9d08794a25bc2da49c6d12508a1746cb9b9b",
+  "sourceSha256": "14dc7eff07a890d47b04090b66da5be2546fb517edbc03539123bf7697d75ab1",
   "models": [
-    {
-      "id": "kling-v3",
-      "capability": "video",
-      "parameterSchema": {
-        "properties": {
-          "prompt": {
-            "type": "string",
-            "required": true
-          },
-          "duration": {
-            "type": "integer",
-            "enum": [
-              3,
-              4,
-              5,
-              6,
-              7,
-              8,
-              9,
-              10,
-              11,
-              12,
-              13,
-              14,
-              15
-            ],
-            "default": 5
-          },
-          "resolution": {
-            "type": "string",
-            "enum": [
-              "720p",
-              "1080p",
-              "4k"
-            ],
-            "default": "720p"
-          },
-          "aspect_ratio": {
-            "type": "string",
-            "enum": [
-              "16:9",
-              "9:16",
-              "1:1"
-            ],
-            "default": "16:9"
-          },
-          "first_frame_image": {
-            "type": "string"
-          }
-        },
-        "lifecycle": {
-          "create": {
-            "successStatus": 200,
-            "idField": "id",
-            "object": "video",
-            "initialStatuses": [
-              "queued",
-              "in_progress"
-            ]
-          },
-          "poll": {
-            "method": "GET",
-            "path": "/v1/videos/{task_id}",
-            "intervalSeconds": 8,
-            "statusField": "status",
-            "pendingStatuses": [
-              "queued",
-              "in_progress"
-            ],
-            "successStatuses": [
-              "completed"
-            ],
-            "failureStatuses": [
-              "failed"
-            ],
-            "resultFields": [
-              "metadata.url"
-            ]
-          }
-        },
-        "operations": {
-          "video_generation": {
-            "request": {
-              "method": "POST",
-              "path": "/v1/videos",
-              "contentType": "application/json"
-            },
-            "requiredBodyFields": [
-              "model",
-              "prompt"
-            ],
-            "inputs": {}
-          },
-          "image_to_video": {
-            "request": {
-              "method": "POST",
-              "path": "/v1/videos",
-              "contentType": "application/json"
-            },
-            "requiredBodyFields": [
-              "model",
-              "prompt",
-              "first_frame_image"
-            ],
-            "inputs": {
-              "first_frame_image": {
-                "field": "first_frame_image",
-                "required": true,
-                "minItems": 1,
-                "maxItems": 1,
-                "transports": [
-                  "https_url"
-                ]
-              }
-            }
-          }
-        },
-        "constraints": {
-          "reference_counts": {
-            "first_frame_image": 1,
-            "last_frame_image": 1,
-            "reference_images": 1,
-            "reference_videos": 0,
-            "reference_audios": 0,
-            "video": 1,
-            "max_total": 1
-          },
-          "reference_transport": {
-            "first_frame_image": [
-              "public_https_url"
-            ]
-          }
-        }
-      }
-    },
-    {
-      "id": "kling-v3-turbo",
-      "capability": "video",
-      "parameterSchema": {
-        "properties": {
-          "prompt": {
-            "type": "string",
-            "required": true
-          },
-          "duration": {
-            "type": "integer",
-            "enum": [
-              3,
-              4,
-              5,
-              6,
-              7,
-              8,
-              9,
-              10,
-              11,
-              12,
-              13,
-              14,
-              15
-            ],
-            "default": 5
-          },
-          "resolution": {
-            "type": "string",
-            "enum": [
-              "720p",
-              "1080p"
-            ],
-            "default": "720p"
-          },
-          "aspect_ratio": {
-            "type": "string",
-            "enum": [
-              "16:9",
-              "9:16",
-              "1:1"
-            ],
-            "default": "16:9"
-          }
-        },
-        "lifecycle": {
-          "create": {
-            "successStatus": 200,
-            "idField": "id",
-            "object": "video",
-            "initialStatuses": [
-              "queued",
-              "in_progress"
-            ]
-          },
-          "poll": {
-            "method": "GET",
-            "path": "/v1/videos/{task_id}",
-            "intervalSeconds": 8,
-            "statusField": "status",
-            "pendingStatuses": [
-              "queued",
-              "in_progress"
-            ],
-            "successStatuses": [
-              "completed"
-            ],
-            "failureStatuses": [
-              "failed"
-            ],
-            "resultFields": [
-              "metadata.url"
-            ]
-          }
-        },
-        "operations": {
-          "video_generation": {
-            "request": {
-              "method": "POST",
-              "path": "/v1/videos",
-              "contentType": "application/json"
-            },
-            "requiredBodyFields": [
-              "model",
-              "prompt"
-            ],
-            "inputs": {}
-          }
-        },
-        "constraints": {
-          "reference_counts": {
-            "first_frame_image": 1,
-            "last_frame_image": 1,
-            "reference_images": 0,
-            "reference_videos": 0,
-            "reference_audios": 0,
-            "video": 1,
-            "max_total": 1
-          },
-          "reference_transport": {}
-        }
-      }
-    },
     {
       "id": "viduq3-pro",
       "capability": "video",
@@ -463,6 +224,27 @@
           "requires_together": {
             "last_frame_image": [
               "first_frame_image"
+            ]
+          },
+          "parameter_modes": {
+            "voice_id": [
+              "image_to_video"
+            ],
+            "watermark": [
+              "image_to_video"
+            ],
+            "wm_position": [
+              "image_to_video"
+            ],
+            "wm_url": [
+              "image_to_video"
+            ],
+            "meta_data": [
+              "image_to_video"
+            ],
+            "is_rec": [
+              "image_to_video",
+              "last_frame_video"
             ]
           }
         }
@@ -687,6 +469,27 @@
           "requires_together": {
             "last_frame_image": [
               "first_frame_image"
+            ]
+          },
+          "parameter_modes": {
+            "voice_id": [
+              "image_to_video"
+            ],
+            "watermark": [
+              "image_to_video"
+            ],
+            "wm_position": [
+              "image_to_video"
+            ],
+            "wm_url": [
+              "image_to_video"
+            ],
+            "meta_data": [
+              "image_to_video"
+            ],
+            "is_rec": [
+              "image_to_video",
+              "last_frame_video"
             ]
           }
         }
@@ -1737,6 +1540,9 @@
           },
           "video": {
             "type": "string"
+          },
+          "return_last_frame": {
+            "type": "boolean"
           }
         },
         "operations": {
@@ -2218,6 +2024,9 @@
           },
           "video": {
             "type": "string"
+          },
+          "return_last_frame": {
+            "type": "boolean"
           }
         },
         "operations": {
@@ -2699,6 +2508,9 @@
           },
           "video": {
             "type": "string"
+          },
+          "return_last_frame": {
+            "type": "boolean"
           }
         },
         "operations": {
@@ -3195,6 +3007,9 @@
           },
           "video": {
             "type": "string"
+          },
+          "return_last_frame": {
+            "type": "boolean"
           }
         },
         "operations": {

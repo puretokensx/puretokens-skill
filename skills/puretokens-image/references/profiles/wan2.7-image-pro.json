@@ -2,20 +2,45 @@
   "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
   "schemaVersion": 1,
   "capability": "image",
-  "catalogUpdatedAt": "2026-11-03",
-  "catalogCapturedAt": "2026-11-03T02:14:24.310Z",
+  "catalogUpdatedAt": "2026-11-07",
+  "catalogCapturedAt": "2026-11-07T09:20:36.335Z",
   "id": "wan2.7-image-pro",
   "parameterSchema": {
     "properties": {
       "n": {
         "type": "integer",
-        "enum": [
-          1
-        ],
-        "default": 1
+        "default": 1,
+        "min": 1,
+        "max": 12
       },
       "size": {
         "type": "string"
+      },
+      "negative_prompt": {
+        "type": "string"
+      },
+      "prompt_extend": {
+        "type": "boolean"
+      },
+      "watermark": {
+        "type": "boolean"
+      },
+      "seed": {
+        "type": "integer",
+        "min": 0,
+        "max": 2147483647
+      },
+      "enable_sequential": {
+        "type": "boolean"
+      },
+      "thinking_mode": {
+        "type": "boolean"
+      },
+      "bbox_list": {
+        "type": "json"
+      },
+      "color_palette": {
+        "type": "json"
       },
       "prompt": {
         "type": "string",
@@ -27,6 +52,32 @@
       "reference_transport": {
         "image": [
           "public_https_url"
+        ]
+      },
+      "output_count": {
+        "workspace": [
+          1
+        ],
+        "standard_max": [
+          4
+        ],
+        "sequential_max": [
+          12
+        ]
+      },
+      "resolution_by_image_mode": {
+        "text": [
+          "1k",
+          "2k",
+          "4k"
+        ],
+        "edit": [
+          "1k",
+          "2k"
+        ],
+        "sequential": [
+          "1k",
+          "2k"
         ]
       }
     },
@@ -76,12 +127,23 @@
             "field": "images",
             "required": true,
             "minItems": 1,
-            "maxItems": 8,
+            "maxItems": 9,
             "transports": [
               "https_url"
             ]
           }
         }
+      },
+      "image_generation": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/images/generations",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt"
+        ]
       }
     }
   }

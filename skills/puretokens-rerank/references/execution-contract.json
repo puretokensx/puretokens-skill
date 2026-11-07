@@ -54,6 +54,7 @@
     "maxQueryRunes": 8192,
     "topNDefault": "document_count",
     "topNRange": "1..document_count",
-    "outputFile": "explicit_absolute_new_json_file_existing_writable_parent"
+    "outputFile": "explicit_absolute_new_json_file_existing_writable_parent",
+    "filenameSelection": "skill_may_choose_unique_name_only_in_already_explicit_authorized_output_directory_otherwise_ask"
   }
 }

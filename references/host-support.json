@@ -72,7 +72,7 @@
       "globalSkillDirectory": "~/.claude/skills",
       "directMediaExecution": "managed-native-executor",
       "credentialAdapter": "fixture-tested",
-      "guidance": "Claude Desktop local Code sessions load Claude Code skills. The executor reads the active Desktop 3P gateway profile, never Claude Code credentials. Cloud/Cowork sandbox access and native attachment delivery require separate real-host acceptance. Switch loopback model-mapping mode is unsupported: its local token is not a Pure Tokens API credential.",
+      "guidance": "Claude Desktop local Code sessions load Claude Code skills. Read only the active Desktop 3P connection, never Claude Code credentials. Mapped mode has unreleased source support via the Switch-applied same-host companion bound to the managed profile hash; its local chat token is never a public API credential. Async media requires a connection-bound task record. Cloud/Cowork, Windows ACL and native delivery acceptance remain separate.",
       "directorySelection": "CLAUDE_CONFIG_DIR/skills when explicitly configured; otherwise ~/.claude/skills. Shared with Claude Code; select --host claude-desktop for Desktop 3P authentication."
     },
     {
@@ -191,6 +191,60 @@
       "credentialAdapter": "fixture-tested",
       "guidance": "Source adapter for MiniMax Code CLI (mcode) local saved-default sessions only. Separate from minimax-code Desktop; never reads Desktop preferences. Profiles and session/runtime overrides are unsupported. Real-host API and delivery acceptance pending.",
       "directorySelection": "Absolute MINIMAX_DATA_DIR/skills, then MAVIS_DATA_DIR/skills, otherwise ~/.minimax/skills. Switch uses client ID minimax-code for both modes; Skills must bind explicitly to minimax-code-cli for CLI."
+    },
+    {
+      "id": "qwen-code",
+      "delivery": "native-installer",
+      "globalSkillDirectory": "~/.qwen/skills",
+      "directMediaExecution": "managed-native-executor",
+      "credentialAdapter": "fixture-tested",
+      "guidance": "Unreleased source and fixture coverage; real host loading, API and file delivery pending. Local saved Qwen selected auth type/model only; exact settings.env Key, bounded dotenv and system/project overlay checks. Unrepresented session overrides remain unsupported.",
+      "directorySelection": "QWEN_HOME/skills when absolute; otherwise ~/.qwen/skills. Shared ~/.agents/skills may shadow it."
+    },
+    {
+      "id": "codebuddy-code",
+      "delivery": "native-installer",
+      "globalSkillDirectory": "~/.codebuddy/skills",
+      "directMediaExecution": "managed-native-executor",
+      "credentialAdapter": "fixture-tested",
+      "guidance": "Unreleased source and fixture coverage; real host loading, API and file delivery pending. Local models.json only. All enabled matching entries must share one supported connection and inline Key. Unrepresented session overrides remain unsupported.",
+      "directorySelection": "Absolute CODEBUDDY_CONFIG_DIR/skills; otherwise ~/.codebuddy/skills. Separate from WorkBuddy."
+    },
+    {
+      "id": "copilot-cli",
+      "delivery": "native-installer",
+      "globalSkillDirectory": "~/.copilot/skills",
+      "directMediaExecution": "managed-native-executor",
+      "credentialAdapter": "fixture-tested",
+      "guidance": "Unreleased source and fixture coverage; real host loading, API and file delivery pending. Local providers.json BYOK only; resolve model.provider, verify service origin and same inline Key. COPILOT_PROVIDERS_CONFIG is unsupported. Unrepresented session overrides remain unsupported.",
+      "directorySelection": "Absolute COPILOT_HOME/skills; otherwise ~/.copilot/skills. Shared ~/.agents/skills is also discovered."
+    },
+    {
+      "id": "factory-droid",
+      "delivery": "native-installer",
+      "globalSkillDirectory": "~/.factory/skills",
+      "directMediaExecution": "managed-native-executor",
+      "credentialAdapter": "fixture-tested",
+      "guidance": "Unreleased source and fixture coverage; real host loading, API and file delivery pending. Local settings.json customModels only. Same service entries must share one inline Key; conflicting legacy/local/project overrides stop. Unrepresented session overrides remain unsupported.",
+      "directorySelection": "Default ~/.factory/skills. FACTORY_HOME_OVERRIDE unsupported even with an explicit installation target."
+    },
+    {
+      "id": "mimo-coder",
+      "delivery": "native-installer",
+      "globalSkillDirectory": "~/.config/mimocode/skills",
+      "directMediaExecution": "managed-native-executor",
+      "credentialAdapter": "fixture-tested",
+      "guidance": "Unreleased source and fixture coverage; real host loading, API and file delivery pending. Local saved puretokens-switch provider in one connection-bearing layer. Unrelated providers/preferences may coexist; substitutions, remote auth, plugins and managed overrides stop. Unrepresented session overrides remain unsupported.",
+      "directorySelection": "Absolute MIMOCODE_HOME/config/skills; otherwise XDG_CONFIG_HOME/mimocode/skills, default ~/.config/mimocode/skills."
+    },
+    {
+      "id": "paseo",
+      "delivery": "native-installer",
+      "globalSkillDirectory": "~/.agents/skills",
+      "directMediaExecution": "managed-native-executor",
+      "credentialAdapter": "fixture-tested",
+      "guidance": "Unreleased source and fixture coverage; real host loading, API and file delivery pending. Conditional local Codex-backed support: explicit PASEO_HOME, unique extends=codex profile and matching inherited endpoint/Key. Filtered or changed launch context stops; never read Codex auth.json. Other engines and remote daemons unsupported. Unrepresented session overrides remain unsupported.",
+      "directorySelection": "Local Codex-backed sessions use ~/.agents/skills. Explicit absolute PASEO_HOME selects the connection root only."
     }
   ]
 }

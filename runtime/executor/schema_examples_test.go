@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -55,6 +56,94 @@ func TestContractExamples(t *testing.T) {
 		}
 		capture(name, schema, data)
 	}
+
+	t.Run("fresh media local validation", func(t *testing.T) {
+		svc, transport := catalogProfileService(t, readInstalledProfileFixture(t, "image", "gpt-image-2.6"))
+		var output bytes.Buffer
+		writer := &supportReceiptWriter{output: &output, host: "codex", command: "submit"}
+		data := []byte(`{"kind":"image","operation":"generate","model":"gpt-image-2.6","prompt":"private-fixture","parameters":{"quality":"private-value"}}`)
+		if executeTask(bytes.NewReader(data), writer, svc) == nil || transport.calls != 0 {
+			t.Fatal("expected offline validation failure")
+		}
+		capture("media-local-validation", "executor-receipt.schema.json", output.Bytes())
+	})
+
+	t.Run("reviewed SVG and video tail artifacts", func(t *testing.T) {
+		for _, tail := range []bool{false, true} {
+			dir := t.TempDir()
+			recordPath := filepath.Join(dir, "task.json")
+			record := taskRecord{Format: taskRecordFormat, Kind: "image", Model: "gpt-image-2.6", TaskID: "fixture-svg", OriginalOperation: "generate", RequestedCount: 1, Status: "completed", OutputDir: dir, Parameters: map[string]any{"output_format": "svg"}}
+			index := 0
+			if tail {
+				record.Kind, record.Model, record.TaskID = "video", "Super Vega 1.5-pro", "fixture-tail"
+				record.Parameters = map[string]any{"return_last_frame": true}
+				index = 1
+			}
+			if err := saveTaskRecord(recordPath, record, true); err != nil {
+				t.Fatal(err)
+			}
+			svc := service{baseURL: "https://fixture.invalid", client: &http.Client{Transport: evaluationTransport(func(r *http.Request) (*http.Response, error) {
+				data, mime := []byte(staticSVGFixture), "image/svg+xml"
+				if tail {
+					data, mime = fixturePNG(t), "image/png"
+					if strings.HasSuffix(r.URL.Path, "/artifacts") {
+						data, mime = []byte(`{"task_id":"fixture-tail","artifacts":[{"key":"last_frame","type":"image"}]}`), "application/json"
+					}
+				}
+				return &http.Response{StatusCode: 200, Header: http.Header{"Content-Type": {mime}}, Body: io.NopCloser(bytes.NewReader(data))}, nil
+			})}}
+			var output bytes.Buffer
+			if err := executeRecordedTask("content", recordPath, taskRequest{}, index, dir, &output, svc); err != nil {
+				t.Fatal(err, output.String())
+			}
+			capture(fmt.Sprintf("artifact-tail-%t", tail), "executor-receipt.schema.json", output.Bytes())
+			stored, err := loadTaskRecord(recordPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			captureValue(fmt.Sprintf("artifact-record-tail-%t", tail), "task-record.schema.json", stored)
+		}
+	})
+
+	t.Run("Kling native request without duplicate prompt", func(t *testing.T) {
+		request := taskRequest{Kind: "video", Operation: "generate", MediaOperation: "native_video", Model: "kling-video-v3", Parameters: map[string]any{"contents": []any{map[string]any{"type": "prompt", "text": "fixture"}}}}
+		if err := validateTaskRequest(request); err != nil {
+			t.Fatal(err)
+		}
+		captureValue("kling-native-request", "executor-request.schema.json", map[string]any{"kind": request.Kind, "operation": request.Operation, "media_operation": request.MediaOperation, "model": request.Model, "parameters": request.Parameters})
+	})
+
+	t.Run("explicit GIF output format", func(t *testing.T) {
+		for _, mismatch := range []bool{false, true} {
+			var output bytes.Buffer
+			writer := &supportReceiptWriter{output: &output, command: "content", host: "codex"}
+			calls := 0
+			svc := service{baseURL: "https://fixture.invalid", support: writer, client: &http.Client{Transport: evaluationTransport(func(r *http.Request) (*http.Response, error) {
+				calls++
+				if r.Method != http.MethodGet || r.URL.Path != "/v1/images/fixture-gif/content" {
+					t.Fatal("changed task or submitted during retrieval")
+				}
+				data, mime := fixtureGIF(t), "image/gif"
+				if mismatch {
+					data, mime = fixturePNG(t), "image/png"
+				}
+				return &http.Response{StatusCode: 200, Header: http.Header{"Content-Type": {mime}}, Body: io.NopCloser(bytes.NewReader(data))}, nil
+			})}}
+			request := taskRequest{Kind: "image", Model: "gpt-image-2.6", Operation: "continue", OriginalOperation: "generate", TaskID: "fixture-gif", RequestedCount: 1, Parameters: map[string]any{"output_format": "gif"}, OutputDir: t.TempDir()}
+			err := deliverTask(writer, svc, request, taskReceipt(request, request.TaskID, "completed"))
+			if (err != nil) != mismatch || calls != 1 {
+				t.Fatal("unexpected format outcome")
+			}
+			var result map[string]any
+			if json.Unmarshal(output.Bytes(), &result) != nil {
+				t.Fatal("invalid format receipt")
+			}
+			if mismatch && (result["next_step"] != "await_user" || jsonObject(result["support"])["local_error_code"] != "media_output_format_mismatch") {
+				t.Fatal("format failure lost safe stop or support code")
+			}
+			capture(fmt.Sprintf("gif-mismatch-%t", mismatch), "executor-receipt.schema.json", output.Bytes())
+		}
+	})
 
 	t.Run("content response and byte stalls", func(t *testing.T) {
 		for _, stage := range []string{"response", "body", "complete"} {
@@ -342,6 +431,72 @@ func TestContractExamples(t *testing.T) {
 		capture("music-model-receipt", "model-query-receipt.schema.json", out.Bytes())
 	})
 
+	t.Run("asynchronous Gemini and Lyria examples", func(t *testing.T) {
+		text, err := os.ReadFile("../../skills/puretokens-audio/references/async-audio-usage.md")
+		if err != nil {
+			t.Fatal(err)
+		}
+		blocks := regexp.MustCompile("(?s)```json\\s*\n(.*?)\n```").FindAllSubmatch(text, -1)
+		if len(blocks) != 2 {
+			t.Fatal("async audio examples missing")
+		}
+		for index, block := range blocks {
+			t.Run(fmt.Sprintf("audio-task-doc-%d", index), func(t *testing.T) {
+				capture(fmt.Sprintf("docs-audio-task-%d", index), "executor-request.schema.json", block[1])
+				request, err := decodeTaskRequest(bytes.NewReader(block[1]))
+				if err != nil {
+					t.Fatal(err)
+				}
+				request.OutputDir = t.TempDir()
+				calls := 0
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					calls++
+					w.Header().Set("Content-Type", "application/json")
+					switch r.Method + " " + r.URL.Path {
+					case "POST /v1/tasks/product-yutoux":
+						io.WriteString(w, `{"id":"audio_schema","status":"SUBMITTED"}`)
+					case "GET /v1/tasks/audio_schema":
+						io.WriteString(w, `{"task_id":"audio_schema","platform":"product-yutoux","status":"SUCCESS"}`)
+					case "GET /v1/tasks/audio_schema/artifacts/audio/content":
+						format := asyncAudioFormat(request.Model)
+						w.Header().Set("Content-Type", audioMIME(format))
+						if format == "wav" {
+							w.Write(audioWAVFixture())
+						} else {
+							w.Write(audioMP3Fixture())
+						}
+					default:
+						t.Error("unexpected async audio request")
+						w.WriteHeader(404)
+					}
+				}))
+				defer server.Close()
+				record := filepath.Join(request.OutputDir, "audio-task.json")
+				for n, command := range []string{"submit", "status", "content", "resume", "delivered", "redeliver", "delivered"} {
+					var out bytes.Buffer
+					writer := &supportReceiptWriter{output: &out, host: "codex", command: command}
+					svc := fixtureService(server)
+					svc.support = writer
+					if err := executeRecordedTask(command, record, request, 0, request.OutputDir, writer, svc); err != nil {
+						t.Fatal(err, out.String())
+					}
+					capture(fmt.Sprintf("audio-task-%d-%d-%s", index, n, command), "executor-receipt.schema.json", out.Bytes())
+					saved, err := os.ReadFile(record)
+					if err != nil {
+						t.Fatal(err)
+					}
+					capture(fmt.Sprintf("audio-task-%d-%d-record", index, n), "task-record.schema.json", saved)
+					if n == 0 && calls != 1 {
+						t.Fatal("submit did not return before polling")
+					}
+				}
+				if calls != 3 {
+					t.Fatal("async audio recovery repeated requests")
+				}
+			})
+		}
+	})
+
 	t.Run("synchronous audio", func(t *testing.T) {
 		for _, scenario := range []string{"speech", "generate", "transcribe", "rejected", "unknown", "invalid"} {
 			t.Run(scenario, func(t *testing.T) {
@@ -595,9 +750,9 @@ func TestContractExamples(t *testing.T) {
 				t.Fatal(err)
 			}
 			blocks := fences.FindAllSubmatch(document, -1)
-			expected := 4
+			expected := 6 // Generation, edit, continuation, content, GIF and JSON mask.
 			if kind == "video" {
-				expected++ // Separate local-file and public-URL reference examples.
+				expected = 5 // Separate local-file and public-URL reference examples.
 			}
 			if len(blocks) != expected {
 				t.Fatalf("%s guide: expected %d executable examples", kind, expected)
@@ -635,7 +790,12 @@ func TestContractExamples(t *testing.T) {
 					if r.Method != http.MethodPost || r.URL.Path != route {
 						t.Error("documented submission did an unexpected request")
 					}
-					if len(request.Attachments) > 0 {
+					if request.MediaOperation == "masked_image_edit" {
+						var payload map[string]any
+						if r.Header.Get("Content-Type") != "application/json" || json.NewDecoder(r.Body).Decode(&payload) != nil || payload["mask"] != "data:image/png;base64,"+base64.StdEncoding.EncodeToString(fixturePNG(t)) {
+							t.Error("documented local mask was not sent in reviewed JSON")
+						}
+					} else if len(request.Attachments) > 0 {
 						if err := r.ParseMultipartForm(1 << 20); err != nil {
 							t.Error(err)
 						} else {

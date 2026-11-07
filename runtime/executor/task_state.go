@@ -45,7 +45,7 @@ func safePublicCode(code string) string {
 func taskReceipt(request taskRequest, id, status string) receipt {
 	parameters := make(map[string]any)
 	// Media URLs, prompts and file paths are deliberately excluded from receipts.
-	for _, key := range []string{"n", "size", "image_size", "aspect_ratio", "width", "height", "duration", "resolution", "generate_audio", "instrumental", "strength", "quality", "output_format", "response_format"} {
+	for _, key := range []string{"n", "size", "image_size", "aspect_ratio", "width", "height", "duration", "resolution", "generate_audio", "return_last_frame", "instrumental", "strength", "quality", "output_format", "response_format"} {
 		if value, exists := request.Parameters[key]; exists {
 			switch v := value.(type) {
 			case string:
@@ -73,7 +73,7 @@ func taskReceipt(request taskRequest, id, status string) receipt {
 					continue
 				}
 			}
-			if key == "generate_audio" || key == "instrumental" {
+			if key == "generate_audio" || key == "instrumental" || key == "return_last_frame" {
 				if _, ok := value.(bool); !ok {
 					continue
 				}
@@ -105,7 +105,7 @@ func taskReceipt(request taskRequest, id, status string) receipt {
 		count = 0
 	}
 	kind := request.Kind
-	if kind != "image" && kind != "video" && kind != "music" {
+	if kind != "image" && kind != "video" && !isTaskAudio(kind) {
 		kind = ""
 	}
 	operation := safePublicCode(request.Operation)
@@ -129,7 +129,7 @@ func safeParameterString(key, text string) bool {
 		"resolution":      `^[1-9][0-9]{0,3}[pPkK]$`,
 		"strength":        `^(LOW|MID|HIGH)$`,
 		"quality":         `^(auto|low|medium|high|xhigh|max)$`,
-		"output_format":   `^(png|jpeg|webp)$`,
+		"output_format":   `^(png|jpeg|webp|gif|svg)$`,
 		"response_format": `^(url|mp3|wav)$`,
 	}
 	pattern, ok := patterns[key]
@@ -147,7 +147,7 @@ func mergeFailure(current, failure receipt) receipt {
 	return current
 }
 func applyTaskStatus(result receipt, body []byte, httpStatus int) (receipt, error) {
-	id, state, reconcile, code := parseTaskIdentity(body)
+	id, state, reconcile, code := parseKindTaskIdentity(result.Kind, body, false)
 	if code != "" {
 		return mergeFailure(result, taskIdentityFailure("status", code, httpStatus)), errors.New("task identity unreadable")
 	}
@@ -189,7 +189,7 @@ func executeExistingTask(command string, input io.Reader, output io.Writer, svc 
 		if !validTaskID(request.TaskID) {
 			result.TaskID = ""
 		}
-		writeReceipt(output, mergeFailure(result, validationFailure("Choose image, video or music, a valid existing task ID, and valid continuation metadata.")))
+		writeReceipt(output, mergeFailure(result, validationFailure("Choose image, video, music or audio_task, a valid existing task ID, and valid continuation metadata.")))
 		return errors.New("invalid existing task")
 	}
 	if command == "wait" {
@@ -248,7 +248,7 @@ func projectCatalog(value any) any {
 	for _, entry := range jsonArray(document["data"]) {
 		model := jsonObject(entry)
 		id := jsonString(model["id"])
-		if !validModelID(id) {
+		if !validModelID(id) || reviewedMediaPolicies()[id].Retired {
 			continue
 		}
 		result := map[string]any{"id": id}

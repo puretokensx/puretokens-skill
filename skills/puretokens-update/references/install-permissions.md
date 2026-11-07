@@ -20,7 +20,7 @@
 | fetch 的 read_release_manifest、download_selector、download_platform_archive 失败 | 本次安装／更新未完成；仅当回执确认 installed_files_changed=false 才说旧安装未修改 | 保留 stage、error_code、非零 http_status、next_step；按类别处理 |
 | sync 已明确成功，init 失败 | 安装已完成，连接验证未完成 | 用户要求继续连接验证后只执行一次 init，不重新下载或同步 |
 | 同步中断、命令超时或输出不确定 | 安装状态未确认 | 用户另行授权诊断本地版本、受管清单和未完成事务；不自动重跑，不把 doctor 当完整性校验 |
-| 同版完整性检查成功 | 已是当前稳定版且文件完整 | 不下载、不写入、不补 init；需要加载时新开对话 |
+| 同版完整性检查成功 | 已是当前稳定版且文件完整 | 不下载、不写入、不补 init；已可用则直接使用，否则按宿主加载步骤处理，仅宿主需要时新开对话 |
 
 简短官方提示词仅提供安装意图、稳定 fetch 地址、入口文件及 install 子命令；首次所需下载就是稳定发布入口，不先请求 README、raw.githubusercontent.com 或其他远程说明。系统、架构和默认目录由脚本解析。当前应用或用户已确认宿主时直接显式沿用，不要求用户重复选择。尚无 host／target 时先离线尝试识别明确的原生 codex、opencode、grok、qoder／qodercli（Windows 对应 .exe），分别映射到 Codex、OpenCode、Grok Build、Qoder；通用解释器、编辑器或模糊进程不作为证据。识别失败或旧版要求 host 时，只确认缺失客户端后显式执行一次，不属于失败下载的重试。已有自定义目标仍沿用；Octop 缺少工作区目标时由入口返回 confirm_workspace_target，MiniMax Desktop 要求确认运行目录时不猜路径。只给仓库地址的一句话入口仍依赖文档可达性。
 
@@ -31,6 +31,8 @@
 bootstrap 下载发生在 fetch 启动之前，其异常无法由尚未下载的脚本捕获。此阶段由宿主实际审批和下载结果说明权限或错误；不要要求简短提示词承载诊断流程，也不能声称尚未启动的安装器已处理失败。此指南及 README 不会自动改写外部网页硬编码或用户已复制的提示词。
 
 ## 下载错误分类
+
+fetch 每次下载只输出脱敏阶段开始提示，不宣称已收到字节或百分比。元数据／目录选择器预算 45 秒，平台包 180 秒；不自动重试。Shell 的 curl 连接上限 15 秒，连续 30 秒低于每秒 1 字节则停止。Windows 使用对应 `TimeoutSec` 并关闭 PowerShell 逐块进度渲染；此路径尚无独立的正文停滞计时，不宣称与 curl 等价。实际慢网耗时与不同 PowerShell 版本的超时行为需实机验收。
 
 以下是 Windows fetch 回执的分类；其他系统保留各自实际错误，不能猜成 Windows 错误。读取异常类型／数值，不展示原始异常文本、用户名、路径、配置、响应或凭据。
 

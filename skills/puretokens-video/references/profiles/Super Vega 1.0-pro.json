@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
   "schemaVersion": 1,
   "capability": "video",
-  "catalogUpdatedAt": "2026-11-03",
-  "catalogCapturedAt": "2026-11-03T02:14:24.310Z",
+  "catalogUpdatedAt": "2026-11-07",
+  "catalogCapturedAt": "2026-11-07T09:20:36.335Z",
   "id": "Super Vega 1.0-pro",
   "parameterSchema": {
     "properties": {
@@ -92,6 +92,9 @@
       },
       "video": {
         "type": "string"
+      },
+      "return_last_frame": {
+        "type": "boolean"
       }
     },
     "operations": {
@@ -483,7 +486,7 @@
     }
   },
   "sourceReview": {
-    "reviewedAt": "2026-10-21",
+    "reviewedAt": "2026-11-07",
     "scope": "reviewed_source_not_live_availability",
     "source": "PureTokenPlus_web/config/model-metadata-official.json"
   }

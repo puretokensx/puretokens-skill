@@ -76,23 +76,24 @@ type pollRequest struct {
 }
 
 type receipt struct {
-	RequestedCount       int            `json:"requested_count,omitempty"`
-	Parameters           map[string]any `json:"parameters,omitempty"`
-	SubmissionOutcome    string         `json:"submission_outcome,omitempty"`
-	DownloadedPaths      []string       `json:"downloaded_paths,omitempty"`
-	DownloadedIndexes    []int          `json:"downloaded_indexes,omitempty"`
-	DeliveryStatus       string         `json:"delivery_status,omitempty"`
-	LocalErrorCode       string         `json:"local_error_code,omitempty"`
-	OriginalOperation    string         `json:"original_operation,omitempty"`
-	RetryNotBefore       string         `json:"retry_not_before,omitempty"`
-	RecordPath           string         `json:"record_path,omitempty"`
-	DeliveredIndexes     []int          `json:"delivered_indexes,omitempty"`
-	WaitWindowsCompleted int            `json:"wait_windows_completed,omitempty"`
-	WaitOutcome          string         `json:"wait_outcome,omitempty"`
-	NextStep             string         `json:"next_step,omitempty"`
-	FailureCategory      string         `json:"failure_category,omitempty"`
-	FailureSource        string         `json:"failure_source,omitempty"`
-	RedeliveryIndex      *int           `json:"redelivery_index,omitempty"`
+	Validation           *mediaValidation `json:"validation,omitempty"`
+	RequestedCount       int              `json:"requested_count,omitempty"`
+	Parameters           map[string]any   `json:"parameters,omitempty"`
+	SubmissionOutcome    string           `json:"submission_outcome,omitempty"`
+	DownloadedPaths      []string         `json:"downloaded_paths,omitempty"`
+	DownloadedIndexes    []int            `json:"downloaded_indexes,omitempty"`
+	DeliveryStatus       string           `json:"delivery_status,omitempty"`
+	LocalErrorCode       string           `json:"local_error_code,omitempty"`
+	OriginalOperation    string           `json:"original_operation,omitempty"`
+	RetryNotBefore       string           `json:"retry_not_before,omitempty"`
+	RecordPath           string           `json:"record_path,omitempty"`
+	DeliveredIndexes     []int            `json:"delivered_indexes,omitempty"`
+	WaitWindowsCompleted int              `json:"wait_windows_completed,omitempty"`
+	WaitOutcome          string           `json:"wait_outcome,omitempty"`
+	NextStep             string           `json:"next_step,omitempty"`
+	FailureCategory      string           `json:"failure_category,omitempty"`
+	FailureSource        string           `json:"failure_source,omitempty"`
+	RedeliveryIndex      *int             `json:"redelivery_index,omitempty"`
 	taskFailureConfirmed bool
 	recordedFailure      *taskFailure
 
@@ -132,10 +133,15 @@ type service struct {
 	baseURL                 string
 	client                  *http.Client
 	token                   string
+	connectionID            string
 	downloadTimeout         time.Duration
 	downloadResponseTimeout time.Duration
 	downloadIdleTimeout     time.Duration
 	musicFormat             string
+	imageFormat             string
+	allowSVG                bool
+	tailFrame               bool
+	tailFrameTaskID         string
 	now                     func() time.Time
 	wait                    func(context.Context, time.Duration) bool
 	downloadProofs          map[string]downloadProof
@@ -281,13 +287,13 @@ func run(args []string, input io.Reader, output io.Writer) error {
 			request.Operation = "continue"
 		}
 	}
-	if isTask && request.Kind == "music" && (*recordFile == "" || command == "submit") {
+	if isTask && isTaskAudio(request.Kind) && (*recordFile == "" || command == "submit") {
 		if err := validateTaskRequest(request); err != nil {
-			writeReceipt(output, validationFailure("The music request is invalid; no API request was sent."))
+			writeReceipt(output, validationFailure("The asynchronous audio request is invalid; no API request was sent."))
 			return err
 		}
 		if command == "submit" || command == "preflight" {
-			if err := prepareMusicRequest(&request); err != nil {
+			if err := prepareProfileRequest(&request, svc); err != nil {
 				writeReceipt(output, validationFailure(err.Error()))
 				return err
 			}
@@ -295,7 +301,7 @@ func run(args []string, input io.Reader, output io.Writer) error {
 	}
 	// A lost music submission response cannot be recovered by finding another
 	// credential. Preserve its recorded outcome and stop before any host read.
-	if isTask && request.Kind == "music" && *recordFile != "" && command != "submit" && request.TaskID == "" {
+	if isTask && isTaskAudio(request.Kind) && *recordFile != "" && command != "submit" && request.TaskID == "" {
 		svc.localRecoveryOnly = true
 		return executeRecordedTask(command, *recordFile, request, *index, *outputDir, output, svc)
 	}
@@ -308,7 +314,7 @@ func run(args []string, input io.Reader, output io.Writer) error {
 		svc.localRecoveryOnly = true
 		return executeRecordedTask(command, *recordFile, request, *index, *outputDir, output, svc)
 	}
-	token, err := credentialForHost(*host)
+	token, connectionID, err := credentialForConnection(*host)
 	if err != nil {
 		if command == "init" {
 			writeJSON(output, initCredentialFailure(err))
@@ -330,6 +336,11 @@ func run(args []string, input io.Reader, output io.Writer) error {
 	}
 	defer clearString(&token)
 	svc.token = token
+	svc.connectionID = connectionID
+	if connectionID != "" && isTask && command != "preflight" && *recordFile == "" {
+		writeReceipt(output, validationFailure("This mapped connection requires an explicit task record for media submission and continuation. Preserve any existing task; never submit a replacement to create a record."))
+		return errors.New("mapped task record required")
+	}
 	if *recordFile != "" {
 		return executeRecordedTask(command, *recordFile, request, *index, *outputDir, output, svc)
 	}
@@ -435,7 +446,7 @@ func executeInitContext(parent context.Context, output io.Writer, svc service) e
 		if svc.host == "zcode" {
 			result.Message = "The enabled ZCode Pure Tokens connection can reach the fixed API. This does not identify the model or connection selected for the current chat."
 		}
-		result.NextAction = "Use puretokens-image, puretokens-video, puretokens-audio, puretokens-balance, puretokens-models, puretokens-evaluate, puretokens-embedding, puretokens-rerank, or puretokens-connection in a new host conversation."
+		result.NextAction = "Use Pure Tokens Skills directly if already available in this conversation. Otherwise follow this host's loading controls and open a new conversation only when required. Connection verification does not verify Skill loading or attachment delivery."
 	} else {
 		result.ConfigurationStatus = "api_identity_unconfirmed"
 		result.Message = "The fixed Pure Tokens API did not return a confirmable identity."
@@ -463,13 +474,13 @@ func initCredentialFailure(err error) initReceipt {
 func usageExamples() []string {
 	return []string{
 		"Generate an image: create an image of a misty mountain lake at sunrise.",
-		"Choose an image model: use grok-imagine-image to create a product illustration.",
+		"Choose an image model: name an exact model from the installed image profiles for a product illustration.",
 		"Generate multiple variants: ask for image variations using a model and count declared by its installed profile.",
 		"Generate a video: create a 5-second cinematic shot of a paper boat on a river.",
 		"Use a reference: use the attached image as the first frame or visual reference, and say which role you intend.",
 		"Check current models: ask which Pure Tokens image/video models and operations are currently available.",
 		"Check balance: ask for the current Pure Tokens balance.",
-		"Update Skills: ask to update Pure Tokens Skills, then start a new host conversation.",
+		"Update Skills: ask to update Pure Tokens Skills and follow the returned host loading instructions only when needed.",
 	}
 }
 
@@ -479,6 +490,8 @@ func credentialForHost(host string) (string, error) {
 	// random environment variable, because that could send an unrelated key to
 	// the fixed Pure Tokens endpoint.
 	switch host {
+	case "qwen-code", "codebuddy-code", "copilot-cli", "factory-droid", "mimo-coder", "paseo":
+		return credentialFromSwitchCLI(host)
 	case "codex":
 		return credentialFromCodex()
 	case "claude-code":
@@ -587,7 +600,7 @@ func executeTask(input io.Reader, output io.Writer, svc service) error {
 	}
 
 	if err := prepareProfileRequest(&request, svc); err != nil {
-		writeReceipt(output, validationFailure(err.Error()))
+		writeReceipt(output, mediaRequestFailure(request, err))
 		return err
 	}
 	return executePreparedTask(output, svc, request)
@@ -620,7 +633,7 @@ func executePreparedTask(output io.Writer, svc service, request taskRequest) err
 		return errors.New("submission failed")
 	}
 
-	taskID, state, reconciliationRequired, identityCode := parseTaskIdentity(response)
+	taskID, state, reconciliationRequired, identityCode := parseKindTaskIdentity(request.Kind, response, true)
 	if identityCode != "" {
 		result := mergeFailure(taskReceipt(request, "", ""), taskIdentityFailure("submission", identityCode, status))
 		result.SubmissionOutcome = "unknown"
@@ -689,7 +702,7 @@ func decodeTaskRequest(input io.Reader) (taskRequest, error) {
 	if err := typed.Decode(&request); err != nil {
 		return taskRequest{}, err
 	}
-	if request.Kind == "music" {
+	if isTaskAudio(request.Kind) {
 		value, err := strictEvaluationJSON(raw, 64<<10)
 		fields, ok := value.(map[string]any)
 		if err != nil || !ok {
@@ -711,11 +724,16 @@ func decodeTaskRequest(input io.Reader) (taskRequest, error) {
 }
 
 func validateTaskRequest(request taskRequest) error {
-	if request.Kind != "image" && request.Kind != "video" && request.Kind != "music" {
+	if request.Kind != "image" && request.Kind != "video" && !isTaskAudio(request.Kind) {
 		return errors.New("invalid kind")
 	}
 	if request.Kind == "music" {
 		if err := validateMusicRequest(request); err != nil {
+			return err
+		}
+	}
+	if request.Kind == "audio_task" {
+		if err := validateAsyncAudioRequest(request); err != nil {
 			return err
 		}
 	}
@@ -748,7 +766,7 @@ func validateTaskRequest(request taskRequest) error {
 	if request.TaskID != "" || request.TaskStatus != "" || request.OriginalOperation != "" || request.RetryNotBefore != "" || request.ReconciliationRequired || request.Index != 0 || request.WaitWindowsCompleted != 0 {
 		return errors.New("new submissions cannot contain existing-task metadata")
 	}
-	if strings.TrimSpace(request.Model) == "" || (strings.TrimSpace(request.Prompt) == "" && !reviewedVideoAllowsEmptyPrompt(request)) {
+	if strings.TrimSpace(request.Model) == "" || (strings.TrimSpace(request.Prompt) == "" && !reviewedVideoAllowsEmptyPrompt(request) && !reviewedKlingAllowsNativePrompt(request)) {
 		return errors.New("missing model or prompt")
 	}
 
@@ -784,7 +802,7 @@ func validateTaskRequest(request taskRequest) error {
 }
 
 func attachmentLimit(kind string) int64 {
-	if kind == "music" {
+	if isTaskAudio(kind) {
 		return maxMusicBytes
 	}
 	if kind == "image" {
@@ -794,6 +812,12 @@ func attachmentLimit(kind string) int64 {
 }
 
 func taskRequestBody(request taskRequest) (string, string, io.Reader, error) {
+	if len(request.Attachments) > 0 && (reviewedMediaPolicies()[request.Model].LocalFileEncoding == "data_url" || (request.MediaOperation == "masked_image_edit" && reviewedMediaPolicies()[request.Model].LocalMaskEncoding == "data_url")) {
+		return typedImageRequestBody(request)
+	}
+	if request.Kind == "audio_task" {
+		return asyncAudioRequestBody(request)
+	}
 	if request.Kind == "music" {
 		return musicRequestBody(request)
 	}
@@ -981,7 +1005,7 @@ func pollingPolicy(kind string, override *pollRequest) pollPolicy {
 	// Fresh images carry their initial delay in retry_not_before. A continued
 	// image with no remaining delay can be checked immediately, then every 3s.
 	policy := pollPolicy{maxReads: 40, deadline: 120, delays: []int{0, 3}}
-	if kind == "video" || kind == "music" {
+	if kind == "video" || isTaskAudio(kind) {
 		policy = pollPolicy{maxReads: 7, deadline: 300, delays: []int{5, 10, 20, 40, 60, 60}}
 	}
 	if override != nil {
@@ -996,6 +1020,10 @@ func pollingPolicy(kind string, override *pollRequest) pollPolicy {
 }
 
 func deliverTask(output io.Writer, svc service, request taskRequest, result receipt) error {
+	if request.Kind == "image" {
+		svc.imageFormat, _ = request.Parameters["output_format"].(string)
+		svc.allowSVG = taskAllowsSVG(request)
+	}
 	// One file per invocation allows the host to hand it off before the next read.
 	if request.OutputDir == "" || !filepath.IsAbs(request.OutputDir) {
 		writeReceipt(output, mergeFailure(result, validationFailure("Choose an existing absolute output directory for the media file.")))
@@ -1013,14 +1041,21 @@ func deliverTask(output io.Writer, svc service, request taskRequest, result rece
 		writeReceipt(output, result)
 		return errors.New("unknown image count")
 	}
-	if request.Index < 0 || request.Index >= max(1, request.RequestedCount) || ((request.Kind == "video" || request.Kind == "music") && request.Index != 0) {
+	if !validOutputIndex(request, request.Index) {
 		writeReceipt(output, mergeFailure(result, validationFailure("Choose a valid zero-based content index.")))
 		return errors.New("invalid index")
 	}
-	if request.Kind == "music" {
+	if isTaskAudio(request.Kind) {
 		svc.musicFormat, _ = request.Parameters["response_format"].(string)
+		if request.Kind == "audio_task" {
+			svc.musicFormat = asyncAudioFormat(request.Model)
+		}
 	}
-	destination, status, retry, code, message, err := svc.download(context.Background(), contentPath(request.Kind, result.TaskID, request.Index), request.Kind, request.OutputDir)
+	if request.Kind == "video" && request.Index == 1 {
+		svc.tailFrame = true
+		svc.tailFrameTaskID = result.TaskID
+	}
+	destination, status, retry, code, message, err := svc.download(context.Background(), contentPath(request.Kind, result.TaskID, request.Index), artifactKind(request.Kind, request.Index), request.OutputDir)
 	if err != nil {
 		failure := contentFailure(err, status, retry, code, message)
 		writeReceipt(output, withRetry(mergeFailure(result, failure), retry, svc.clock()))
@@ -1037,6 +1072,9 @@ func deliverTask(output io.Writer, svc service, request taskRequest, result rece
 }
 
 func statusPath(kind, id string) string {
+	if kind == "audio_task" {
+		return "/v1/tasks/" + url.PathEscape(id)
+	}
 	if kind == "music" {
 		return "/v1/audio/music/tasks/" + url.PathEscape(id)
 	}
@@ -1044,6 +1082,12 @@ func statusPath(kind, id string) string {
 }
 
 func contentPath(kind, id string, index int) string {
+	if kind == "video" && index == 1 {
+		return "/v1/tasks/" + url.PathEscape(id) + "/artifacts/last_frame/content"
+	}
+	if kind == "audio_task" {
+		return statusPath(kind, id) + "/artifacts/audio/content"
+	}
 	path := statusPath(kind, id) + "/content"
 	if kind == "image" {
 		return path + "?index=" + strconv.Itoa(index)
@@ -1084,6 +1128,8 @@ func taskIdentityFailure(phase, code string, status int) receipt {
 		message = "The response contains no non-empty top-level task_id or id."
 	case "task_id_invalid":
 		message = "A task ID field was returned, but its type or format is not supported by this executor."
+	case "task_platform_mismatch":
+		message = "The response did not confirm the expected task family. Keep the original task; do not resubmit."
 	}
 	return receipt{FailurePhase: phase, HTTPStatus: status, LocalErrorCode: code,
 		ErrorMessage: message,
@@ -1144,7 +1190,7 @@ func (svc service) requestWithBearer(ctx context.Context, method, path string, b
 	if readErr != nil || len(bodyBytes) > maxResponseBytes {
 		return nil, response.StatusCode, retryAfter(response), "", "", errAPIResponseUnreadable
 	}
-	if (path == evaluationPath || path == "/v1/embeddings" || path == "/v1/rerank") && response.StatusCode >= 200 && response.StatusCode < 300 {
+	if (path == evaluationPath || path == "/v1/embeddings" || path == "/v1/rerank" || strings.HasSuffix(path, "/artifacts")) && response.StatusCode >= 200 && response.StatusCode < 300 {
 		// Validate before sanitization can collapse duplicate object keys.
 		if _, err := strictEvaluationJSON(bodyBytes, maxResponseBytes); err != nil {
 			return nil, response.StatusCode, retryAfter(response), "", "", errAPIResponseUnreadable
@@ -1166,12 +1212,15 @@ func (svc service) download(ctx context.Context, path, kind, outputDir string) (
 		return "", 0, 0, "", "", errors.New("absolute output directory required")
 	}
 	outputID := fmt.Sprintf("puretokens-%x", sha256.Sum256([]byte(path)))
-	for _, format := range []string{"image/png", "image/jpeg", "image/webp", "image/gif", "image/avif", "video/mp4", "video/webm", "audio/mpeg", "audio/wav"} {
+	for _, format := range []string{"image/png", "image/jpeg", "image/webp", "image/gif", "image/avif", "image/svg+xml", "video/mp4", "video/webm", "audio/mpeg", "audio/wav"} {
 		candidate := filepath.Join(outputDir, outputID+"."+extensionFor(format, kind))
 		if info, err := os.Lstat(candidate); err == nil {
 			proof, known := svc.downloadProofs[candidate]
+			if known && kind == "image" && (!imageFormatMatches(svc.imageFormat, proof.MediaType) || (proof.MediaType == "image/svg+xml" && !svc.allowSVG) || (svc.tailFrame && !contains([]string{"image/png", "image/jpeg", "image/webp"}, proof.MediaType))) {
+				return "", 0, 0, "", "", errMediaFormatMismatch
+			}
 			if info.Mode().IsRegular() && known && proof.MediaType == format &&
-				(kind != "music" || svc.musicFormat == "" || format == audioMIME(svc.musicFormat)) &&
+				(!isTaskAudio(kind) || svc.musicFormat == "" || format == audioMIME(svc.musicFormat)) &&
 				validDownloadProof(proof, kind) && svc.checkDownloadProof(candidate, proof) {
 				return candidate, 200, 0, "", "", nil
 			}
@@ -1179,6 +1228,12 @@ func (svc service) download(ctx context.Context, path, kind, outputDir string) (
 		}
 	}
 
+	if svc.tailFrame {
+		status, retry, code, message, err := svc.verifyTailFrame(ctx, svc.tailFrameTaskID)
+		if err != nil {
+			return "", status, retry, code, message, err
+		}
+	}
 	finishResponse := svc.timePhase("content_response")
 	defer finishResponse()
 	ctx, cancel := context.WithCancelCause(ctx)
@@ -1215,16 +1270,21 @@ func (svc service) download(ctx context.Context, path, kind, outputDir string) (
 		return "", response.StatusCode, retryAfter(response), code, message, errors.New("content request rejected")
 	}
 	contentType := strings.ToLower(strings.TrimSpace(strings.Split(response.Header.Get("Content-Type"), ";")[0]))
-	if (kind == "image" && !strings.HasPrefix(contentType, "image/")) || (kind == "video" && !strings.HasPrefix(contentType, "video/")) || (kind == "music" && contentType != "audio/mpeg" && contentType != "audio/wav") || contentType == "image/svg+xml" {
+	if kind == "image" && !imageFormatMatches(svc.imageFormat, contentType) {
+		return "", response.StatusCode, retryAfter(response), "", "", errMediaFormatMismatch
+	}
+	if (kind == "image" && !strings.HasPrefix(contentType, "image/")) || (kind == "video" && !strings.HasPrefix(contentType, "video/")) || (isTaskAudio(kind) && contentType != "audio/mpeg" && contentType != "audio/wav") || (contentType == "image/svg+xml" && (!svc.allowSVG || kind != "image" || response.StatusCode != http.StatusOK || response.Header.Get("Content-Range") != "")) || (svc.tailFrame && !contains([]string{"image/png", "image/jpeg", "image/webp"}, contentType)) {
 		return "", response.StatusCode, retryAfter(response), "", "", errInvalidMedia
 	}
-	if kind == "music" && svc.musicFormat != "" && contentType != audioMIME(svc.musicFormat) {
+	if isTaskAudio(kind) && svc.musicFormat != "" && contentType != audioMIME(svc.musicFormat) {
 		return "", response.StatusCode, retryAfter(response), "", "", errInvalidMedia
 	}
 	limit := maxImageBytes
-	if kind == "video" {
+	if contentType == "image/svg+xml" {
+		limit = maxSVGBytes
+	} else if kind == "video" {
 		limit = maxVideoBytes
-	} else if kind == "music" {
+	} else if isTaskAudio(kind) {
 		limit = maxMusicBytes
 	}
 	if response.ContentLength > limit {
@@ -1238,7 +1298,7 @@ func (svc service) download(ctx context.Context, path, kind, outputDir string) (
 	if prefixErr != nil && !errors.Is(prefixErr, io.EOF) {
 		return "", response.StatusCode, retryAfter(response), "", "", prefixErr
 	}
-	if !validMediaPrefix(prefix, contentType) {
+	if contentType != "image/svg+xml" && !validMediaPrefix(prefix, contentType) {
 		return "", response.StatusCode, 0, "", "", errInvalidMedia
 	}
 	extension := extensionFor(contentType, kind)
@@ -1291,6 +1351,8 @@ func extensionFor(contentType, kind string) string {
 		return "gif"
 	case "image/avif":
 		return "avif"
+	case "image/svg+xml":
+		return "svg"
 	case "video/mp4":
 		return "mp4"
 	case "video/webm":

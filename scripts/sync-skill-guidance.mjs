@@ -5,7 +5,8 @@ import { fileURLToPath } from "node:url";
 import { repositoryRoot } from "./skill-registry.mjs";
 import { loadOperationGuidance, renderOperationGuidance, replaceGuidanceBlock } from "./operation-guidance.mjs";
 
-import { loadHostDelivery, renderHostDeliveryGuide } from "./host-delivery-guidance.mjs";
+import { loadHostDelivery, renderHostDeliveryGuide, renderSelectedHostDelivery } from "./host-delivery-guidance.mjs";
+import { renderHostReferences } from "./host-reference-guidance.mjs";
 import { validModelID } from "./model-id.mjs";
 import { buildAudioRequestSchema } from "./audio-request-schema.mjs";
 
@@ -18,10 +19,23 @@ export async function syncSkillGuidance(root, { write = false } = {}) {
   const binding = (await read("references/skill-fragments/host-binding.md")).trim();
   if (!/^宿主绑定与本地失败停止：[^\n]+$/.test(binding)) throw new Error("Invalid host-binding fragment");
   const source = await read("references/desktop-hosts.md");
-  if (source.split("<!-- host-binding -->").length !== 2) throw new Error("Desktop guidance needs one host-binding marker");
-  const desktop = source.replace("<!-- host-binding -->", binding);
+  const hostReferences = renderHostReferences(source, support, binding);
   const hostList = support.supported.map(host => host.id).join("、");
-  const deliveryGuide = renderHostDeliveryGuide(await loadHostDelivery(root));
+  const deliverySource = await loadHostDelivery(root);
+  const deliveryGuide = renderHostDeliveryGuide(deliverySource);
+  const hostFiles = new Set(support.supported.map(host => `${host.id}.md`));
+  for (const skill of registry.skills) {
+    for (const directory of ["hosts", "delivery"]) {
+      const relative = `skills/${skill.name}/references/${directory}`;
+      const entries = await readdir(path.join(root, relative), { withFileTypes: true }).catch(error => {
+        if (error.code === "ENOENT") return [];
+        throw error;
+      });
+      if (entries.some(entry => !entry.isFile() || !hostFiles.has(entry.name))) {
+        throw new Error(`${relative}: unreviewed host reference; review and remove it explicitly`);
+      }
+    }
+  }
   const changed = [];
   const operations = await loadOperationGuidance(root);
   const directContract = JSON.parse(await read("references/direct-api-execution-contract.json"));
@@ -55,7 +69,7 @@ export async function syncSkillGuidance(root, { write = false } = {}) {
     schemaVersion: 1, reviewedAt: audio.reviewedAt,
     scope: "reviewed_contract_not_live_availability",
     defaults: { speech: "stepaudio-2.5-tts", transcribe: "stepaudio-2.5-asr", generate: "stepaudio-3-gen-preview", music: "stepaudio-3-music-preview" },
-    models: ids.map(id => ({ id, operation: audio.models[id].operation, profile: `profiles/${id}.json` }))
+    models: ids.map(id => ({ id, operation: audio.models[id].operation, ...(audio.models[id].executor_kind ? { executor_kind: audio.models[id].executor_kind } : {}), profile: `profiles/${id}.json` }))
   }, null, 2) + "\n");
   for (const [id, profile] of Object.entries(audio.models)) {
     if (!validModelID(id) || profile.model !== id) throw new Error("Invalid audio model identifier");
@@ -95,6 +109,9 @@ export async function syncSkillGuidance(root, { write = false } = {}) {
     }
     if (["puretokens-image", "puretokens-video", "puretokens-audio", "puretokens-evaluate"].includes(skill.name)) {
       await output(`skills/${skill.name}/references/host-delivery.md`, deliveryGuide);
+      for (const host of support.supported) {
+        await output(`skills/${skill.name}/references/delivery/${host.id}.md`, renderSelectedHostDelivery(deliverySource, host.id));
+      }
       if (!next.includes("references/host-delivery.md")) throw new Error(`${skill.name}: missing host delivery guide`);
     }
     if (skill.name === "puretokens-update") {
@@ -102,7 +119,10 @@ export async function syncSkillGuidance(root, { write = false } = {}) {
       next = next.replace(/^宿主 ID 为 [^；\n]+；/m, `宿主 ID 为 ${hostList}；`);
     }
     await output(skill.entry, next);
-    await output(`skills/${skill.name}/references/desktop-hosts.md`, desktop);
+    for (const [file, contents] of hostReferences) {
+      await output(`skills/${skill.name}/references/${file}`, contents);
+    }
+    await output(`skills/${skill.name}/references/claude-mapped-connection.md`, await read("references/claude-mapped-connection.md"));
     const manifest = JSON.parse(await read(skill.manifest));
     manifest.supportedClients = support.supported.map(host => host.id);
     for (const host of support.supported) {

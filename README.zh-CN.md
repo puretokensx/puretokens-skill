@@ -119,7 +119,7 @@ Computer Use、浏览器自动化以及打开或点击 Pure Tokens Switch/Deskto
 先校验请求与新文件路径，再仅在内存中复用当前宿主已验证的 Pure Tokens 连接；
 同步单次最多90秒，不轮询、不自动重试。
 
-embedding 审核 ID 为 `qwen3.7-text-embedding`、
+embedding 未指定时默认使用 `qwen3.7-text-embedding`，保留用户明确选择。审核 ID 为 `qwen3.7-text-embedding`、
 `qwen3.7-text-embedding-flash`，固定 `POST /v1/embeddings` 与
 `encoding_format=float`。JSONL 每行为 `index`、`dimensions`、`embedding`，
 按原输入编号排序；聊天只报条数、维度和用户文件路径，不铺满向量。
@@ -171,12 +171,19 @@ Jev、音频、向量和重排需要相应 API 权限，不需要将专用模型
 | EvoX | `~/.evox/agent/skills` | 默认实例的新版配置／认证夹具覆盖；不读取旧存储 |
 | VS Code | `~/.copilot/skills` | 默认本地 profile；0.18.7 支持同 Key 的单连接多模型 |
 | Octop | 明确指定当前工作区的 `.octop/skills` | 只读本地 SQLite 连接；不假设全局 Skill 安装目录 |
+| Oh My Pi / MiniMax Code CLI | `~/.omp/agent/skills` / `~/.minimax/skills` | 已有源码与夹具覆盖；与 Pi／MiniMax Desktop 的宿主绑定独立 |
+| Qwen Code | `~/.qwen/skills` | 新增源码／夹具支持；当前选择和配置覆盖守卫 |
+| CodeBuddy Code | `~/.codebuddy/skills` | 新增源码／夹具支持；不借 WorkBuddy 凭据 |
+| Copilot CLI | `~/.copilot/skills` | 新增源码／夹具支持；读取自己的 BYOK providers.json |
+| Factory Droid | `~/.factory/skills` | 新增源码／夹具支持；同服务多模型必须同 Key |
+| MiMo Coder | `~/.config/mimocode/skills` | 新增源码／夹具支持；保留无关偏好，拒绝连接覆盖 |
+| Paseo | `~/.agents/skills` | 条件源码支持：仅本地 Codex 引擎，保存连接与继承会话一致；其他引擎／远程不支持 |
 
 适配器的夹具覆盖不等于真实客户端媒体验收。Hermes、EvoX 支持文档声明的绝对数据目录覆盖；Octop 使用 `--host octop --target <绝对工作区>/.octop/skills`（PowerShell：`-HostId octop -Target <绝对工作区>/.octop/skills`），不枚举代理、不写全局 Skill 包数据库。Cursor 未注册为 Skill 宿主。
 
-Switch 当前源码目录包含 23 个客户端，Skills 注册 19 个宿主。DeepSeek Bot
-独立于两个 Harness 宿主，目前与 Paseo、Rakazo、OpenMausBot 一样没有受支持
-的 Skills 适配器。在 Switch 配置成功不代表可以直接执行 Skill。
+Skills 当前源码注册 27 个宿主；新增客户端尚未随稳定版发布，实机验收另记。
+DeepSeek Bot、Rakazo、OpenMausBot 和 Antigravity CLI 仍无受支持的直接
+Skills 适配器。在 Switch 配置成功不代表可以直接执行 Skill。
 
 宿主列表以 `references/host-support.json` 为唯一契约。表中为默认目录；Claude／WorkBuddy 支持明确配置目录覆盖，Pi 支持不含父级跳转的绝对 `PI_CODING_AGENT_DIR`，DSH 支持本地 Harness 明确设置的 `DSH_HOME`。Gemini 如已有较高优先级的 `.agents/skills` 安装，会更新该目录并报告重复副本。不会依据 provider 名判断。
 
@@ -190,7 +197,7 @@ Claude Desktop 请选择本地 Code 会话并使用宿主 ID `claude-desktop`；
 
 ## 图片、视频与异步任务
 
-普通生成使用默认模型或精确 ID 时只读选中 profile；需要选择模型或解析别名时才读小型索引。不加载全部模型，也不在每次提交前查实时目录。`puretokens-image` 默认使用 `gpt-image-2.5-flare`；`puretokens-video` 默认使用 `MiniMax-H3`。新 H3 参考输入只支持公开 HTTPS URL，不支持本地 multipart 附件，不可静默换模型或上传托管。用户明确指定模型时优先使用指定值；已有任务保留原模型。只有用户明确查询当前模型、请求选中 profile 没有的参数/媒体操作，或需要诊断模型/参数/capability 拒绝时，才读取实时目录。
+普通生成使用默认模型或精确 ID 时只读选中 profile；需要选择模型或解析别名时才读小型索引。不加载全部模型，也不在每次提交前查实时目录。`puretokens-image` 默认使用 `gpt-image-2.6`；`puretokens-video` 默认使用 `MiniMax-H3`。新 H3 参考输入只支持公开 HTTPS URL，不支持本地 multipart 附件，不可静默换模型或上传托管。用户明确指定模型时优先使用指定值；已有任务保留原模型。只有用户明确查询当前模型、请求选中 profile 没有的参数/媒体操作，或需要诊断模型/参数/capability 拒绝时，才读取实时目录。
 
 正常等待窗口结束表示任务仍在生成，不算失败。当前已授权的前台交付最多再续一个窗口，随后暂停并询问用户；任务记录保存该预算。错误、对账及无法容纳的等待要求停止自动续等。视频、多图和跨会话任务默认使用明确的工作区任务记录；附件交付失败时重交已验证文件，不重新提交或下载。
 
@@ -203,7 +210,7 @@ Claude Desktop 请选择本地 Code 会话并使用宿主 ID `claude-desktop`；
 <!-- media-model-catalog:start -->
 ## 媒体模型清单
 
-已与基础模型目录同步：2026-11-03T02:14:24.310Z。
+已与基础模型目录同步：2026-11-07T09:20:36.335Z。
 
 这份清单用于安装后的模型选择，不是每次请求的认证检查。普通生成只读选中 profile；仅明确查询、profile 缺口或拒绝诊断时读取实时目录。经审查的本地兼容补充定义单独注明来源。
 
@@ -213,19 +220,26 @@ README 只从基础目录中带有明确图片/视频能力的模型生成，不
 
 | 模型 ID | 提供方 | 也可以这样说 | 适合 | 示例 |
 | --- | --- | --- | --- | --- |
+| `dola-seedream-5-0-pro-260628` | ByteDance | 仅精确 ID | 图片生成 | `用 dola-seedream-5-0-pro-260628 生成一张图片。` |
+| `gemini-3.0-pro-image` | Google | 仅精确 ID | 图片生成 | `用 gemini-3.0-pro-image 生成一张图片。` |
+| `gemini-3.1-flash-image` | Google | 仅精确 ID | 图片生成 | `用 gemini-3.1-flash-image 生成一张图片。` |
 | `gemini-nano-banana-2.1` | Google | 仅精确 ID | 图片生成 | `用 gemini-nano-banana-2.1 生成一张图片。` |
 | `gpt-image-2` | OpenAI | `image2` | 图片生成 | `用 gpt-image-2 生成一张图片。` |
 | `gpt-image-2.5` | OpenAI | 仅精确 ID | 图片生成 | `用 gpt-image-2.5 生成一张图片。` |
 | `gpt-image-2.5-flare` | OpenAI | 仅精确 ID | 图片生成 | `用 gpt-image-2.5-flare 生成一张图片。` |
 | `gpt-image-2.5-sunburst` | OpenAI | 仅精确 ID | 图片生成 | `用 gpt-image-2.5-sunburst 生成一张图片。` |
+| `gpt-image-2.6` | OpenAI | 仅精确 ID | 图片生成 | `用 gpt-image-2.6 生成一张图片。` |
+| `gpt-image-2.6-flare` | OpenAI | 仅精确 ID | 图片生成 | `用 gpt-image-2.6-flare 生成一张图片。` |
+| `gpt-image-2.6-sunburst` | OpenAI | 仅精确 ID | 图片生成 | `用 gpt-image-2.6-sunburst 生成一张图片。` |
 | `gpt-image-2(Sub)` | OpenAI | 仅精确 ID | 图片生成 | `用 gpt-image-2(Sub) 生成一张图片。` |
 | `grok-imagine-image` | xAI | `grok image` | 图片生成 | `用 grok-imagine-image 生成一张图片。` |
+| `grok-imagine-image-2.0` | xAI | 仅精确 ID | 图片生成 | `用 grok-imagine-image-2.0 生成一张图片。` |
 | `grok-imagine-image-quality` | xAI | 仅精确 ID | 图片生成 | `用 grok-imagine-image-quality 生成一张图片。` |
-| `nano-banana-2` | Google | `nano banana 2` | 图片生成 | `用 nano-banana-2 生成一张图片。` |
-| `nano-banana-2-lite` | Google | 仅精确 ID | 图片生成 | `用 nano-banana-2-lite 生成一张图片。` |
-| `nano-banana-pro` | Google | `nano banana pro` | 图片生成 | `用 nano-banana-pro 生成一张图片。` |
 | `qwen-image-3.0` | Alibaba | 仅精确 ID | 图片生成 | `用 qwen-image-3.0 生成一张图片。` |
 | `qwen-image-3.0-pro` | Alibaba | 仅精确 ID | 图片生成 | `用 qwen-image-3.0-pro 生成一张图片。` |
+| `seedream-4-0-250828` | ByteDance | 仅精确 ID | 图片生成 | `用 seedream-4-0-250828 生成一张图片。` |
+| `seedream-4-5-251128` | ByteDance | 仅精确 ID | 图片生成 | `用 seedream-4-5-251128 生成一张图片。` |
+| `seedream-5-0-lite-260128` | ByteDance | 仅精确 ID | 图片生成 | `用 seedream-5-0-lite-260128 生成一张图片。` |
 | `wan2.7-image` | Alibaba | 仅精确 ID | 图片生成 | `用 wan2.7-image 生成一张图片。` |
 | `wan2.7-image-pro` | Alibaba | 仅精确 ID | 图片生成 | `用 wan2.7-image-pro 生成一张图片。` |
 
@@ -234,12 +248,15 @@ README 只从基础目录中带有明确图片/视频能力的模型生成，不
 | 模型 ID | 提供方 | 也可以这样说 | 适合 | 示例 |
 | --- | --- | --- | --- | --- |
 | `grok-imagine-video` | xAI | `grok video` | 视频生成 | `用 grok-imagine-video 生成一条视频。` |
-| `grok-imagine-video-1.5` | xAI | 仅精确 ID | 视频生成 | `用 grok-imagine-video-1.5 生成一条短视频。` |
-| `kling-v3` | Kling | 仅精确 ID | 视频生成 | `用 kling-v3 生成一条短视频。` |
-| `kling-v3-turbo` | Kling | 仅精确 ID | 视频生成 | `用 kling-v3-turbo 生成一条短视频。` |
+| `grok-imagine-video-1.5-preview` | xAI | 仅精确 ID | 视频生成 | `用 grok-imagine-video-1.5-preview 生成一条短视频。` |
+| `kling-video-motion-control-v2.6` | Kling | 仅精确 ID | 视频生成 | `用 kling-video-motion-control-v2.6 生成一条短视频。` |
+| `kling-video-motion-control-v3.0` | Kling | 仅精确 ID | 视频生成 | `用 kling-video-motion-control-v3.0 生成一条短视频。` |
+| `kling-video-v3` | Kling | 仅精确 ID | 视频生成 | `用 kling-video-v3 生成一条短视频。` |
+| `kling-video-v3-omni` | Kling | 仅精确 ID | 视频生成 | `用 kling-video-v3-omni 生成一条短视频。` |
+| `kling-video-v3-turbo` | Kling | 仅精确 ID | 视频生成 | `用 kling-video-v3-turbo 生成一条短视频。` |
+| `kling-video-v4` | Kling | 仅精确 ID | 视频生成 | `用 kling-video-v4 生成一条短视频。` |
 | `MiniMax-H3` | MiniMax | 仅精确 ID | 视频生成 | `用 MiniMax-H3 生成一条短视频。` |
-| `muse-video` | Meta | 仅精确 ID | 视频生成 | `用 muse-video 生成一条短视频。` |
-| `omni` | Google | 仅精确 ID | 视频生成 | `用 omni 生成一条短视频。` |
+| `omni-flash` | Google | 仅精确 ID | 视频生成 | `用 omni-flash 生成一条短视频。` |
 | `seedance-2.0` | ByteDance | 仅精确 ID | 视频生成 | `用 seedance-2.0 生成一条视频。` |
 | `seedance-2.0-fast` | ByteDance | 仅精确 ID | 视频生成 | `用 seedance-2.0-fast 生成一条视频。` |
 | `seedance-2.0-mini` | ByteDance | 仅精确 ID | 视频生成 | `用 seedance-2.0-mini 生成一条视频。` |
@@ -249,9 +266,9 @@ README 只从基础目录中带有明确图片/视频能力的模型生成，不
 | `Super Vega 1.0-pro-fast` | Tencent Cloud | 仅精确 ID | 视频生成 | `用 Super Vega 1.0-pro-fast 生成一条短视频。` |
 | `Super Vega 1.0-pro-mini` | Tencent Cloud | 仅精确 ID | 视频生成 | `用 Super Vega 1.0-pro-mini 生成一条短视频。` |
 | `Super Vega 1.5-pro` | Tencent Cloud | 仅精确 ID | 视频生成 | `用 Super Vega 1.5-pro 生成一条短视频。` |
-| `veo_fast` | Google | 仅精确 ID | 视频生成 | `用 veo_fast 生成一条短视频。` |
-| `veo_lite` | Google | 仅精确 ID | 视频生成 | `用 veo_lite 生成一条短视频。` |
-| `veo_quan` | Google | 仅精确 ID | 视频生成 | `用 veo_quan 生成一条短视频。` |
+| `veo-3.1` | Google | 仅精确 ID | 视频生成 | `用 veo-3.1 生成一条短视频。` |
+| `veo-3.1-fast` | Google | 仅精确 ID | 视频生成 | `用 veo-3.1-fast 生成一条短视频。` |
+| `veo-3.1-lite` | Google | 仅精确 ID | 视频生成 | `用 veo-3.1-lite 生成一条短视频。` |
 | `viduq3-pro` | Vidu | 仅精确 ID | 视频生成 | `用 viduq3-pro 生成一条短视频。` |
 | `viduq3-turbo` | Vidu | 仅精确 ID | 视频生成 | `用 viduq3-turbo 生成一条短视频。` |
 | `wan3.0-video` | Alibaba | 仅精确 ID | 视频生成 | `用 wan3.0-video 生成一条短视频。` |
@@ -271,6 +288,8 @@ README 只从基础目录中带有明确图片/视频能力的模型生成，不
 
 `puretokens-update` 的原生 fetch 读取最新正式发布清单，固定其中的版本、源码提交、目录选择器和平台包校验和。只下载当前系统／架构的平台包，不回退整库源码；0.19.5 包含十个通用 Skill、一个平台执行器及当前系统脚本。检查更新不写入或执行 init。同版安装／更新先核验所选发布的执行器与全部十一份受管清单，完整则直接返回，不下载包、不重写、不 init；缺失、改动或未完成事务则停止，保留文件。显式本地源码 sync 仅供维护开发使用。
 
+支持更多客户端不等于安装更多份：只写所选客户端受支持的 Skill 目录；本来使用同一目录的客户端，共用该目录的十个 Skill 和一个执行器。平台包保留小型宿主说明用于兼容，不安装其他客户端应用或按客户端复制执行器。需要宿主细节时只读短索引和 `references/hosts/<已绑定 host>.md`；交付只读通用规则及 `references/delivery/<已绑定 host>.md`。安装位置不决定凭据来源；不同目录不自动合并或迁移，本地定制阻止覆盖。
+
 首次安装或实际更新后仍自动 init，最多两次只读请求共用 20 秒总预算，不自动重试。文件同步成功与连接验证分别报告，验证超时不回滚安装、不重装，也不证明凭据无效。只有带版本的同步成功回执才表示本次安装完成；同版核验回执表示原安装完整，未修改文件。
 
 源码同步脚本是 macOS/Linux 的 `runtime/puretokens-skill-install.sh` 和 Windows 的 `runtime/puretokens-skill-install.ps1`。它们只负责安装更新及校验复制平台执行器；用户不需要 Node、npm、Python、Go 或包管理器。
@@ -286,7 +305,7 @@ README 只从基础目录中带有明确图片/视频能力的模型生成，不
 每次发送最多一秒，提交成功与作品交付分别理解，详见
 [回执契约](references/operations-receipts-contract.md)。
 
-共享宿主说明与停止规则由 `references/desktop-hosts.md`、`references/skill-fragments/host-binding.md` 和宿主注册表维护。修改后运行 `npm run docs:sync-guidance`，同步十个独立可安装 Skill 及入口摘要；工程门禁会检查漂移。这不是用户运行依赖。
+共享宿主说明与停止规则由 `references/desktop-hosts.md`、`references/skill-fragments/host-binding.md` 和宿主注册表维护。修改后运行 `npm run docs:sync-guidance`，为十个独立可安装 Skill 生成短索引、按宿主执行说明与条件交付说明；通用交付协议每个 Skill 只保留一份，不按宿主重复。工程门禁检查生成内容漂移、嵌套文件链接和过期宿主文件，保留明确绑定及入口摘要。这不是用户运行依赖。
 
 ```bash
 npm run check

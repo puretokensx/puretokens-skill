@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -15,29 +15,79 @@ test("shared guidance is generated, detects drift and synchronizes self-containe
   await mkdir(path.join(root, "runtime/executor"), { recursive: true });
   await cp(path.join(repositoryRoot, "runtime/executor/audio-profiles.json"), path.join(root, "runtime/executor/audio-profiles.json"));
   await mkdir(path.join(root, "references/skill-fragments"), { recursive: true });
-  for (const file of ["host-delivery.json", "host-support.json", "desktop-hosts.md", "direct-api-execution-contract.json", "operation-guidance.json", "skill-fragments/host-binding.md", "skill-fragments/receipt-guide.md", "skill-fragments/media-workflows.md", "skill-fragments/model-alternatives.md", "skill-fragments/model-groups.md"]) {
+  for (const file of ["host-delivery.json", "host-support.json", "desktop-hosts.md", "claude-mapped-connection.md", "direct-api-execution-contract.json", "operation-guidance.json", "skill-fragments/host-binding.md", "skill-fragments/receipt-guide.md", "skill-fragments/media-workflows.md", "skill-fragments/model-alternatives.md", "skill-fragments/model-groups.md"]) {
     await cp(path.join(repositoryRoot, "references", file), path.join(root, "references", file));
   }
   const fragment = path.join(root, "references/skill-fragments/host-binding.md");
   const next = (await readFile(fragment, "utf8")).replace("首次调用前", "开始调用前");
   await writeFile(fragment, next);
+  const mappedContractPath = path.join(root, "references/claude-mapped-connection.md");
+  const mappedContract = (await readFile(mappedContractPath, "utf8")) + "\nSynthetic contract-sync fixture.\n";
+  await writeFile(mappedContractPath, mappedContract);
   const drift = await syncSkillGuidance(root);
   assert.equal(drift.filter(file => file.endsWith("/SKILL.md")).length, 10);
   assert.equal(drift.filter(file => file.endsWith("/desktop-hosts.md")).length, 10);
+  assert.equal(drift.filter(file => file.endsWith("/claude-mapped-connection.md")).length, 10);
   assert.deepEqual(await syncSkillGuidance(root, { write: true }), drift);
   assert.deepEqual(await syncSkillGuidance(root), []);
   const registry = JSON.parse(await readFile(path.join(root, "skills/index.json"), "utf8"));
   for (const skill of registry.skills) {
     const text = await readFile(path.join(root, skill.entry), "utf8");
     assert.ok(text.includes(next.trim()));
+    assert.equal(await readFile(path.join(root, path.dirname(skill.entry), "references/claude-mapped-connection.md"), "utf8"), mappedContract);
     const manifest = JSON.parse(await readFile(path.join(root, skill.manifest), "utf8"));
     if (manifest.sourceSha256) assert.equal(manifest.sourceSha256, createHash("sha256").update(text).digest("hex"));
     assert.doesNotMatch(text, /\.\.\/\.\.\/references\/skill-fragments/);
+  }
+  const altered = [
+    "skills/puretokens-image/references/hosts/codex.md",
+    "skills/puretokens-image/references/delivery/vscode.md",
+    "skills/puretokens-audio/references/host-errors.md"
+  ];
+  for (const file of altered) await writeFile(path.join(root, file), "fixture drift\n");
+  const missing = "skills/puretokens-video/references/hosts/opencode.md";
+  await rm(path.join(root, missing));
+  assert.deepEqual((await syncSkillGuidance(root)).sort(), [...altered, missing].sort());
+  await syncSkillGuidance(root, { write: true });
+  assert.deepEqual(await syncSkillGuidance(root), []);
+  for (const directory of ["hosts", "delivery"]) {
+    const stale = path.join(root, "skills/puretokens-image/references", directory, "retired-host.md");
+    await writeFile(stale, "unreviewed stale guidance\n");
+    await assert.rejects(syncSkillGuidance(root), /unreviewed host reference/);
+    assert.equal(await readFile(stale, "utf8"), "unreviewed stale guidance\n");
+    await rm(stale);
+  }
+});
+
+test("installed host guides only link to packaged references", async () => {
+  const registry = JSON.parse(await readFile(path.join(repositoryRoot, "skills/index.json"), "utf8"));
+  for (const skill of registry.skills) {
+    const root = path.join(repositoryRoot, path.dirname(skill.entry), "references");
+    const guides = ["desktop-hosts.md", "host-errors.md", "unsupported-hosts.md"];
+    for (const directory of ["hosts", "delivery"]) {
+      const files = await readdir(path.join(root, directory)).catch(error => {
+        if (error.code === "ENOENT" && directory === "delivery") return [];
+        throw error;
+      });
+      guides.push(...files.map(file => `${directory}/${file}`));
+    }
+    if (guides.some(file => file.startsWith("delivery/"))) guides.push("host-delivery.md");
+    for (const name of guides) {
+      const guide = path.join(root, name);
+      const text = await readFile(guide, "utf8");
+      for (const [, target] of text.matchAll(/(?<!!)\[[^\]]+\]\(([^)]+)\)/g)) {
+        if (/^(?:https?:|#)/.test(target)) continue;
+        const file = path.resolve(path.dirname(guide), target.split("#")[0]);
+        assert.ok(file.startsWith(root + path.sep), `${skill.name}: link escapes packaged references`);
+        await assert.doesNotReject(readFile(file), `${skill.name}: missing ${target}`);
+      }
+    }
   }
 });
 
 test("connection and initialization have one consistent intent mapping", async () => {
   const contract = JSON.parse(await readFile(path.join(repositoryRoot, "skills/puretokens-update/references/execution-contract.json"), "utf8"));
+  assert.equal(contract.result.requiresNewHostConversationAfterSuccess, false);
   assert.deepEqual(contract.operations.intentRouting, {
     publicServiceIdentity: "connection_public_identity_only",
     generalConnectionCheck: "init",

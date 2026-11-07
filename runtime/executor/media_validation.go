@@ -52,6 +52,13 @@ func validMediaFile(path, contentType string) bool {
 	if err != nil || !stat.Mode().IsRegular() || !os.SameFile(before, stat) {
 		return false
 	}
+	if contentType == "image/svg+xml" {
+		if stat.Size() <= 0 || stat.Size() > maxSVGBytes {
+			return false
+		}
+		data, err := io.ReadAll(io.LimitReader(f, maxSVGBytes+1))
+		return err == nil && int64(len(data)) == stat.Size() && validSVG(data)
+	}
 	prefix := make([]byte, 512)
 	n, _ := f.Read(prefix)
 	if !validMediaPrefix(prefix[:n], contentType) {
@@ -152,7 +159,7 @@ func validMediaFile(path, contentType string) bool {
 // actual pixel stream. The limit accommodates 4K outputs and 8K widescreen.
 const maxDecodedImagePixels = 32 << 20
 
-func validDecodedImage(f *os.File, config func(io.Reader) (image.Config, error), decode func(io.Reader) (image.Image, error)) bool {
+func validDecodedImage(f io.ReadSeeker, config func(io.Reader) (image.Config, error), decode func(io.Reader) (image.Image, error)) bool {
 	if _, err := f.Seek(0, io.SeekStart); err != nil {
 		return false
 	}

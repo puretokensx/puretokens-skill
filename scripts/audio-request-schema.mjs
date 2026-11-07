@@ -6,7 +6,7 @@ export function buildAudioRequestSchema(catalog) {
     $schema: "https://json-schema.org/draft/2020-12/schema",
     $id: "https://puretokensx.com/schemas/audio-request.schema.json",
     title: "One synchronous reviewed audio request",
-    oneOf: Object.values(catalog.models).filter(p => p.operation !== "music").map(p => {
+    oneOf: Object.values(catalog.models).filter(p => p.operation !== "music" && p.executor_kind !== "audio_task").map(p => {
       const properties = { operation: { const: p.operation }, model: { const: p.model } };
       const required = ["operation", "model"];
       const add = (key, rule, mandatory = true) => {
@@ -25,6 +25,7 @@ export function buildAudioRequestSchema(catalog) {
       if (p.operation === "speech") {
         add("input", text(p.max_input_characters));
         if (p.speed_min) add("speed", { type: "number", minimum: p.speed_min, maximum: p.speed_max }, false);
+        if (p.volume_min) add("volume", { type: "number", minimum: p.volume_min, maximum: p.volume_max }, false);
         if (p.supports_instruction) add("instruction", text(500), false);
       }
       if (["generate", "music_sync"].includes(p.operation)) {
@@ -36,6 +37,10 @@ export function buildAudioRequestSchema(catalog) {
         if (p.instrumental_required) add("instrumental", { type: "boolean" });
       }
       if (["transcribe", "voice_change"].includes(p.operation)) add("file", absolute);
+      if (p.operation === "transcribe") {
+        if (p.transcript_formats) add("response_format", { enum: p.transcript_formats }, false);
+        if (p.supports_hotwords) add("hotwords", { type: "array", items: { type: "string", minLength: 1, pattern: "\\S" } }, false);
+      }
       return { type: "object", required, properties, additionalProperties: false };
     })
   };

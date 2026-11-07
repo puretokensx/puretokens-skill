@@ -1,0 +1,86 @@
+{
+  "scope": "synthetic Switch fixtures; never production credentials or real host acceptance",
+  "sourceRevision": "3a41ef525383fa923b2eb8869574a330cd6fb643",
+  "cases": [
+    {
+      "host": "qwen-code",
+      "platform": "macos",
+      "source": "tests/fixtures/client-configs/qwen-code/macos.json",
+      "files": {
+        "home/.qwen/settings.json": "{\n  \"theme\": \"keep-me\",\n  \"modelProviders\": {\n    \"openai\": [\n      {\n        \"id\": \"personal\",\n        \"baseUrl\": \"https://personal.example/v1\",\n        \"envKey\": \"PERSONAL_KEY\"\n      },\n      {\n        \"id\": \"org/chat\",\n        \"name\": \"Pure Tokens (Switch): org/chat\",\n        \"baseUrl\": \"https://api.puretokensx.com/v1\",\n        \"envKey\": \"PURETOKENS_SWITCH_QWEN_API_KEY\"\n      }\n    ]\n  },\n  \"env\": {\n    \"PERSONAL_KEY\": \"fixture-personal\",\n    \"PURETOKENS_SWITCH_QWEN_API_KEY\": \"pts-fixture-only-token\"\n  },\n  \"security\": {\n    \"auth\": {\n      \"selectedType\": \"openai\"\n    }\n  },\n  \"model\": {\n    \"name\": \"org/chat\"\n  }\n}\n"
+      }
+    },
+    {
+      "host": "qwen-code",
+      "platform": "windows",
+      "source": "tests/fixtures/client-configs/qwen-code/windows.json",
+      "files": {
+        "home/.qwen/settings.json": "{\r\n  \"theme\": \"keep-me\",\r\n  \"modelProviders\": {\r\n    \"openai\": [\r\n      {\r\n        \"id\": \"personal\",\r\n        \"baseUrl\": \"https://personal.example/v1\",\r\n        \"envKey\": \"PERSONAL_KEY\"\r\n      },\r\n      {\r\n        \"id\": \"org/chat\",\r\n        \"name\": \"Pure Tokens (Switch): org/chat\",\r\n        \"baseUrl\": \"https://api.puretokensx.com/v1\",\r\n        \"envKey\": \"PURETOKENS_SWITCH_QWEN_API_KEY\"\r\n      }\r\n    ]\r\n  },\r\n  \"env\": {\r\n    \"PERSONAL_KEY\": \"fixture-personal\",\r\n    \"PURETOKENS_SWITCH_QWEN_API_KEY\": \"pts-fixture-only-token\"\r\n  },\r\n  \"security\": {\r\n    \"auth\": {\r\n      \"selectedType\": \"openai\"\r\n    }\r\n  },\r\n  \"model\": {\r\n    \"name\": \"org/chat\"\r\n  }\r\n}\r\n"
+      }
+    },
+    {
+      "host": "codebuddy-code",
+      "platform": "macos",
+      "source": "tests/fixtures/client-configs/codebuddy-code/macos.json",
+      "files": {
+        "home/.codebuddy/models.json": "{\n  \"theme\": \"keep-me\",\n  \"models\": [\n    {\n      \"id\": \"personal\",\n      \"url\": \"https://personal.example/v1/chat/completions\",\n      \"apiKey\": \"fixture-personal\"\n    },\n    {\n      \"id\": \"org/chat\",\n      \"name\": \"Pure Tokens (Switch): org/chat\",\n      \"vendor\": \"puretokens-switch\",\n      \"url\": \"https://api.puretokensx.com/v1/chat/completions\",\n      \"apiKey\": \"pts-fixture-only-token\",\n      \"supportsToolCall\": true,\n      \"supportsImages\": false\n    }\n  ],\n  \"availableModels\": [\n    \"personal\",\n    \"org/chat\"\n  ]\n}\n"
+      }
+    },
+    {
+      "host": "codebuddy-code",
+      "platform": "windows",
+      "source": "tests/fixtures/client-configs/codebuddy-code/windows.json",
+      "files": {
+        "home/.codebuddy/models.json": "{\r\n  \"theme\": \"keep-me\",\r\n  \"models\": [\r\n    {\r\n      \"id\": \"personal\",\r\n      \"url\": \"https://personal.example/v1/chat/completions\",\r\n      \"apiKey\": \"fixture-personal\"\r\n    },\r\n    {\r\n      \"id\": \"org/chat\",\r\n      \"name\": \"Pure Tokens (Switch): org/chat\",\r\n      \"vendor\": \"puretokens-switch\",\r\n      \"url\": \"https://api.puretokensx.com/v1/chat/completions\",\r\n      \"apiKey\": \"pts-fixture-only-token\",\r\n      \"supportsToolCall\": true,\r\n      \"supportsImages\": false\r\n    }\r\n  ],\r\n  \"availableModels\": [\r\n    \"personal\",\r\n    \"org/chat\"\r\n  ]\r\n}\r\n"
+      }
+    },
+    {
+      "host": "copilot-cli",
+      "platform": "macos",
+      "source": "tests/fixtures/client-configs/copilot-cli/macos.json",
+      "files": {
+        "home/.copilot/providers.json": "{\n  \"theme\": \"keep-me\",\n  \"providers\": [\n    {\n      \"name\": \"personal\",\n      \"type\": \"openai\",\n      \"baseUrl\": \"https://personal.example/v1\",\n      \"apiKey\": \"fixture-personal\"\n    },\n    {\n      \"name\": \"puretokens-switch-chat\",\n      \"type\": \"openai\",\n      \"baseUrl\": \"https://api.puretokensx.com/v1\",\n      \"apiKey\": \"pts-fixture-only-token\",\n      \"wireApi\": \"completions\"\n    }\n  ],\n  \"models\": [\n    {\n      \"id\": \"personal\",\n      \"provider\": \"personal\"\n    },\n    {\n      \"id\": \"org/chat\",\n      \"name\": \"Pure Tokens (Switch): org/chat\",\n      \"provider\": \"puretokens-switch-chat\"\n    }\n  ]\n}\n"
+      }
+    },
+    {
+      "host": "copilot-cli",
+      "platform": "windows",
+      "source": "tests/fixtures/client-configs/copilot-cli/windows.json",
+      "files": {
+        "home/.copilot/providers.json": "{\r\n  \"theme\": \"keep-me\",\r\n  \"providers\": [\r\n    {\r\n      \"name\": \"personal\",\r\n      \"type\": \"openai\",\r\n      \"baseUrl\": \"https://personal.example/v1\",\r\n      \"apiKey\": \"fixture-personal\"\r\n    },\r\n    {\r\n      \"name\": \"puretokens-switch-chat\",\r\n      \"type\": \"openai\",\r\n      \"baseUrl\": \"https://api.puretokensx.com/v1\",\r\n      \"apiKey\": \"pts-fixture-only-token\",\r\n      \"wireApi\": \"completions\"\r\n    }\r\n  ],\r\n  \"models\": [\r\n    {\r\n      \"id\": \"personal\",\r\n      \"provider\": \"personal\"\r\n    },\r\n    {\r\n      \"id\": \"org/chat\",\r\n      \"name\": \"Pure Tokens (Switch): org/chat\",\r\n      \"provider\": \"puretokens-switch-chat\"\r\n    }\r\n  ]\r\n}\r\n"
+      }
+    },
+    {
+      "host": "factory-droid",
+      "platform": "macos",
+      "source": "tests/fixtures/client-configs/factory-droid/macos.json",
+      "files": {
+        "home/.factory/settings.json": "{\n  \"theme\": \"keep-me\",\n  \"customModels\": [\n    {\n      \"model\": \"personal\",\n      \"displayName\": \"Personal\",\n      \"baseUrl\": \"https://personal.example/v1\",\n      \"apiKey\": \"fixture-personal\",\n      \"provider\": \"generic-chat-completion-api\"\n    },\n    {\n      \"model\": \"org/chat\",\n      \"displayName\": \"Pure Tokens (Switch): org/chat\",\n      \"baseUrl\": \"https://api.puretokensx.com/v1\",\n      \"apiKey\": \"pts-fixture-only-token\",\n      \"provider\": \"generic-chat-completion-api\"\n    }\n  ],\n  \"sessionDefaultSettings\": {\n    \"model\": \"personal\",\n    \"autonomyLevel\": \"off\"\n  }\n}\n"
+      }
+    },
+    {
+      "host": "factory-droid",
+      "platform": "windows",
+      "source": "tests/fixtures/client-configs/factory-droid/windows.json",
+      "files": {
+        "home/.factory/settings.json": "{\r\n  \"theme\": \"keep-me\",\r\n  \"customModels\": [\r\n    {\r\n      \"model\": \"personal\",\r\n      \"displayName\": \"Personal\",\r\n      \"baseUrl\": \"https://personal.example/v1\",\r\n      \"apiKey\": \"fixture-personal\",\r\n      \"provider\": \"generic-chat-completion-api\"\r\n    },\r\n    {\r\n      \"model\": \"org/chat\",\r\n      \"displayName\": \"Pure Tokens (Switch): org/chat\",\r\n      \"baseUrl\": \"https://api.puretokensx.com/v1\",\r\n      \"apiKey\": \"pts-fixture-only-token\",\r\n      \"provider\": \"generic-chat-completion-api\"\r\n    }\r\n  ],\r\n  \"sessionDefaultSettings\": {\r\n    \"model\": \"personal\",\r\n    \"autonomyLevel\": \"off\"\r\n  }\r\n}\r\n"
+      }
+    },
+    {
+      "host": "mimo-coder",
+      "platform": "macos",
+      "source": "tests/fixtures/client-configs/mimo-coder/macos.json",
+      "files": {
+        "home/.config/mimocode/mimocode.jsonc": "{\n  \"theme\": \"dark\",\n  \"provider\": {\n    \"personal\": {\n      \"name\": \"Keep me\"\n    },\n    \"puretokens-switch\": {\n      \"name\": \"Pure Tokens (Switch)\",\n      \"npm\": \"@ai-sdk/openai-compatible\",\n      \"only_configured_models\": true,\n      \"models\": {\n        \"org/chat\": {\n          \"name\": \"org/chat\"\n        }\n      },\n      \"options\": {\n        \"baseURL\": \"https://api.puretokensx.com/v1\",\n        \"apiKey\": \"pts-mimo-fixture-token\"\n      }\n    }\n  },\n  \"model\": \"puretokens-switch/org/chat\",\n  \"small_model\": \"puretokens-switch/org/chat\"\n}\n"
+      }
+    },
+    {
+      "host": "mimo-coder",
+      "platform": "windows",
+      "source": "tests/fixtures/client-configs/mimo-coder/windows.json",
+      "files": {
+        "home/.config/mimocode/mimocode.jsonc": "{\r\n  \"theme\": \"dark\",\r\n  \"provider\": {\r\n    \"personal\": {\r\n      \"name\": \"Keep me\"\r\n    },\r\n    \"puretokens-switch\": {\r\n      \"name\": \"Pure Tokens (Switch)\",\r\n      \"npm\": \"@ai-sdk/openai-compatible\",\r\n      \"only_configured_models\": true,\r\n      \"models\": {\r\n        \"org/chat\": {\r\n          \"name\": \"org/chat\"\r\n        }\r\n      },\r\n      \"options\": {\r\n        \"baseURL\": \"https://api.puretokensx.com/v1\",\r\n        \"apiKey\": \"pts-mimo-fixture-token\"\r\n      }\r\n    }\r\n  },\r\n  \"model\": \"puretokens-switch/org/chat\",\r\n  \"small_model\": \"puretokens-switch/org/chat\"\r\n}\r\n"
+      }
+    }
+  ]
+}

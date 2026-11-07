@@ -1,6 +1,11 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-10-21",
+  "reviewedAt": "2026-11-07",
+  "supports_hotwords": true,
+  "transcript_formats": [
+    "json",
+    "text"
+  ],
   "model": "step-asr",
   "operation": "transcribe",
   "path": "/v1/audio/transcriptions",

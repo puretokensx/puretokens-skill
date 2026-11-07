@@ -175,6 +175,15 @@
         },
         "rerankCatalog": {
           "$ref": "#/$defs/request"
+        },
+        "asyncAudioSubmit": {
+          "$ref": "#/$defs/request"
+        },
+        "asyncAudioStatus": {
+          "$ref": "#/$defs/request"
+        },
+        "asyncAudioContent": {
+          "$ref": "#/$defs/request"
         }
       },
       "additionalProperties": false
@@ -741,7 +750,8 @@
                 "const": true
               },
               "requiresNewHostConversationAfterSuccess": {
-                "const": true
+                "const": false,
+                "description": "Use loaded Skills in the current conversation; follow host loading controls and start a new conversation only when the host requires it."
               }
             }
           }

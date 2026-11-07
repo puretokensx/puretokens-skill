@@ -1,0 +1,240 @@
+{
+  "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
+  "schemaVersion": 1,
+  "capability": "image",
+  "catalogUpdatedAt": "2026-11-07",
+  "catalogCapturedAt": "2026-11-07T09:20:36.335Z",
+  "id": "gpt-image-2.6",
+  "parameterSchema": {
+    "properties": {
+      "n": {
+        "type": "integer",
+        "enum": [
+          1
+        ],
+        "default": 1
+      },
+      "image_size": {
+        "type": "string",
+        "enum": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "default": "1K"
+      },
+      "aspect_ratio": {
+        "type": "string",
+        "enum": [
+          "1:1",
+          "2:3",
+          "3:2",
+          "3:4",
+          "4:3",
+          "4:5",
+          "5:4",
+          "9:16",
+          "16:9",
+          "21:9"
+        ],
+        "default": "1:1"
+      },
+      "quality": {
+        "type": "string",
+        "enum": [
+          "auto",
+          "low",
+          "medium",
+          "high"
+        ],
+        "default": "auto"
+      },
+      "output_format": {
+        "type": "string",
+        "enum": [
+          "png",
+          "jpeg",
+          "webp",
+          "gif",
+          "svg"
+        ],
+        "default": "jpeg"
+      },
+      "response_format": {
+        "type": "string",
+        "enum": [
+          "url"
+        ],
+        "default": "url"
+      },
+      "image": {
+        "type": "string[]",
+        "maxLength": 10
+      },
+      "mask": {
+        "type": "string"
+      }
+    },
+    "constraints": {
+      "reference_transport": {
+        "image": [
+          "public_https_url"
+        ]
+      },
+      "parameter_modes": {
+        "mask": [
+          "image_edit",
+          "masked_image_edit"
+        ]
+      },
+      "output_format_by_image_mode": {
+        "text": [
+          "png",
+          "jpeg",
+          "webp",
+          "gif",
+          "svg"
+        ],
+        "edit": [
+          "png",
+          "jpeg",
+          "webp"
+        ]
+      },
+      "aspect_ratio_by_image_size": {
+        "1K": [
+          "1:1",
+          "2:3",
+          "3:2",
+          "3:4",
+          "4:3",
+          "4:5",
+          "5:4",
+          "9:16",
+          "16:9",
+          "21:9"
+        ],
+        "2K": [
+          "1:1",
+          "2:3",
+          "3:2",
+          "3:4",
+          "4:3",
+          "4:5",
+          "5:4",
+          "9:16",
+          "16:9",
+          "21:9"
+        ],
+        "4K": [
+          "1:1",
+          "2:3",
+          "3:2",
+          "3:4",
+          "4:3",
+          "4:5",
+          "5:4",
+          "9:16",
+          "16:9",
+          "21:9"
+        ]
+      }
+    },
+    "lifecycle": {
+      "create": {
+        "successStatus": 200,
+        "idField": "id",
+        "object": "image",
+        "initialStatuses": [
+          "pending"
+        ]
+      },
+      "poll": {
+        "method": "GET",
+        "path": "/v1/images/{image_id}",
+        "intervalSeconds": 3,
+        "statusField": "status",
+        "pendingStatuses": [
+          "pending"
+        ],
+        "successStatuses": [
+          "completed"
+        ],
+        "failureStatuses": [
+          "failed"
+        ],
+        "resultFields": [
+          "content_url",
+          "content_urls"
+        ]
+      }
+    },
+    "operations": {
+      "image_edit": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/images/edits",
+          "contentType": "multipart/form-data"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt",
+          "image"
+        ],
+        "inputs": {
+          "image": {
+            "field": "image",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 10,
+            "transports": [
+              "multipart_file"
+            ]
+          },
+          "mask": {
+            "field": "mask",
+            "required": false,
+            "minItems": 0,
+            "maxItems": 1,
+            "transports": [
+              "multipart_file"
+            ]
+          }
+        }
+      },
+      "masked_image_edit": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/images/edits",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt",
+          "image_urls",
+          "mask"
+        ],
+        "inputs": {
+          "image_urls": {
+            "field": "image_urls",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 10,
+            "transports": [
+              "https_url"
+            ]
+          },
+          "mask": {
+            "field": "mask",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 1,
+            "transports": [
+              "local_file_data_url"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

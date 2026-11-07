@@ -22,6 +22,7 @@ type taskRecord struct {
 	Format                 string                `json:"format"`
 	Kind                   string                `json:"kind"`
 	TaskID                 string                `json:"task_id,omitempty"`
+	ConnectionID           string                `json:"connection_id,omitempty"`
 	Model                  string                `json:"model,omitempty"`
 	OriginalOperation      string                `json:"original_operation,omitempty"`
 	RequestedCount         int                   `json:"requested_count,omitempty"`
@@ -99,7 +100,7 @@ func (writer *recordReceiptWriter) writeReceipt(result receipt) {
 	for index, path := range result.DownloadedPaths {
 		if index < len(result.DownloadedIndexes) {
 			i := result.DownloadedIndexes[index]
-			if proof, ok := writer.downloadProofs[path]; ok && timedDownloadProof(timingsForWriter(writer.output), path, proof) {
+			if proof, ok := writer.downloadProofs[path]; ok && taskArtifactFormatMatches(record.request(), i, proof.MediaType) && timedDownloadProof(timingsForWriter(writer.output), path, proof) {
 				record.Downloaded[i] = path
 				record.DownloadProofs[i] = proof
 			} else {
@@ -137,7 +138,7 @@ func (writer *recordReceiptWriter) writeReceipt(result receipt) {
 			format := recordedDownloadFormat(record.Kind, record.TaskID, index, path)
 			proof, known := record.DownloadProofs[index]
 			pendingRedelivery := record.PendingRedeliveryIndex != nil && *record.PendingRedeliveryIndex == index
-			if (!delivered || pendingRedelivery) && format != "" && known && proof.MediaType == format && timedDownloadProof(timingsForWriter(writer.output), path, proof) {
+			if (!delivered || pendingRedelivery) && format != "" && known && proof.MediaType == format && taskArtifactFormatMatches(record.request(), index, proof.MediaType) && timedDownloadProof(timingsForWriter(writer.output), path, proof) {
 				result.DownloadedIndexes = append(result.DownloadedIndexes, index)
 			}
 		}
@@ -175,11 +176,13 @@ func (writer *recordReceiptWriter) writeReceipt(result receipt) {
 }
 
 func (record taskRecord) deliveryComplete() bool {
-	count := record.RequestedCount
-	if record.Kind == "video" || record.Kind == "music" {
-		count = 1
+	for index, proof := range record.DownloadProofs {
+		if !taskArtifactFormatMatches(record.request(), index, proof.MediaType) {
+			return false
+		}
 	}
-	return count > 0 && len(record.Delivered) == count && record.PendingRedeliveryIndex == nil
+	count := taskOutputCount(record.request())
+	return (record.Kind != "image" || record.RequestedCount > 0) && len(record.Delivered) == count && record.PendingRedeliveryIndex == nil
 }
 
 func (record taskRecord) request() taskRequest {
@@ -227,13 +230,16 @@ func loadTaskRecord(path string) (taskRecord, error) {
 	if decoder.Decode(&extra) != io.EOF {
 		return record, errors.New("record contains additional content")
 	}
-	if record.Format != taskRecordFormat || (record.Kind != "image" && record.Kind != "video" && record.Kind != "music") || (record.TaskID != "" && !validTaskID(record.TaskID)) || record.RequestedCount < 0 || record.RequestedCount > maxImageCount || record.WaitWindowsCompleted < 0 || record.WaitWindowsCompleted > 2 {
+	if record.Format != taskRecordFormat || (record.Kind != "image" && record.Kind != "video" && !isTaskAudio(record.Kind)) || (record.TaskID != "" && !validTaskID(record.TaskID)) || record.RequestedCount < 0 || record.RequestedCount > maxImageCount || record.WaitWindowsCompleted < 0 || record.WaitWindowsCompleted > 2 {
 		return record, errors.New("record has unsupported metadata")
 	}
 	if !validTaskFailure(record.LastFailure, record.Status) {
 		return record, errors.New("record has invalid failure evidence")
 	}
-	if index := record.PendingRedeliveryIndex; index != nil && (*index < 0 || *index >= max(1, record.RequestedCount) || ((record.Kind == "video" || record.Kind == "music") && *index != 0)) {
+	if record.ConnectionID != "" && !desktopProfileID.MatchString(record.ConnectionID) {
+		return record, errors.New("record has invalid connection identity")
+	}
+	if index := record.PendingRedeliveryIndex; index != nil && !validOutputIndex(record.request(), *index) {
 		return record, errors.New("record has invalid redelivery metadata")
 	}
 	if record.TaskID != "" {
@@ -245,16 +251,16 @@ func loadTaskRecord(path string) (taskRecord, error) {
 	safe := taskReceipt(record.request(), record.TaskID, record.Status)
 	record.Model, record.OriginalOperation, record.Parameters = safe.Model, safe.OriginalOperation, safe.Parameters
 	for index, path := range record.Downloaded {
-		if index < 0 || index >= max(1, record.RequestedCount) || recordedDownloadFormat(record.Kind, record.TaskID, index, path) == "" {
+		if !validOutputIndex(record.request(), index) || recordedDownloadFormat(record.Kind, record.TaskID, index, path) == "" {
 			return record, errors.New("record has invalid download metadata")
 		}
 	}
 	for index, proof := range record.DownloadProofs {
-		if format, ok := record.Parameters["response_format"].(string); record.Kind == "music" && ok && proof.MediaType != audioMIME(format) {
+		if format, ok := record.Parameters["response_format"].(string); isTaskAudio(record.Kind) && ok && proof.MediaType != audioMIME(format) {
 			return record, errors.New("music format differs from original request")
 		}
 		path, ok := record.Downloaded[index]
-		if !ok || !validDownloadProof(proof, record.Kind) ||
+		if !ok || !validDownloadProof(proof, artifactKind(record.Kind, index)) ||
 			recordedDownloadFormat(record.Kind, record.TaskID, index, path) != proof.MediaType {
 			return record, errors.New("record has invalid download proof")
 		}
@@ -275,8 +281,8 @@ func recordedDownloadFormat(kind, taskID string, index int, filePath string) str
 		return ""
 	}
 	stem := fmt.Sprintf("puretokens-%x", sha256.Sum256([]byte(contentPath(kind, taskID, index))))
-	for _, format := range []string{"image/png", "image/jpeg", "image/webp", "image/gif", "image/avif", "video/mp4", "video/webm", "audio/mpeg", "audio/wav"} {
-		if strings.HasPrefix(format, mediaKindPrefix(kind)) && name == stem+"."+extensionFor(format, kind) {
+	for _, format := range []string{"image/png", "image/jpeg", "image/webp", "image/gif", "image/avif", "image/svg+xml", "video/mp4", "video/webm", "audio/mpeg", "audio/wav"} {
+		if strings.HasPrefix(format, mediaKindPrefix(artifactKind(kind, index))) && name == stem+"."+extensionFor(format, artifactKind(kind, index)) {
 			return format
 		}
 	}
@@ -375,6 +381,10 @@ func executeRecordedTask(command, path string, request taskRequest, index int, o
 	defer unlock()
 	var record taskRecord
 	if command == "submit" {
+		if _, err := os.Lstat(path); !errors.Is(err, os.ErrNotExist) {
+			writeReceipt(output, validationFailure("The task record already exists or cannot be checked. Preserve it and recover the original outcome; do not replace or resubmit the task."))
+			return errors.New("submission record is not new")
+		}
 		if request.Operation == "continue" {
 			writeReceipt(output, validationFailure("Use resume with the existing record instead of submit."))
 			return errors.New("record submission cannot continue")
@@ -384,10 +394,11 @@ func executeRecordedTask(command, path string, request taskRequest, index int, o
 			return err
 		}
 		if err := prepareProfileRequest(&request, svc); err != nil {
-			writeReceipt(output, validationFailure(err.Error()))
+			writeReceipt(output, mediaRequestFailure(request, err))
 			return err
 		}
 		record = recordFromRequest(request)
+		record.ConnectionID = svc.connectionID
 		record.SubmissionOutcome = "unknown"
 		if err := saveTaskRecord(path, record, true); err != nil {
 			writeReceipt(output, validationFailure("Choose a new writable task record path. Existing files are never overwritten by submit; no POST was sent."))
@@ -417,8 +428,21 @@ func executeRecordedTask(command, path string, request taskRequest, index int, o
 		writeReceipt(output, mergeFailure(taskReceipt(request, request.TaskID, record.Status), validationFailure("The task record changed before local recovery. Keep the record and review its current state before continuing.")))
 		return errors.New("local recovery state changed")
 	}
+	if !svc.localRecoveryOnly && command != "submit" && command != "delivered" && command != "redeliver" && record.ConnectionID != svc.connectionID {
+		return rejectChangedTaskConnection(output, request)
+	}
 	svc.downloadProofs = make(map[string]downloadProof)
 	for i, proof := range record.DownloadProofs {
+		if !taskArtifactFormatMatches(request, i, proof.MediaType) {
+			// Keep old records readable and permit only an explicit same-index
+			// retrieval into a different directory; never overwrite old output.
+			retrieveElsewhere := (command == "content" || command == "redeliver") && i == index && outputDir != "" && filepath.Clean(outputDir) != filepath.Dir(record.Downloaded[i])
+			checksThisIndex := command == "resume" || command == "wait" || ((command == "content" || command == "redeliver" || command == "delivered") && i == index)
+			if checksThisIndex && !retrieveElsewhere {
+				writeReceipt(output, mergeFailure(taskReceipt(request, request.TaskID, record.Status), contentFailure(errMediaFormatMismatch, 0, 0, "", "")))
+				return errMediaFormatMismatch
+			}
+		}
 		svc.downloadProofs[record.Downloaded[i]] = proof
 	}
 	writer := &recordReceiptWriter{output: output, path: path, record: record, downloadProofs: svc.downloadProofs}
@@ -467,7 +491,7 @@ func executeRecordedTask(command, path string, request taskRequest, index int, o
 		if writer.record.deliveryComplete() {
 			result.DeliveryStatus = "delivered"
 		}
-		result.NextAction = "Delivery acknowledgement saved. Continue only the remaining indexes, if any."
+		result.NextAction = "Delivery acknowledgement saved. Continue remaining indexes only if the current user request authorizes them; otherwise stop."
 		writer.writeReceipt(result)
 		return writer.err
 	}
@@ -499,14 +523,14 @@ func executeRecordedTask(command, path string, request taskRequest, index int, o
 // Local proof recovery precedes credential resolution and any possible GET.
 func executeRedelivery(writer *recordReceiptWriter, svc service, request taskRequest, index int) error {
 	result := taskReceipt(request, request.TaskID, writer.record.Status)
-	if !terminalSuccess(result.Status) || result.ReconciliationRequired || index < 0 || index >= max(1, request.RequestedCount) ||
-		(request.Kind == "image" && request.RequestedCount == 0) || ((request.Kind == "video" || request.Kind == "music") && index != 0) {
+	if !terminalSuccess(result.Status) || result.ReconciliationRequired || !validOutputIndex(request, index) ||
+		(request.Kind == "image" && request.RequestedCount == 0) {
 		writeReceipt(writer.output, mergeFailure(result, validationFailure("Redelivery requires a completed existing task without reconciliation and a confirmed content index. Continue that same task first; never submit a replacement.")))
 		return errors.New("task cannot be redelivered")
 	}
 	if path, exists := writer.record.Downloaded[index]; exists {
 		proof, known := writer.record.DownloadProofs[index]
-		if known && validDownloadProof(proof, request.Kind) && timedDownloadProof(timingsForWriter(writer.output), path, proof) {
+		if known && validDownloadProof(proof, artifactKind(request.Kind, index)) && taskArtifactFormatMatches(request, index, proof.MediaType) && timedDownloadProof(timingsForWriter(writer.output), path, proof) {
 			writer.record.PendingRedeliveryIndex = &index
 			result.DownloadedPaths = []string{path}
 			result.DownloadedIndexes = []int{index}
@@ -523,7 +547,7 @@ func executeRedelivery(writer *recordReceiptWriter, svc service, request taskReq
 		return errors.New("redelivery directory required")
 	}
 	if svc.token == "" {
-		token, err := credentialForHost(svc.host)
+		token, connectionID, err := credentialForConnection(svc.host)
 		if err != nil {
 			code, message, next := credentialFailureDetails(err)
 			writeReceipt(writer.output, mergeFailure(result, receipt{FailurePhase: "validation", LocalErrorCode: code, ErrorMessage: message, NextAction: next}))
@@ -531,10 +555,23 @@ func executeRedelivery(writer *recordReceiptWriter, svc service, request taskReq
 		}
 		defer clearString(&token)
 		svc.token = token
+		svc.connectionID = connectionID
+	}
+	if writer.record.ConnectionID != svc.connectionID {
+		return rejectChangedTaskConnection(writer.output, request)
 	}
 	writer.record.PendingRedeliveryIndex = &index
 	request.Index = index
 	data, _ := json.Marshal(request)
 	err := executeExistingTask("content", bytes.NewReader(data), writer, svc)
 	return errors.Join(err, writer.err)
+}
+
+func rejectChangedTaskConnection(output io.Writer, request taskRequest) error {
+	writeReceipt(output, mergeFailure(taskReceipt(request, request.TaskID, request.TaskStatus), receipt{
+		FailurePhase: "validation", LocalErrorCode: "task_connection_changed",
+		ErrorMessage: "The current connection no longer matches this task's recorded connection. No API request was sent.",
+		NextAction:   "Preserve this task and any downloaded files. Recover using its original authorized connection through support; do not try another Key or submit a replacement. Verified local files may still be handed off.",
+	}))
+	return errors.New("task connection changed")
 }

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-11-07",
+  "model": "gemini-3.8-flash-tts",
+  "operation": "speech",
+  "executor_kind": "audio_task",
+  "path": "/v1/tasks/product-yutoux",
+  "status_path": "/v1/tasks/{task_id}",
+  "content_path": "/v1/tasks/{task_id}/artifacts/audio/content",
+  "content_type": "application/json",
+  "max_prompt_characters": 8000,
+  "formats": [
+    "wav"
+  ],
+  "max_output_bytes": 33554432,
+  "temperature_min": 0,
+  "temperature_max": 2,
+  "default_voice": "Kore",
+  "max_voice_characters": 120,
+  "max_instruction_characters": 4000,
+  "speakers_count": 2
+}

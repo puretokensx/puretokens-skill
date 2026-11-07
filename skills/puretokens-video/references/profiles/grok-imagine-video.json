@@ -2,61 +2,81 @@
   "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
   "schemaVersion": 1,
   "capability": "video",
-  "catalogUpdatedAt": "2026-11-03",
-  "catalogCapturedAt": "2026-11-03T02:14:24.310Z",
+  "catalogUpdatedAt": "2026-11-07",
+  "catalogCapturedAt": "2026-11-07T09:20:36.335Z",
   "id": "grok-imagine-video",
   "parameterSchema": {
     "properties": {
+      "prompt": {
+        "type": "string",
+        "required": true
+      },
       "duration": {
         "type": "integer",
-        "min": 1
-      },
-      "aspect_ratio": {
-        "type": "string",
         "enum": [
-          "1:1",
-          "16:9",
-          "9:16",
-          "4:3",
-          "3:4",
-          "3:2",
-          "2:3",
-          "21:9",
-          "5:2"
-        ]
+          5,
+          10
+        ],
+        "default": 5
       },
       "resolution": {
         "type": "string",
         "enum": [
           "480p",
           "720p"
-        ]
+        ],
+        "default": "480p"
       },
-      "image": {
-        "type": "json"
+      "aspect_ratio": {
+        "type": "string",
+        "enum": [
+          "16:9",
+          "9:16",
+          "1:1"
+        ],
+        "default": "16:9"
+      },
+      "first_frame_image": {
+        "type": "string"
+      }
+    },
+    "operations": {
+      "image_to_video": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt",
+          "first_frame_image"
+        ],
+        "inputs": {
+          "first_frame_image": {
+            "field": "first_frame_image",
+            "required": true,
+            "minItems": 1,
+            "maxItems": 1,
+            "transports": [
+              "https_url"
+            ]
+          }
+        }
+      },
+      "video_generation": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "prompt"
+        ]
       }
     },
     "constraints": {
-      "reference_transport": {
-        "image": [
-          "public_https_url",
-          "max_1"
-        ]
-      },
-      "resolution_by_mode": {
-        "text": [
-          "480p",
-          "720p"
-        ],
-        "image": [
-          "480p",
-          "720p"
-        ],
-        "reference": [
-          "480p",
-          "720p"
-        ]
-      },
       "unsupported_parameters_by_operation": {
         "video_edit": [
           "duration",
@@ -65,77 +85,6 @@
           "aspectRatio",
           "resolution"
         ]
-      }
-    },
-    "operations": {
-      "image_to_video": {
-        "request": {
-          "method": "POST",
-          "path": "/v1/videos",
-          "contentType": "multipart/form-data"
-        },
-        "requiredBodyFields": [
-          "model",
-          "prompt",
-          "image"
-        ],
-        "inputs": {
-          "image": {
-            "field": "image",
-            "required": true,
-            "minItems": 1,
-            "maxItems": 1,
-            "transports": [
-              "multipart_file"
-            ]
-          }
-        }
-      },
-      "reference_image_video": {
-        "request": {
-          "method": "POST",
-          "path": "/v1/videos",
-          "contentType": "multipart/form-data"
-        },
-        "requiredBodyFields": [
-          "model",
-          "prompt",
-          "reference_images"
-        ],
-        "inputs": {
-          "reference_images": {
-            "field": "reference_images",
-            "required": true,
-            "minItems": 1,
-            "maxItems": 1,
-            "transports": [
-              "multipart_file"
-            ]
-          }
-        }
-      },
-      "video_edit": {
-        "request": {
-          "method": "POST",
-          "path": "/v1/videos/edits",
-          "contentType": "multipart/form-data"
-        },
-        "requiredBodyFields": [
-          "model",
-          "prompt",
-          "video"
-        ],
-        "inputs": {
-          "video": {
-            "field": "video",
-            "required": true,
-            "minItems": 1,
-            "maxItems": 1,
-            "transports": [
-              "multipart_file"
-            ]
-          }
-        }
       }
     }
   }

@@ -2,10 +2,25 @@
   "$schema": "https://puretokensx.com/schemas/model-index.schema.json",
   "schemaVersion": 1,
   "capability": "image",
-  "catalogUpdatedAt": "2026-11-03",
-  "catalogCapturedAt": "2026-11-03T02:14:24.310Z",
-  "defaultModel": "gpt-image-2.5-flare",
+  "catalogUpdatedAt": "2026-11-07",
+  "catalogCapturedAt": "2026-11-07T09:20:36.335Z",
+  "defaultModel": "gpt-image-2.6",
   "models": [
+    {
+      "id": "dola-seedream-5-0-pro-260628",
+      "aliases": [],
+      "profile": "profiles/dola-seedream-5-0-pro-260628.json"
+    },
+    {
+      "id": "gemini-3.0-pro-image",
+      "aliases": [],
+      "profile": "profiles/gemini-3.0-pro-image.json"
+    },
+    {
+      "id": "gemini-3.1-flash-image",
+      "aliases": [],
+      "profile": "profiles/gemini-3.1-flash-image.json"
+    },
     {
       "id": "gemini-nano-banana-2.1",
       "aliases": [],
@@ -34,6 +49,21 @@
       "profile": "profiles/gpt-image-2.5-sunburst.json"
     },
     {
+      "id": "gpt-image-2.6",
+      "aliases": [],
+      "profile": "profiles/gpt-image-2.6.json"
+    },
+    {
+      "id": "gpt-image-2.6-flare",
+      "aliases": [],
+      "profile": "profiles/gpt-image-2.6-flare.json"
+    },
+    {
+      "id": "gpt-image-2.6-sunburst",
+      "aliases": [],
+      "profile": "profiles/gpt-image-2.6-sunburst.json"
+    },
+    {
       "id": "gpt-image-2(Sub)",
       "aliases": [],
       "profile": "profiles/gpt-image-2(Sub).json"
@@ -46,28 +76,14 @@
       "profile": "profiles/grok-imagine-image.json"
     },
     {
+      "id": "grok-imagine-image-2.0",
+      "aliases": [],
+      "profile": "profiles/grok-imagine-image-2.0.json"
+    },
+    {
       "id": "grok-imagine-image-quality",
       "aliases": [],
       "profile": "profiles/grok-imagine-image-quality.json"
-    },
-    {
-      "id": "nano-banana-2",
-      "aliases": [
-        "nano banana 2"
-      ],
-      "profile": "profiles/nano-banana-2.json"
-    },
-    {
-      "id": "nano-banana-2-lite",
-      "aliases": [],
-      "profile": "profiles/nano-banana-2-lite.json"
-    },
-    {
-      "id": "nano-banana-pro",
-      "aliases": [
-        "nano banana pro"
-      ],
-      "profile": "profiles/nano-banana-pro.json"
     },
     {
       "id": "qwen-image-3.0",
@@ -78,6 +94,21 @@
       "id": "qwen-image-3.0-pro",
       "aliases": [],
       "profile": "profiles/qwen-image-3.0-pro.json"
+    },
+    {
+      "id": "seedream-4-0-250828",
+      "aliases": [],
+      "profile": "profiles/seedream-4-0-250828.json"
+    },
+    {
+      "id": "seedream-4-5-251128",
+      "aliases": [],
+      "profile": "profiles/seedream-4-5-251128.json"
+    },
+    {
+      "id": "seedream-5-0-lite-260128",
+      "aliases": [],
+      "profile": "profiles/seedream-5-0-lite-260128.json"
     },
     {
       "id": "wan2.7-image",

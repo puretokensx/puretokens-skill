@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
   "schemaVersion": 1,
   "capability": "video",
-  "catalogUpdatedAt": "2026-11-03",
-  "catalogCapturedAt": "2026-11-03T02:14:24.310Z",
+  "catalogUpdatedAt": "2026-11-07",
+  "catalogCapturedAt": "2026-11-07T09:20:36.335Z",
   "id": "seedance-2.0-mini",
   "parameterSchema": {
     "properties": {
@@ -39,8 +39,7 @@
           "4:3",
           "1:1",
           "3:4",
-          "9:16",
-          "auto"
+          "9:16"
         ],
         "default": "16:9"
       },
@@ -48,7 +47,10 @@
         "type": "string",
         "enum": [
           "480p",
-          "720p"
+          "720p",
+          "1080p",
+          "2k",
+          "4k"
         ],
         "default": "720p"
       },
@@ -283,6 +285,7 @@
         "inputs": {
           "reference_images": {
             "field": "reference_images",
+            "required": false,
             "minItems": 0,
             "maxItems": 9,
             "transports": [
@@ -291,6 +294,7 @@
           },
           "reference_videos": {
             "field": "reference_videos",
+            "required": false,
             "minItems": 0,
             "maxItems": 3,
             "transports": [
@@ -299,6 +303,7 @@
           },
           "reference_audios": {
             "field": "reference_audios",
+            "required": false,
             "minItems": 0,
             "maxItems": 3,
             "transports": [

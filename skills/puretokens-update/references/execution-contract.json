@@ -90,7 +90,7 @@
     "reportsSynchronizedVersion": true,
     "doesNotClaimSuccessWithoutVersionReceipt": true,
     "neverModifiesOfficialCheckout": true,
-    "requiresNewHostConversationAfterSuccess": true,
+    "requiresNewHostConversationAfterSuccess": false,
     "helpOnlyDoesNotInvokeInit": true,
     "helpOnlyDoesNotInvokeExecutor": true,
     "helpOnlyDoesNotRequireHostOrConnection": true

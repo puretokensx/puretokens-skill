@@ -112,7 +112,7 @@ func (writer *supportReceiptWriter) summary(document map[string]json.RawMessage)
 	}
 	switch writer.host {
 	case "codex", "claude-code", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae",
-		"claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop", "oh-my-pi", "minimax-code-cli":
+		"claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop", "oh-my-pi", "minimax-code-cli", "qwen-code", "codebuddy-code", "copilot-cli", "factory-droid", "mimo-coder", "paseo":
 		summary["host"] = writer.host
 	}
 	switch writer.command {
@@ -144,10 +144,10 @@ func (writer *supportReceiptWriter) summary(document map[string]json.RawMessage)
 		summary["api_error_code"] = code
 	}
 	for key, allowed := range map[string]string{
-		"kind":               "|image|video|music|",
+		"kind":               "|image|video|music|audio_task|",
 		"failure_phase":      "|validation|submission|status|content|",
 		"submission_outcome": "|accepted|rejected|unknown|not_submitted|",
-		"next_step":          "|wait|content|deliver|await_user|done|",
+		"next_step":          "|wait|content|deliver|correct_request|await_user|done|",
 		"status":             "|pending|queued|processing|running|in_progress|completed|succeeded|success|failed|cancelled|canceled|expired|error|unknown|",
 	} {
 		if value := text(key); value != "" && !strings.Contains(value, "|") && strings.Contains(allowed, "|"+value+"|") {
@@ -177,7 +177,8 @@ func (writer *supportReceiptWriter) summary(document map[string]json.RawMessage)
 }
 
 var supportLocalErrorCodes = map[string]bool{
-	"api_request_timeout": true, "api_request_cancelled": true, "api_dns_failed": true,
+	"task_connection_changed": true,
+	"api_request_timeout":     true, "api_request_cancelled": true, "api_dns_failed": true,
 	"api_tls_failed": true, "api_network_permission_denied": true, "api_connection_failed": true, "api_transport_failed": true,
 	"active_connection_endpoint_missing": true, "active_connection_endpoint_unsupported": true,
 	"active_connection_not_puretokens": true, "active_connection_unavailable": true,
@@ -191,11 +192,12 @@ var supportLocalErrorCodes = map[string]bool{
 	"download_integrity_unverified": true, "task_record_write_failed": true,
 	"task_record_unavailable": true, "retry_wait_required": true, "output_directory_unavailable": true,
 	"original_count_unknown": true, "media_download_incomplete": true, "media_size_limit_exceeded": true,
-	"invalid_media_content": true, "output_permission_denied": true, "media_download_timeout": true, "output_file_conflict": true,
+	"invalid_media_content": true, "media_output_format_mismatch": true, "output_permission_denied": true, "media_download_timeout": true, "output_file_conflict": true,
 	"media_content_response_timeout": true, "media_download_stalled": true,
+	"media_request_invalid":   true,
 	"api_response_unreadable": true, "api_network_unavailable": true, "api_identity_rejected": true,
 	"api_identity_unreadable": true, "credential_unverified": true, "api_identity_unconfirmed": true,
-	"task_response_unreadable": true, "task_id_missing": true, "task_id_invalid": true,
+	"task_response_unreadable": true, "task_id_missing": true, "task_id_invalid": true, "task_platform_mismatch": true,
 	"evaluation_request_invalid": true, "evaluation_response_invalid": true, "evaluation_request_failed": true,
 	"audio_artifact_invalid": true, "audio_request_invalid": true, "audio_request_failed": true, "audio_response_invalid": true, "audio_output_unavailable": true,
 	"embedding_request_invalid": true, "embedding_request_failed": true, "embedding_response_invalid": true, "embedding_output_unavailable": true,

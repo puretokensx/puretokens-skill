@@ -8,6 +8,11 @@
     "kind"
   ],
   "properties": {
+    "connection_id": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+      "description": "Opaque mapped-client configuration identity; not a credential, account ID or credential fingerprint."
+    },
     "format": {
       "const": "puretokens-task-v1"
     },
@@ -15,7 +20,8 @@
       "enum": [
         "image",
         "video",
-        "music"
+        "music",
+        "audio_task"
       ]
     },
     "task_id": {
@@ -73,6 +79,10 @@
         "generate_audio": {
           "type": "boolean"
         },
+        "return_last_frame": {
+          "type": "boolean",
+          "description": "Explicit reviewed video selection: video index 0 and tail-frame image index 1. requested_count remains the video count."
+        },
         "strength": {
           "type": "string",
           "pattern": "^(LOW|MID|HIGH)$"
@@ -93,7 +103,9 @@
           "enum": [
             "png",
             "jpeg",
-            "webp"
+            "webp",
+            "gif",
+            "svg"
           ]
         },
         "response_format": {
@@ -193,6 +205,7 @@
                 "image/webp",
                 "image/gif",
                 "image/avif",
+                "image/svg+xml",
                 "video/mp4",
                 "video/webm",
                 "audio/mpeg",
@@ -320,6 +333,53 @@
               "instrumental": {
                 "type": "boolean"
               },
+              "response_format": {
+                "enum": [
+                  "mp3",
+                  "wav"
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "pending_redelivery_index": {
+            "const": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "kind": {
+            "const": "audio_task"
+          }
+        },
+        "required": [
+          "kind"
+        ]
+      },
+      "then": {
+        "required": [
+          "model"
+        ],
+        "properties": {
+          "model": {
+            "enum": [
+              "gemini-3.8-flash-tts",
+              "lyria-3.5",
+              "lyria-3-pro-preview"
+            ]
+          },
+          "requested_count": {
+            "maximum": 1
+          },
+          "index": {
+            "const": 0
+          },
+          "parameters": {
+            "type": "object",
+            "properties": {
               "response_format": {
                 "enum": [
                   "mp3",

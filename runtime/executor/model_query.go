@@ -227,6 +227,9 @@ func executeEvaluationModelQuery(output io.Writer, svc service, query modelQuery
 
 func modelQueryMatches(query modelQuery, entry map[string]any) bool {
 	id, _ := entry["id"].(string)
+	if reviewedMediaPolicies()[id].Retired {
+		return false
+	}
 	if !validModelID(id) || safePublicString(id) != id || (query.Model != "" && query.Model != id) {
 		return false
 	}
@@ -253,6 +256,19 @@ func modelQueryMatches(query modelQuery, entry map[string]any) bool {
 	}
 	if reviewed, exists := reviewedVideoProfile(id); exists && !modelSchemaMatches(query, capabilities, reviewed.Parameters) {
 		return false
+	}
+	if variant := reviewedKlingVariant(id); variant != "" {
+		request := taskRequest{Kind: "video", Operation: "generate", MediaOperation: query.Operation, Model: id, Parameters: query.Parameters}
+		if hasKlingNativeEnvelope(request) {
+			if len(query.Parameters) > 0 {
+				if _, err := validateKlingNativeRequest(request, variant); err != nil {
+					return false
+				}
+			}
+			// Native envelopes have their own exact cross-field rules; do not apply
+			// flat defaults after validating the complete supplied envelope.
+			query.Operation, query.Parameters = "native_video", nil
+		}
 	}
 	return modelSchemaMatches(query, capabilities, schema)
 }

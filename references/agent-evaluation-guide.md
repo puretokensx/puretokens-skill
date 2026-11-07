@@ -47,7 +47,7 @@ node scripts/agent-eval.mjs prepare --scenario image-short-path
 {"type":"read","path":"task.json"}
 {"type":"select","skill":"puretokens-image"}
 {"type":"read","path":"skills/puretokens-image/SKILL.md"}
-{"type":"command","command":"submit","host":"codex","request":{"kind":"image","operation":"generate","model":"gpt-image-2.5-flare","prompt":"合成测试文案","parameters":{}}}
+{"type":"command","command":"submit","host":"codex","request":{"kind":"image","operation":"generate","model":"gpt-image-2.6","prompt":"合成测试文案","parameters":{}}}
 {"type":"say","text":"面向用户的实际进度说明"}
 {"type":"ask","text":"确实需要用户回答的问题"}
 {"type":"attach","path":"工具刚返回的实际绝对路径"}
@@ -59,6 +59,10 @@ node scripts/agent-eval.mjs prepare --scenario image-short-path
 独立创作题目给每项分配不同的任务 ID、记录与文件路径；固定 PNG 不验证画面质量。
 判定器按项核对 prompt 对应、`n`、独立记录、回执与实际模拟附件交接，拒绝拼图替代、
 串任务、漏交、提前提交下一项及中断后继续提交。手写通过轨迹仍只是测试判定器，不是 LLM 验收。
+本地参数修正的判定器回归仅在私有夹具已明确目标参数时，接受一次完整 `correct_request`／
+`not_submitted` 回执后的原请求拼装修正；校验同宿主、同记录、其余请求逐字段不变和零提交证据。
+修正再次失败必须停止；未知提交、已有任务、换模型／内容／附件／数量／格式／输出目录、
+额外命令或重复修正均不能通过。这些手写轨迹仅验证判定器，尚无新增独立 Agent 或实机验收。
 动作锁将同一会话的并行只读动作排队写入轨迹，超过 5 秒明确停止；不同会话互不干扰。不要把一次会话给多个 Agent 同时执行。
 
 受测 Agent 完成后，维护者执行：

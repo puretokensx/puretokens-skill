@@ -31,7 +31,7 @@ description: 当前宿主使用 Pure Tokens 连接时，生成或编辑视频、
 
 两张附件不自动等于首尾帧。用户已说明角色时不重复追问；角色未明才澄清。表中附件操作以本地文件为例，公网 URL 按 profile 的 JSON 字段；数量、组合和操作均需模型明确声明，不省略素材或自动换模型。
 
-Grok 编辑限制：`grok-imagine-video-1.5`／`grok-imagine-video-1.5-preview` 暂不支持视频编辑，不按旧目录尝试。标准 `grok-imagine-video` 的编辑继承源视频时长、画幅与分辨率（输出最高 720p），源视频最长 8.7 秒；不发送 `duration`／`seconds`、`aspect_ratio`／`aspectRatio` 或 `resolution`。用户要求改变这些规格时先解释限制，不能静默删字段、把编辑改成生成或自动换模型。源视频的实际格式／时长由网关校验，不另加下载或探测；旧任务仍沿用原 task ID 查询与交付。
+仅 Grok 视频编辑先读 [编辑限制](references/grok-edit.md) 和所选 profile；其他模型不读取。
 
 ## 执行边界
 
@@ -52,22 +52,27 @@ Grok 编辑限制：`grok-imagine-video-1.5`／`grok-imagine-video-1.5-preview` 
 
 1. 默认 `MiniMax-H3` 或用户精确 ID：只读 `references/profiles/<model>.json`；选模型或唯一别名解析才读 `references/model-index.json`。不遍历 profile，不先查余额、init、doctor、preflight 或实时目录。未知精确 ID 的纯文本请求可只传 model/prompt；字段／操作缺口由执行器按需读一次目录。
    带 `sourceReview` 的配置仅证明源码契约审核；公开目录列出型号不证明专用 API 权限或实机交付。`MiniMax-H3` 与旧 `minimax_h3` 不互为别名；已有任务保留原型号。默认 H3 参考输入只支持公开 HTTPS URL，本地附件不可上传托管或静默换模型。`Super Vega` 名称保留内部空格。组合不明确时读 [新增视频参数](references/reviewed-video-usage.md)。
-2. 保留用户意图、主体与运动要求，只发 profile 声明的字段、值、operation。物理尺寸不是 API 尺寸。首帧／让图动起来按所选 profile 使用 `image_to_video` 或 `first_frame_video`，同时确认本地 multipart 或公网 URL 传输，不能互换。角色风格参考用 `reference_image_video`，视频／音频参考或编辑用 `reference_video`／`reference_audio`／`video_edit`；首尾帧按 profile 的 frame operation。只混合已声明的附件组合，用途不明确才澄清。每任务一个视频，声音／静音只映射声明的 `generate_audio`。
-3. 本次本地附件只随声明的 multipart 发送；用户公网 HTTPS URL 只进声明的 JSON 字段。不下载、探测、转存参考媒体或改成提示词；没有声明的传输方式就停止。
+2. 保留用户意图、主体与运动要求，只发 profile 声明的字段、值、operation。物理尺寸不是 API 尺寸。首帧／让图动起来按所选 profile 使用 `image_to_video` 或 `first_frame_video`，同时确认 profile 声明的本地文件或公网 URL 传输，不能互换。角色风格参考用 `reference_image_video`，视频／音频参考或编辑用 `reference_video`／`reference_audio`／`video_edit`；首尾帧按 profile 的 frame operation。只混合已声明的附件组合，用途不明确才澄清。每任务一个视频，声音／静音只映射声明的字段：Wan 使用布尔 `audio`，其他模型按 profile 的 `generate_audio`，不能互换。
+3. 本次本地附件只用 profile 声明的 `multipart_file` 或精确模型的 `local_file_data_url`；后者由执行器将原始图片字节在内存编码 JSON，仍提供 `attachments` 绝对路径并保留首帧／尾帧／参考图角色。用户公网 HTTPS URL 只进声明字段；不下载、探测、转存参考媒体、不自行写 data URL 或改成提示词，没有声明的传输方式就停止。
 4. 用宿主文件工具创建 UTF-8 请求：kind=`video`、operation=`generate` 或 `edit`、model、prompt、parameters；声明的附件操作使用 media_operation 及 attachments（field、绝对 path）。执行 `<执行器> submit --host <当前宿主> --request <绝对请求文件>`，之后清理该临时文件；提示词和凭据不进命令行。命令／请求示例按需读 [executor-usage.md](references/executor-usage.md)。
 
 用户要求原样使用的提示词逐字保留，不翻译、润色或追加质量词／负面词。提示词中的画质／节奏描述不自动成为 API 分辨率、时长或声音参数；用户明确要求实际输出规格时按 profile 校验。只有需要组织模糊的动作、镜头或参考关系时，按需读 [场景提示词指南](references/prompt-guide.md) 对应段落；不把它作为固定前置。
 
 ## 同任务完成交付
 
-视频默认在首次 submit 加 `--record <工作区或用户指定的唯一绝对任务文件>`。记录不含 prompt、凭据、参考 URL 或媒体字节，不手改或为更换模式重提。无记录时，每次续接保留 task_id、original_operation、model、确认数量、安全参数、reconciliation_required、retry_not_before、wait_windows_completed。
+用户要求视频及独立尾帧时，只用精确 Super Vega Pro profile 声明的 `return_last_frame=true`，首次提交带任务记录。`requested_count=1` 仍表示一个视频，产物索引 0 是视频、1 是尾帧；先交付视频再取回尾帧，分别执行 `delivered --record <文件> --index <索引>`。执行器校验原任务产物清单后访问固定内容路径，不跟随返回 URL；缺尾帧只停止原任务取回，不静默漏交、不本地截帧或重新生成。用户只授权某份时仅交付该索引。
+
+Kling 多镜头、既有主体／音色和高级结构化输入按需读 [Kling 高级参数](references/kling-native-usage.md)。使用六个精确 ID 的 `media_operation=native_video`，仅 contents/settings/options；不混入平铺参数或本地附件，不创建主体资源或克隆音色。
+
+视频默认在首次 submit 加 `--record <工作区或用户指定的唯一绝对任务文件>`；Claude Desktop 映射连接必须带记录。记录不含 prompt、凭据、参考 URL 或媒体字节；映射连接仅增加随机 connection_id，换连接后停止远程续取，不手改或重提。无记录时，每次续接保留 task_id、original_operation、model、确认数量、安全参数、reconciliation_required、retry_not_before、wait_windows_completed。
 
 - **提交一次**，先告知返回的 task_id 和状态，再按 `next_step` 继续。回执缺失／无法解析即提交未知；只清理本次临时请求文件后停止，不追加 API 操作、不重提、不猜扣费。
+- **本地拼装修正**：仅 `correct_request` + `not_submitted` + `media_request_invalid` 且无 task_id 时按 `references/receipt-guide.md` 修正一次 Agent 的明确拼装错误；不改用户意图，不处理已有任务或未知提交，不要求用户编辑 JSON。
 - **wait**：有记录用 `resume --host <host> --record <文件>`，否则用 `wait --host <host> --request <同任务文件>`。每窗口最多 7 次读取／300 秒，含网络与等待；遵守 retry_not_before 和 Retry-After。
 - **窗口结束**：`ok=true`、`wait_outcome=window_ended` 仍为生成中。仅 `next_step=wait` 且原授权和前台会话仍有效可自动再续一个窗口；累计两个窗口、retry_deferred 或 await_user 时暂停。取消、失败回执、网络超时、未知状态或对账均停止自动续接，不重置计数或后台循环。窗口内 429 只由执行器按剩余预算处理。
-- **content**：只下载已完成的原任务；用 `content --host <host> --record <文件> --index 0 --output-dir <现有绝对目录>`，无记录用含 completed 状态和确认数量的同任务请求。视频只有索引 0。
+- **content**：只下载已完成的原任务；用 `content --host <host> --record <文件> --index <已授权索引> --output-dir <现有绝对目录>`，无记录用含 completed 状态和确认数量的同任务请求。普通视频索引为 0；已声明且用户要求的独立尾帧为 1，须用原任务记录逐份取回与实际交付，不漏交或扩大范围。
 - **取回停止**：响应等待最多 90 秒，读取连续 30 秒无字节进展即停止，总预算最多 10 分钟。失败或 `await_user` 后不自动重跑 content／resume、不加 sleep 循环；保留原任务，用户明确要求后才再取同一索引。无字节进度证据不声称“正在缓慢传输”。
-- **deliver**：按当前宿主已声明的附件工具或本地媒体格式交付 downloaded_paths 的原文件；方式不明确才读 [客户端交付](references/host-delivery.md)。下载、路径和任务号不等于交付，不能用 URL、HTML 或 SVG 代替。实际交接后才执行 `delivered --record <文件> --index 0`，不在媒体回复发出前预先确认；正常交接无需每次让用户确认已看见。done 后结束，不自动审美检查或再生成。
+- **deliver**：按当前宿主已声明的附件工具或本地媒体格式交付 downloaded_paths 的原文件；方式不明确才读 [客户端交付](references/host-delivery.md)。下载、路径和任务号不等于交付，不能用 URL、HTML 或 SVG 代替。实际交接后才执行 `delivered --record <文件> --index <索引>`，普通视频为 0，显式尾帧为 1；不在媒体回复发出前预先确认。普通视频交付后结束；已授权的尾帧逐份完成后结束，不自动审美检查或再生成。
 
 用户明确要求再次发送已交付文件时，用 `redeliver --host <host> --record <原记录> --index <索引>`：先校验本地原文件，缺失才取同任务结果，不重新生成。具体恢复见下方续接指南。
 

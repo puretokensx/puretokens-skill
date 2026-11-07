@@ -22,6 +22,13 @@ test("reviewed embedded audio profiles, installed selection and request schema a
   const profile=source.models[item.id];
   const installed=await json(`skills/puretokens-audio/references/${item.profile}`);
   assert.deepEqual(installed,{schemaVersion:1,reviewedAt:source.reviewedAt,...profile});
+  if(profile.executor_kind==="audio_task"){
+   assert.equal(profile.path,"/v1/tasks/product-yutoux");
+   assert.equal(profile.max_output_bytes,32*1024*1024);
+   assert.deepEqual(musicValidate({kind:"audio_task",operation:"generate",model:item.id,prompt:"Audio",output_dir:"/output"}),[]);
+   assert.ok(validate({operation:profile.operation,model:item.id,input:"Audio",voice:"Kore",response_format:"wav",output_dir:"/output"}).length,"async model must not enter synchronous audio");
+   continue;
+  }
   if(profile.operation==="music"){
    assert.equal(profile.executor_kind,"music");
    assert.equal(profile.max_output_bytes,32*1024*1024);

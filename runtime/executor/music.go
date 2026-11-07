@@ -65,6 +65,10 @@ func prepareMusicRequest(r *taskRequest) error {
 	if err := validateMusicRequest(*r); err != nil {
 		return err
 	}
+	return prepareTaskAudioOutput(r)
+}
+
+func prepareTaskAudioOutput(r *taskRequest) error {
 	if !filepath.IsAbs(r.OutputDir) {
 		return errors.New("Choose an existing absolute output directory before submitting music.")
 	}
@@ -99,7 +103,7 @@ func musicRequestBody(r taskRequest) (string, string, io.Reader, error) {
 }
 
 func mediaKindPrefix(kind string) string {
-	if kind == "music" {
+	if isTaskAudio(kind) {
 		return "audio/"
 	}
 	return kind + "/"

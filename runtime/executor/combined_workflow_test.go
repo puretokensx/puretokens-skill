@@ -93,6 +93,7 @@ func TestImageToVideoKeepsBytesAndRecoversOnlyTheFailedStep(t *testing.T) {
 			}))
 			defer server.Close()
 			svc := fixtureService(server)
+			svc.profilesRoot = historicalProfilesRoot(t, "grok-imagine-video-1.5")
 			now := time.Date(2026, 9, 27, 0, 0, 0, 0, time.UTC)
 			svc.now = func() time.Time { return now }
 			svc.wait = func(_ context.Context, delay time.Duration) bool { now = now.Add(delay); return true }

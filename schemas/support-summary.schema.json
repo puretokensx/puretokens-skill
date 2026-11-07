@@ -131,7 +131,8 @@
       "enum": [
         "image",
         "video",
-        "music"
+        "music",
+        "audio_task"
       ]
     },
     "failure_phase": {
@@ -155,6 +156,7 @@
         "wait",
         "content",
         "deliver",
+        "correct_request",
         "await_user",
         "done"
       ]
@@ -240,16 +242,19 @@
         "download_integrity_unverified",
         "task_record_write_failed",
         "task_record_unavailable",
+        "task_connection_changed",
         "retry_wait_required",
         "output_directory_unavailable",
         "original_count_unknown",
         "media_download_incomplete",
         "media_size_limit_exceeded",
         "invalid_media_content",
+        "media_output_format_mismatch",
         "output_permission_denied",
         "media_download_timeout",
         "media_content_response_timeout",
         "media_download_stalled",
+        "media_request_invalid",
         "output_file_conflict",
         "api_response_unreadable",
         "api_network_unavailable",
@@ -260,6 +265,7 @@
         "task_response_unreadable",
         "task_id_missing",
         "task_id_invalid",
+        "task_platform_mismatch",
         "evaluation_request_invalid",
         "evaluation_response_invalid",
         "evaluation_request_failed",
@@ -286,17 +292,31 @@
   "allOf": [
     {
       "if": {
-        "required": ["transport_error_code"]
+        "required": [
+          "transport_error_code"
+        ]
       },
       "then": {
-        "required": ["request_phase"],
+        "required": [
+          "request_phase"
+        ],
         "properties": {
-          "api_request_attempted": { "const": true }
+          "api_request_attempted": {
+            "const": true
+          }
         },
         "not": {
           "anyOf": [
-            { "required": ["http_status"] },
-            { "required": ["request_id"] }
+            {
+              "required": [
+                "http_status"
+              ]
+            },
+            {
+              "required": [
+                "request_id"
+              ]
+            }
           ]
         }
       }

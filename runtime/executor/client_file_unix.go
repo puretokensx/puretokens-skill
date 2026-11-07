@@ -15,3 +15,12 @@ func singleLinkFile(_ string, info os.FileInfo) bool {
 func clientPathSafe(_ string, info os.FileInfo) bool {
 	return info.Mode()&os.ModeSymlink == 0
 }
+
+func privateConnectionFile(path string) bool {
+	info, err := os.Lstat(path)
+	if err != nil || !info.Mode().IsRegular() || info.Mode().Perm()&0077 != 0 {
+		return false
+	}
+	stat, ok := info.Sys().(*syscall.Stat_t)
+	return ok && stat.Uid == uint32(os.Getuid())
+}

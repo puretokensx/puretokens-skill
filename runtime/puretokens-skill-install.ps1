@@ -7,7 +7,7 @@ param(
   [Parameter(Mandatory = $false)]
   [string]$Target,
   [Parameter(Mandatory = $false)]
-  [ValidateSet("claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop", "oh-my-pi", "minimax-code-cli")]
+  [ValidateSet("claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop", "oh-my-pi", "minimax-code-cli", "qwen-code", "codebuddy-code", "copilot-cli", "factory-droid", "mimo-coder", "paseo")]
   [Alias("Host")]
   [string]$HostId,
   [Parameter(Mandatory = $false)]
@@ -192,24 +192,18 @@ function Confirm-InstalledInventories([string]$TargetRoot) {
 function Show-InstallationSummary([string]$RequestedHost) {
   switch ($RequestedHost) {
     'zcode' {
-      Write-Output 'Next: Refresh and enable the installed Skills in ZCode, then start a new conversation. Loading has not been verified in this session.'
-      Write-Output 'Available instructions: images, video, audio/music, Jev evaluation, embeddings, reranking, models and balance. Connection and task results remain separate checks.'
+      Write-Output 'Next: If Skills are already available in this ZCode conversation, use them directly. Otherwise refresh and enable the installed Skills in ZCode; start a new conversation if this session still cannot load them.'
       Write-Output 'Example (not executed): Generate an image of a lake at sunset.'
-      Write-Output 'Example (not executed): Generate a 5-second video of a paper boat on a river.'
       Write-Output 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
     }
     'trae' {
-      Write-Output 'Next: Refresh or enable Pure Tokens Skills in TRAE Settings > Skills, then start a new conversation. Requires the TRAE adapter in this installed release and a saved Switch-managed connection; actual loading and API results remain separate checks.'
-      Write-Output 'Available instructions: images, video, audio/music, Jev evaluation, embeddings, reranking, models and balance. Connection and task results remain separate checks.'
+      Write-Output 'Next: If Skills are already available in this TRAE conversation, use them directly. Otherwise refresh or enable Pure Tokens Skills in TRAE Settings > Skills; start a new conversation if this session still cannot load them. API use requires a saved supported connection.'
       Write-Output 'Example (not executed): Generate an image of a lake at sunset.'
-      Write-Output 'Example (not executed): Generate a 5-second video of a paper boat on a river.'
       Write-Output 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
     }
     default {
-      Write-Output 'Next: Follow this client''s Skill loading controls, then start a new conversation. Loading has not been verified in this session.'
-      Write-Output 'Available instructions: images, video, audio/music, Jev evaluation, embeddings, reranking, models and balance. Connection and task results remain separate checks.'
+      Write-Output 'Next: If Pure Tokens Skills are already available in this conversation, use them directly. Otherwise use this client''s Skill loading controls; open a new conversation only when required by the client. Loading is not verified by installation.'
       Write-Output 'Example (not executed): Generate an image of a lake at sunset.'
-      Write-Output 'Example (not executed): Generate a 5-second video of a paper boat on a river.'
       Write-Output 'Help: Ask how to use Pure Tokens Skills to read the local usage guide without a network request.'
     }
   }
@@ -269,6 +263,25 @@ function Invoke-Init([string]$TargetRoot, [string]$RequestedHost) {
 function Get-TargetForHost([string]$RequestedHost) {
   if ([string]::IsNullOrWhiteSpace($env:USERPROFILE)) { Fail "cannot resolve a host Skill directory because USERPROFILE is unavailable" }
   switch ($RequestedHost) {
+    { $_ -in @("qwen-code", "codebuddy-code", "copilot-cli", "factory-droid", "mimo-coder", "paseo") } {
+      $root = switch ($RequestedHost) {
+        "qwen-code" { if ($env:QWEN_HOME) { $env:QWEN_HOME } else { Join-Path $env:USERPROFILE '.qwen' } }
+        "codebuddy-code" { if ($env:CODEBUDDY_CONFIG_DIR) { $env:CODEBUDDY_CONFIG_DIR } else { Join-Path $env:USERPROFILE '.codebuddy' } }
+        "copilot-cli" { if ($env:COPILOT_HOME) { $env:COPILOT_HOME } else { Join-Path $env:USERPROFILE '.copilot' } }
+        "factory-droid" { if ($env:FACTORY_HOME_OVERRIDE) { Fail "Factory home override is unsupported" }; Join-Path $env:USERPROFILE '.factory' }
+        "mimo-coder" {
+          if ($env:MIMOCODE_HOME) { Join-Path $env:MIMOCODE_HOME 'config' }
+          elseif ($env:XDG_CONFIG_HOME) { Join-Path $env:XDG_CONFIG_HOME 'mimocode' }
+          else { Join-Path $env:USERPROFILE '.config\mimocode' }
+        }
+        "paseo" {
+          if ($env:PASEO_HOME -and ($env:PASEO_HOME -notmatch '^[A-Za-z]:[\\/]' -or ($env:PASEO_HOME -split '[\\/]') -contains '..' -or $env:PASEO_HOME -match '[\x00-\x1f\x7f]')) { Fail "Paseo root must be local and absolute" }
+          Join-Path $env:USERPROFILE '.agents'
+        }
+      }
+      if ($root -notmatch '^[A-Za-z]:[\\/]' -or ($root -split '[\\/]') -contains '..' -or $root -match '[\x00-\x1f\x7f]') { Fail "Client directory must be local and absolute without parent traversal" }
+      return (Join-Path $root 'skills')
+    }
     "claude-code" { if ($env:CLAUDE_CONFIG_DIR) { return (Join-Path $env:CLAUDE_CONFIG_DIR "skills") }; return (Join-Path $env:USERPROFILE ".claude\skills") }
     "claude-desktop" { if ($env:CLAUDE_CONFIG_DIR) { return (Join-Path $env:CLAUDE_CONFIG_DIR "skills") }; return (Join-Path $env:USERPROFILE ".claude\skills") }
     "kimi-code" {
@@ -475,7 +488,7 @@ $updateLock = $null
 try {
   $script:installStage = "select_target"
   if ([string]::IsNullOrWhiteSpace($Target) -and [string]::IsNullOrWhiteSpace($HostId)) { Fail "-Host or -Target is required" }
-  if ($HostId -in @("pi", "hermes", "evox", "oh-my-pi", "minimax-code-cli")) { $null = Get-TargetForHost $HostId }
+  if ($HostId -in @("pi", "hermes", "evox", "oh-my-pi", "minimax-code-cli", "qwen-code", "codebuddy-code", "copilot-cli", "factory-droid", "mimo-coder", "paseo")) { $null = Get-TargetForHost $HostId }
   if ([string]::IsNullOrWhiteSpace($Target)) { $Target = Get-TargetForHost $HostId }
   if ($HostId -eq "octop" -and ($Target -notmatch '^[A-Za-z]:[\\/]' -or ($Target -split '[\\/]') -contains '..' -or $Target -match '[\x00-\x1f\x7f]' -or $Target -notmatch '[\\/]skills$')) {
     Fail "Octop target must be the current local workspace's absolute .octop/skills or skills directory"
@@ -487,6 +500,8 @@ try {
   if ($Command -eq "verify-installed") {
     $script:installStage = "verify_installed"
     Confirm-InstalledInventories $Target
+    Write-Output "init_status=not_run; this integrity check does not recheck the connection."
+    Show-InstallationSummary $HostId
     exit 0
   }
 

@@ -339,6 +339,7 @@ func TestEightImageResultsPreserveCountAndSameTaskDelivery(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "task.json")
 	request := taskRequest{Kind: "image", Operation: "generate", Model: "nano-banana-2", Prompt: "fixture", Parameters: map[string]any{"n": float64(8)}, OutputDir: dir}
+	svc.profilesRoot = historicalProfilesRoot(t, "nano-banana-2")
 	var out bytes.Buffer
 	invoke := func(command string, index int) receipt {
 		t.Helper()

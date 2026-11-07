@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-10-21",
+  "reviewedAt": "2026-11-07",
   "model": "eleven_multilingual_sts_v2",
   "operation": "voice_change",
   "path": "/v1/audio/generate",

@@ -66,7 +66,10 @@ test("installer activation fragments match their single source and TRAE explains
   const registry=JSON.parse(await readFile(path.join(repositoryRoot,"references/install-activation.json"),"utf8"));
   assert.match(registry.hosts.trae.activation,/Settings > Skills/);
   assert.notEqual(registry.hosts.trae.apiSupport,"unsupported");
-  assert.match(registry.hosts.zcode.activation,/Refresh and enable/);
+  assert.match(registry.hosts.zcode.activation,/refresh and enable/i);
+  for (const activation of [registry.default.activation, registry.hosts.zcode.activation, registry.hosts.trae.activation]) {
+    assert.match(activation, /already available.*use them directly/);
+  }
 });
 
 test("six-Skill upgrade adds evaluation and preserves a conflicting user-owned Skill", async t => {
