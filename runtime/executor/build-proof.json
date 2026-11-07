@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "version": "0.19.8",
+  "version": "0.20.0",
   "toolchain": "go1.26.0",
-  "sourceSha256": "fc9ccbed375829d44d717da641a9565c0b20715517073539c131ad9eeeb07297",
+  "sourceSha256": "e95c1c4a10b552df25e8961ec3d9f8985e89ec8909bf453e67ef853c7fa3b563",
   "inputs": {
-    "package.json": "9b6f971ad0ce0a2eda3f06f5bbaf73061c7a31a4bb67cd5c7fd28059422278b8",
+    "package.json": "5321e6e261594f0758e1a13d6093e9f4975da8c43e467c0285b63413113b44ed",
     "runtime/executor/async_audio.go": "407c29aacda31db901aa574a775c9d42e460c547b37da45fa1125e0368a24b61",
     "runtime/executor/attachment_stream.go": "13a7a2b7fa599e4cc79ef1401b022a6a20e78f21fb9c4c34034a4c78ae449884",
     "runtime/executor/audio-profiles.json": "87be9782e0545c17ebe51035602c249735cd43ca7770934e48c3df8cb945c62e",
@@ -75,27 +75,27 @@
   "artifacts": {
     "darwin-amd64": {
       "path": "bin/puretokens-api-darwin-amd64",
-      "sha256": "45caf5c44e95c96ee54af0c7188e4d0f5a70622d9c13ba2d36bf3df406f45a87"
+      "sha256": "b1c6a4996a3cc4e157976832bf3cc76942662e5742237d9b41d1950d96720196"
     },
     "darwin-arm64": {
       "path": "bin/puretokens-api-darwin-arm64",
-      "sha256": "5d1d2fc1a877a6cb593fd13dbd616424d8135daf917ddf6800878057441cea1a"
+      "sha256": "d08686a775598315b30fe60cdcfa4443d1a033621ad8583ce3bc8e2f04fee00b"
     },
     "linux-amd64": {
       "path": "bin/puretokens-api-linux-amd64",
-      "sha256": "ee0eb5599129b0631806a1d14b70bd83b9935140fe0b3d54283661c3d617d76b"
+      "sha256": "0c36274c949e4ec2dee290c7a4df52383e5a06c1bd74a38fdca89da99cc114e0"
     },
     "linux-arm64": {
       "path": "bin/puretokens-api-linux-arm64",
-      "sha256": "972daf1ec5ff056dd1e1c3da8d8184740b91936448430cd02abff8d3b166096f"
+      "sha256": "c874bf0ad1429204207b2572cf853428c498855d670940275c377da2ef4678a0"
     },
     "windows-amd64": {
       "path": "bin/puretokens-api-windows-amd64.exe",
-      "sha256": "818f55840b71bcc82c828e430fd9be677e05900712cc5dc9c394b915078eb6de"
+      "sha256": "6c7efd9cf8cb5675ccc7540fe6dca77ee6ef646f64259aa72d3941855ff9ccdd"
     },
     "windows-arm64": {
       "path": "bin/puretokens-api-windows-arm64.exe",
-      "sha256": "8cf9dc481edd1c175432ee178736085a55c84b486083ec87c805f4e9b26d1800"
+      "sha256": "e0becf96dc776ec1f37c407834b55437ac4576be05ce0053e6fcd4ddae5bb98a"
     }
   }
 }

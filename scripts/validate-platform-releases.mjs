@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 
 const platforms = ["darwin-amd64", "darwin-arm64", "linux-amd64", "linux-arm64", "windows-amd64", "windows-arm64"];
 const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
-const sourceScopes = ["README.md", "package.json", "skills", "runtime", "scripts/build-executor.mjs", "scripts/executor-build-proof.mjs", "scripts/package-platform-releases.mjs"];
+const sourceScopes = ["LICENSE", "README.md", "package.json", "skills", "runtime", "scripts/build-executor.mjs", "scripts/executor-build-proof.mjs", "scripts/package-platform-releases.mjs"];
 async function filesUnder(root, relative) {
   const info = await lstat(path.join(root, relative));
   if (info.isFile()) return [relative];
@@ -74,7 +74,7 @@ export async function validatePlatformReleases(root, {directory = path.join(root
       await mkdir(extraction);
       execFileSync("unzip",["-q",archive,"-d",extraction]);
       const bundle = path.join(extraction,"puretokens-skill");
-      const copied = [...skills,"README.md","package.json",`runtime/puretokens-skill-install.${extension}`,`runtime/puretokens-skill-fetch.${extension}`,binary];
+      const copied = [...skills,"LICENSE","README.md","package.json",`runtime/puretokens-skill-install.${extension}`,`runtime/puretokens-skill-fetch.${extension}`,binary];
       const expected = [...copied,"runtime/executor/manifest.json"].sort();
       if (JSON.stringify(await filesUnder(bundle,"")) !== JSON.stringify(expected)) throw new Error("Release archive contains missing or extra files.");
       for (const file of copied) {

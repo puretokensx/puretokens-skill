@@ -6,7 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 // Match the packager's source boundary, excluding executor tests only.
-const sourceScopes = ["README.md", "package.json", "skills", "runtime", "scripts/build-executor.mjs", "scripts/executor-build-proof.mjs", "scripts/package-platform-releases.mjs"];
+const sourceScopes = ["LICENSE", "README.md", "package.json", "skills", "runtime", "scripts/build-executor.mjs", "scripts/executor-build-proof.mjs", "scripts/package-platform-releases.mjs"];
 const isTest = file => file.startsWith("runtime/executor/") && file.endsWith("_test.go");
 const equal = (a, b) => a.size === b.size && [...a].every(([file, hash]) => b.get(file) === hash);
 

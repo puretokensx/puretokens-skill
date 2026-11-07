@@ -28,6 +28,7 @@ async function fixture(t) {
   await mkdir(path.join(root, "home"));
   await mkdir(path.join(root, "tmp"));
   await writeFile(path.join(source, "README.md"), "fixture\n");
+  await writeFile(path.join(source, "LICENSE"), "MIT License fixture\n");
   await writeFile(path.join(source, "package.json"), JSON.stringify({ version }, null, 2));
   await cp(path.join(repositoryRoot, "skills"), path.join(source, "skills"), { recursive: true });
   for (const script of scripts) await cp(path.join(repositoryRoot, "runtime", script), path.join(source, "runtime", script));

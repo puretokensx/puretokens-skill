@@ -1,9 +1,16 @@
 {
   "schemaVersion": 1,
-  "version": "0.19.8",
-  "checkedAt": "2026-11-07",
-  "method": "Isolated credential, API-wire and native output fixture coverage only. Real-host loading, model-group permission, paid dedicated API and attachment/playback acceptance remain pending for these unreleased source changes. Historical publication decisions remain version-bound in references/acceptance/0.19.8-publication.json, earlier acceptance archives and Git history; none approves this source revision.",
+  "version": "0.20.0",
+  "checkedAt": "2026-11-08",
+  "method": "Isolated credential, API-wire and native output fixture coverage only. Real-host loading, model-group permission, paid dedicated API and attachment/playback acceptance remain pending for this release candidate. Historical publication decisions remain version-bound in references/acceptance/0.19.8-publication.json, earlier acceptance archives and Git history; none approves this source revision.",
   "guide": "references/host-acceptance-guide.md",
+  "stablePublicationException": {
+    "kind": "maintainer-approved-pending-acceptance",
+    "version": "0.20.0",
+    "approved": true,
+    "approvedAt": "2026-11-08",
+    "reason": "The maintainer explicitly approved stable publication of 0.20.0 with pending real-host acceptance retained internally. Fixture results do not become real-host proof; engineering and release artifact checks remain required."
+  },
   "evidence": [],
   "hosts": [
     {

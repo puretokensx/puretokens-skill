@@ -12,10 +12,10 @@ const manifest = JSON.parse(manifestBytes);
 const destination = path.join(root, "dist", "releases");
 await mkdir(destination, { recursive: true });
 const files = {};
-const publicFiles = ["README.md", "package.json", "runtime/puretokens-skill-install.sh", "runtime/puretokens-skill-install.ps1", "runtime/puretokens-skill-fetch.sh", "runtime/puretokens-skill-fetch.ps1"];
+const publicFiles = ["LICENSE", "README.md", "package.json", "runtime/puretokens-skill-install.sh", "runtime/puretokens-skill-install.ps1", "runtime/puretokens-skill-fetch.sh", "runtime/puretokens-skill-fetch.ps1"];
 // Include build inputs, not just copied outputs: committed binaries cannot
 // attest to uncommitted Go code, go.mod/go.sum, or a modified build recipe.
-const sourceScopes = ["README.md", "package.json", "skills", "runtime", "scripts/build-executor.mjs", "scripts/executor-build-proof.mjs", "scripts/package-platform-releases.mjs"];
+const sourceScopes = ["LICENSE", "README.md", "package.json", "skills", "runtime", "scripts/build-executor.mjs", "scripts/executor-build-proof.mjs", "scripts/package-platform-releases.mjs"];
 async function snapshot(directory, scopes) {
   const result = new Map();
   async function visit(relative) {
@@ -73,7 +73,7 @@ for (const [platform, artifact] of Object.entries(manifest.artifacts)) {
     if (createHash("sha256").update(binary).digest("hex") !== artifact.sha256) throw new Error(`Binary checksum mismatch: ${platform}`);
     await writeFile(path.join(bundle, "runtime/executor", artifact.path), binary, { mode: 0o755 });
     const expectedBundle = new Map([...sourceSnapshot].filter(([file]) => file.startsWith("skills/") || platformFiles.includes(file) || file === `runtime/executor/${artifact.path}`));
-    if (!sameSnapshot(await snapshot(bundle, ["README.md", "package.json", "skills", "runtime"]), expectedBundle)) sourceCommit = null;
+    if (!sameSnapshot(await snapshot(bundle, ["LICENSE", "README.md", "package.json", "skills", "runtime"]), expectedBundle)) sourceCommit = null;
     await writeFile(path.join(bundle, "runtime/executor/manifest.json"), JSON.stringify({ ...manifest, artifacts: { [platform]: artifact } }, null, 2));
     const name = `puretokens-skill-${manifest.version}-${platform}.zip`;
     // zip updates existing archives, retaining removed source members. Always

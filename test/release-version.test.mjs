@@ -56,6 +56,12 @@ test("untracked and deleted distribution files are not invisible to the gate", a
   await assert.rejects(validateReleaseVersion(f.root), /without a version increase/);
 });
 
+test("license changes require a distribution version increase", async t => {
+  const f = await fixture(t);
+  await f.write("LICENSE", "MIT License fixture\n");
+  await assert.rejects(validateReleaseVersion(f.root), /without a version increase/);
+});
+
 test("a same-version change remains invalid even after reverting its content", async t => {
   const f = await fixture(t);
   await f.write("skills/puretokens-image/SKILL.md", "changed");

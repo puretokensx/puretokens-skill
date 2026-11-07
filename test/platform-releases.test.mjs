@@ -22,6 +22,7 @@ async function fixture(t) {
   await mkdir(path.join(root,"runtime/executor/bin"),{recursive:true});
   await mkdir(path.join(root,"scripts"));
   await writeFile(path.join(root,"README.md"),"Release fixture\n");
+  await writeFile(path.join(root,"LICENSE"),"MIT License fixture\n");
   await writeFile(path.join(root,"package.json"),JSON.stringify({version:"0.18.1"}));
   await cp(path.join(repositoryRoot,"skills"),path.join(root,"skills"),{recursive:true});
   for (const extension of ["sh","ps1"]) for (const command of ["install","fetch"]) {
@@ -46,6 +47,15 @@ test("six real archive inventories contain only their system scripts and one bin
   assert.equal(release.sourceCommit,null);
   assert.equal(Object.keys(release.files).length,6);
   await assert.rejects(validatePlatformReleases(f.root,{publishable:true}),/Draft candidates/);
+});
+test("every platform archive includes the exact source license",async t=>{
+  const f = await fixture(t);
+  const release = await validatePlatformReleases(f.root);
+  const license = await readFile(path.join(f.root,"LICENSE"));
+  for (const entry of Object.values(release.files)) {
+    const bundled = execFileSync("unzip",["-p",path.join(f.directory,entry.filename),"puretokens-skill/LICENSE"]);
+    assert.deepEqual(bundled,license);
+  }
 });
 test("stable archive gate rejects missing platforms and altered selectors",async t=>{
   const f = await fixture(t);
