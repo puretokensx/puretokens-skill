@@ -457,9 +457,21 @@ test("clients sharing a root retain one host-neutral installation without archiv
     const before = await snapshot(target);
     for (const host of hosts) {
       await writeFile(path.join(f.root, "requests"), "");
-      const { stdout } = await execFile("sh", [wrapper, "update", "--host", host], { env });
-      assert.match(stdout, /already current and verified/);
-      assert.doesNotMatch(stdout, /Pure Tokens Skill init:/);
+      const update = () => execFile("sh", [wrapper, "update", "--host", host], { env });
+      // Desktop and CLI share a root, but only the CLI supports Linux.
+      if (host === "minimax-code" && process.platform !== "darwin") {
+        await assert.rejects(update, error => {
+          assert.match(error.stderr, /stage=select_target error_code=validation_failed/);
+          assert.match(error.stderr, /MiniMax Code requires local macOS or Windows Desktop/);
+          assert.match(error.stderr, /installed_files_changed=false/);
+          assert.doesNotMatch(error.stdout, /already current and verified|Pure Tokens Skill init:/);
+          return true;
+        });
+      } else {
+        const { stdout } = await update();
+        assert.match(stdout, /already current and verified/);
+        assert.doesNotMatch(stdout, /Pure Tokens Skill init:/);
+      }
       assert.deepEqual(await snapshot(target), before, `${host}: shared files were rewritten`);
       const requests = (await readFile(path.join(f.root, "requests"), "utf8")).trim().split("\n");
       assert.equal(requests.length, 2);
