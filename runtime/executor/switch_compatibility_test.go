@@ -174,6 +174,11 @@ func TestClaudeMappedDedicatedPermissionsAndFreshCatalog(t *testing.T) {
 		}
 		desktopFixtureFile(t, root, name, string(data))
 	}
+	// Copying fixture bytes creates a new Windows file, not a copy of its ACL.
+	privateMappedFixtureFile(t, filepath.Join(root, claudeSkillsConnectionFile))
+	if token, err := credentialFromClaudeDesktopRoot(root); err != nil || token != "synthetic-mapped-skills-key" {
+		t.Fatal("copied mapped fixture does not satisfy the private connection contract")
+	}
 	previous := http.DefaultTransport
 	t.Cleanup(func() { http.DefaultTransport = previous })
 	calls := 0
