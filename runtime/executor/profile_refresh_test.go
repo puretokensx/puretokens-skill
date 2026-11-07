@@ -315,8 +315,17 @@ func TestInstalledProfileFieldsAndNativeOperationsNeedNoRefresh(t *testing.T) {
 						if err := prepareProfileRequest(&request, svc); err != nil {
 							t.Fatalf("supported %s=%v failed: %v", name, value, err)
 						}
-						if _, _, _, err := taskRequestBody(request); err != nil {
+						_, _, body, err := taskRequestBody(request)
+						if err != nil {
 							t.Fatal(err)
+						}
+						_, readErr := io.Copy(io.Discard, body)
+						var closeErr error
+						if closer, ok := body.(io.Closer); ok {
+							closeErr = closer.Close()
+						}
+						if readErr != nil || closeErr != nil {
+							t.Fatal("parameter attachment serialization failed", readErr, closeErr)
 						}
 					}
 				}

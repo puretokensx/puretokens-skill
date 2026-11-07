@@ -29,6 +29,7 @@ func writeMappedSkillsFixture(t *testing.T, root string, record map[string]any) 
 		t.Fatal(err)
 	}
 	desktopFixtureFile(t, root, "puretokens-skills-connection.json", string(data))
+	privateMappedFixtureFile(t, filepath.Join(root, claudeSkillsConnectionFile))
 }
 
 func TestClaudeDesktopMappedSkillsUsesOnlyBoundConnection(t *testing.T) {

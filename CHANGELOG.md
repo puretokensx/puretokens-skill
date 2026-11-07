@@ -4,8 +4,9 @@
 
 # Changelog
 
-## 0.20.0 - 2026-11-08
+## 1.0.0 - 2026-11-08
 
+- Establish the 1.0 release without changing the fixed API, credential isolation or existing-task recovery contracts. Correct Windows test fixture ownership/ACLs and consume attachment request bodies so platform verification does not leak file handles.
 - Include the MIT license in every platform archive and verify its exact source bytes and versioned provenance.
 
 - Shorten install and special-media entry guidance; reuse one host-specific activation example after same-version verification without downloading, writing or repeating init. Split release metadata/archive timeouts, report safe download stages and bound stalled curl transfers. Add sanitized new-request media validation with a one-time intent-preserving assembly correction, preserve existing/unknown task boundaries, and choose new retrieval filenames only inside an already authorized directory. Keep native delivery and independent video/tail-frame indexes; no new user runtime or automatic paid retry.
