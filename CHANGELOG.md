@@ -4,7 +4,7 @@
 
 # Changelog
 
-## 1.0.3 - Unreleased
+## 1.0.3 - 2026-11-08
 
 - Correct installed host guidance for capabilities shipped in 1.0.0, including the six additional CLI hosts, Oh My Pi, MiniMax Code CLI and conditional Claude Desktop mapped connections. Synchronize every self-contained Skill without changing connection checks or claiming real-host acceptance.
 - Carry forward the post-1.0.2 lightweight installation/media instructions and verified same-invocation download metadata/route reuse. Preserve checksums, failure boundaries and same-task recovery.

@@ -2,7 +2,14 @@
   "schemaVersion": 1,
   "version": "1.0.3",
   "checkedAt": "2026-11-08",
-  "method": "Unreleased 1.0.3 candidate: post-1.0.2 lightweight flow and capability updates plus corrected installed host guidance. Offline checks do not establish real-host authentication or delivery. Existing pending outcomes remain unchanged; the 1.0.2 publication approval is not inherited. No publication is authorized by this record.",
+  "method": "Version 1.0.3 publication review: lightweight flow and capability updates plus corrected installed host guidance. On 2026-11-08 the maintainer explicitly requested this release while retaining the existing pending acceptance outcomes. Offline checks and publication do not establish real-host authentication or delivery. See references/acceptance/1.0.3-release.md.",
+  "stablePublicationException": {
+    "kind": "maintainer-approved-pending-acceptance",
+    "version": "1.0.3",
+    "approved": true,
+    "approvedAt": "2026-11-08",
+    "reason": "The maintainer explicitly authorized the current 1.0.3 stable release on 2026-11-08, retaining all 268 pending host/OS checks and existing evidence. This decision applies only to 1.0.3 and is not real-host or paid API acceptance."
+  },
   "guide": "references/host-acceptance-guide.md",
   "evidence": [],
   "hosts": [
