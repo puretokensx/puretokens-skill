@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"time"
 )
 
@@ -260,48 +259,8 @@ func projectCatalog(value any) any {
 		}
 		result["capabilities"] = caps
 		schema := reviewedMediaSchema(id, jsonObject(model["input_schema"]))
-		selected := map[string]any{}
-		for _, field := range []string{"properties", "constraints", "operations", "lifecycle", "outputSizes"} {
-			if v, ok := schema[field]; ok {
-				selected[field] = publicJSON(v, 0)
-			}
-		}
-		result["input_schema"] = selected
+		result["input_schema"] = projectPublicCatalogSchema(schema)
 		projected = append(projected, result)
 	}
 	return map[string]any{"data": projected}
-}
-
-// Catalog JSON is data, never instructions or a channel for raw error/config data.
-func publicJSON(value any, depth int) any {
-	if depth > 16 {
-		return nil
-	}
-	switch v := value.(type) {
-	case string:
-		return safePublicString(v)
-	case []any:
-		result := make([]any, 0, len(v))
-		for _, item := range v {
-			result = append(result, publicJSON(item, depth+1))
-		}
-		return result
-	case map[string]any:
-		result := make(map[string]any)
-		for key, item := range v {
-			if !publicCodePattern.MatchString(key) {
-				continue
-			}
-			switch strings.ToLower(key) {
-			case "apikey", "api_key", "token", "secret", "authorization", "headers", "provider", "upstream":
-				continue
-			}
-			result[key] = publicJSON(item, depth+1)
-		}
-		return result
-	case float64, bool, nil:
-		return v
-	default:
-		return nil
-	}
 }

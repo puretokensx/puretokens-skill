@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { mediaDefaultModels, repositoryRoot } from "./skill-registry.mjs";
 import { assertModelID } from "./model-id.mjs";
+import { assertPublicCatalogSchema } from "./public-catalog-projection.mjs";
 
 const catalogPath = path.join(repositoryRoot, "references", "media-model-catalog.json");
 const targets = [
@@ -46,6 +47,7 @@ export function buildModelIndex(catalog, capability, defaultModel) {
 
 export function buildModelProfile(catalog, capability, model) {
   assertModelID(model.id);
+  assertPublicCatalogSchema(model.parameterSchema || {});
   return {
     $schema: "https://puretokensx.com/schemas/model-profile.schema.json",
     schemaVersion: 1,

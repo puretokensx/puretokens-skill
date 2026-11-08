@@ -4,6 +4,11 @@
 
 # Changelog
 
+## 1.0.1 - Unreleased
+
+- Restrict model catalog receipts to reviewed public schema fields, preserve current model parameters, and reject unreviewed metadata during catalog/profile publication. Keep actual API validation and existing-task recovery unchanged.
+- Minimize public acceptance records and add privacy regression checks. Legacy asynchronous audio wire identifiers still require a backwards-compatible gateway contract before they can be removed.
+
 ## 1.0.0 - 2026-11-08
 
 - Establish the 1.0 release without changing the fixed API, credential isolation or existing-task recovery contracts. Correct Windows test fixture ownership/ACLs and consume attachment request bodies so platform verification does not leak file handles.

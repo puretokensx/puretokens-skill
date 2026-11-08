@@ -120,7 +120,7 @@ func TestResponseSanitizationProtectsProjectedCatalog(t *testing.T) {
 	if strings.Contains(output.String(), "synthetic-fixture-token") || strings.Contains(output.String(), `synthetic\u002dfixture-token`) {
 		t.Fatal("projected catalog leaked a credential in a nested string or schema key")
 	}
-	if !strings.Contains(output.String(), "gpt-image-2") || !strings.Contains(output.String(), "[redacted credential]") {
+	if !strings.Contains(output.String(), "gpt-image-2") || !strings.Contains(output.String(), `"prompt":{"type":"string"}`) {
 		t.Fatal("catalog projection discarded safe model data")
 	}
 }

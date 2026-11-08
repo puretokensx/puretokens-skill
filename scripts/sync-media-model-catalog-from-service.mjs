@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { repositoryRoot } from "./skill-registry.mjs";
 import { supplementReviewedParameters } from "./reviewed-media-supplements.mjs";
 import { assertModelID } from "./model-id.mjs";
+import { assertPublicCatalogSchema } from "./public-catalog-projection.mjs";
 
 const catalogPath = path.join(
   repositoryRoot,
@@ -149,6 +150,8 @@ export function buildPublishedCatalog(previous, models, args) {
       throw new Error(`${model.id}: base model catalog must provide provider and vendor ID`);
     }
     const editorial = previousById.get(model.id) || genericCopy(model.id, model.capabilities);
+    const parameterSchema = model.parameterSchema ? supplementReviewedParameters(model) : undefined;
+    if (parameterSchema) assertPublicCatalogSchema(parameterSchema);
     return {
       id: model.id,
       name: model.id,
@@ -158,7 +161,7 @@ export function buildPublishedCatalog(previous, models, args) {
       aliases: editorial.aliases || [],
       goodFor: editorial.goodFor || genericCopy(model.id, model.capabilities).goodFor,
       example: editorial.example || genericCopy(model.id, model.capabilities).example,
-      ...(model.parameterSchema ? { parameterSchema: supplementReviewedParameters(model) } : {})
+      ...(parameterSchema ? { parameterSchema } : {})
     };
   }).sort((left, right) => left.id.localeCompare(right.id, "en", { numeric: true }));
   const capturedAt = args.capturedAt || new Date().toISOString();

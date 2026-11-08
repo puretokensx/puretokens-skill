@@ -18,10 +18,8 @@ remain intact and are not claimed as part of this model work.
   Raw SHA-256: fe7edd581320626dc8d29e95cfc21d48b5f4f5c435f0d62256dd70cda79f831c.
 - Web metadata SHA-256:
   14dc7eff07a890d47b04090b66da5be2546fb517edbc03539123bf7697d75ab1.
-- Reviewed gateway Yutoux plugin SHA-256:
-  3f75e992bafdff46124134b9a26d4ec58c77cbfe903bebfa4c08ab01a9b531a6.
-- Reviewed gateway Seedream plugin SHA-256:
-  61d9acefb32df6aadee5283127e65ac8140d203c0ac91e2fd9dfcc250063eefc.
+- Dedicated audio and image request contracts were reviewed. Private
+  implementation identities and digests are not part of this public record.
 - The saved catalog is a reviewed projection, not the untouched response.
   scripts/reviewed-media-supplements.mjs applies exact-model restrictions.
   capturedAt is import time; the response Date and digest identify the GET.
@@ -35,7 +33,7 @@ GPT 2.6 edits exclude GIF is superseded: flare/sunburst permit GIF edits at 1K;
 only base 2.6 excludes them. Vidu currently retains generate_audio and seed.
 The later November 7 snapshot includes six dedicated kling-video-* schemas.
 The old claim that these IDs lack dedicated declarations is superseded.
-The Web contract's Retired Krill multimedia section also retires kling-v3
+The reviewed retirement contract also retires kling-v3
 and kling-v3-turbo for new submissions; they are not retained as source-only
 selection entries. Their existing task IDs and recovery remain unchanged.
 The 07:56 UTC snapshot had 151 rows/49 media declarations. The final 08:16 UTC
@@ -101,7 +99,8 @@ changes were found in the remaining 48 declarations before local restrictions.
   and explicit text response. Other models do not inherit these extensions.
   Preserve bounded validation, credential redaction, one POST and no repeat.
 - Implement separate asynchronous audio_task for gemini-3.8-flash-tts, lyria-3.5
-  and lyria-3-pro-preview: POST /v1/tasks/product-yutoux, GET /v1/tasks/{id},
+  and lyria-3-pro-preview using the dedicated submission route in the audio
+  execution contract, GET /v1/tasks/{id}, and
   GET /v1/tasks/{id}/artifacts/audio/content. Verify original ID and status
   platform, distinguish SUCCESS/FAILURE/NOT_START/SUBMITTED, preserve the task
   through waits/resume/redeliver and validate WAV/MP3 bytes up to 32 MiB.
@@ -223,7 +222,7 @@ host acceptance registry is unchanged.
 | Kling advanced generation | Six exact IDs, native_video contents/settings/options; /v1/videos | Same asynchronous video record and native file | Strict roles/counts/settings; existing IDs only; no resource creation or flat mixing |
 | Synchronous audio | Reviewed speech/transcription/sound/voice-change/music_sync; /v1/audio/* | Verified audio or transcription text; local artifact re-delivery | One POST/90 seconds; no remote polling/retry or inferred model entitlement |
 | StepFun music | /v1/audio/music/submit and same-task GETs | MP3/WAV up to 32 MiB; same-task recovery | No protocol mixing with synchronous music |
-| Gemini TTS/Lyria | /v1/tasks/product-yutoux and original ID/platform GETs | WAV/MP3 up to 32 MiB; same-task recovery | Three exact reviewed models; no realtime, PCM or voice cloning claim |
+| Gemini TTS/Lyria | Dedicated audio submission contract and original ID/platform GETs | WAV/MP3 up to 32 MiB; same-task recovery | Three exact reviewed models; no realtime, PCM or voice cloning claim |
 | Jev | /typesafe/v1/systemone | Typed choice/score/noul text | Synchronous; no media polling or invented remote recovery |
 | Embedding/rerank | Explicit bounded text; /v1/embeddings or /v1/rerank | Ordered JSONL vectors or ranking JSON file | Dedicated tasks, not chat-model aliases |
 | Audio translation | Generic gateway route, no verified exact public model | Not exposed | Await native model contract, not ASR plus chat |
@@ -278,14 +277,12 @@ hotwords, matching the installed exact-model guard.
 
 Web source HEAD is now `c01f3b5b`; this does not prove the production deployment
 commit. Compared with the previously reviewed `87d26e9a`, the relevant new
-documentation/shared classifier centralizes the same three Yutoux audio IDs
+documentation/shared classifier centralizes the same three asynchronous audio IDs
 and clarifies queued submit receipts versus uppercase task lookup states. The
 Skill already implements and tests those states/routes. Model metadata retains
-SHA-256 `14dc7eff07a890d47b04090b66da5be2546fb517edbc03539123bf7697d75ab1`;
-the Yutoux plugin retains SHA-256
-`3f75e992bafdff46124134b9a26d4ec58c77cbfe903bebfa4c08ab01a9b531a6`.
-Relevant gateway route, ElevenLabs and StepFun ASR sources are unchanged from
-that source review. The public audio lists do not expose every dedicated API
+SHA-256 `14dc7eff07a890d47b04090b66da5be2546fb517edbc03539123bf7697d75ab1`.
+The reviewed dedicated request contracts are unchanged from that source
+review. The public audio lists do not expose every dedicated API
 parameter; source-reviewed fields retain that evidence boundary.
 
 This follow-up corrects stale statements about tail-frame implementation and

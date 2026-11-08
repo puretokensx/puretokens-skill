@@ -1,0 +1,89 @@
+{
+  "properties": {"*": {
+    "type": ["string", "integer", "number", "boolean", "string[]", "json"], "enum": "values", "default": "value",
+    "min": "number", "max": "number", "minimum": "number", "maximum": "number",
+    "minLength": "number", "maxLength": "number", "required": "boolean"
+  }},
+  "operations": {"*": {
+    "request": {"method": "method", "path": "path", "contentType": ["application/json", "multipart/form-data"]},
+    "requiredBodyFields": "values",
+    "maxReferenceAudios": "number", "maxReferenceImages": "number",
+    "maxReferenceTotal": "number", "maxReferenceVideos": "number",
+    "inputs": {"*": {
+      "field": "string", "required": "boolean", "minItems": "number",
+      "maxItems": "number", "transports": "values"
+    }}
+  }},
+  "constraints": {
+    "aspect_ratio_by_image_size": {"*": "values"},
+    "duration_control": {"fixed_seconds": "value", "request_only": "value"},
+    "exclusive_reference_sets": {"*": "values"},
+    "image_size_format": {
+      "custom": "value", "dimension_max": "value", "dimension_min": "value",
+      "dimension_multiple": "value", "presets": "values", "workspace_outputs": "values"
+    },
+    "kling_contents": {"types": "values"},
+    "kling_settings": {
+      "adaptive_requires_reference": "value", "base_video_audio": "value",
+      "base_video_mode_parameter": "value", "base_video_multi_shot": "value",
+      "feature_video_audio": "value", "feature_video_multi_shot": "value",
+      "native_settings_replace_flat": "value", "source_controls_ratio": "value",
+      "voice_requires_audio": "value"
+    },
+    "motion_control": {
+      "duration_and_ratio_from_source": "value", "image_orientation_max_seconds": "value",
+      "video_orientation_max_seconds": "value"
+    },
+    "native_media": {"field": "values", "transport": "values", "video_operations": "values"},
+    "output_count": {
+      "combined_input_output_max": "value", "sequential_max": "value",
+      "standard_max": "value", "workspace": "value"
+    },
+    "output_format_by_image_mode": {"*": "values"},
+    "output_format_resolutions": {"*": "values"},
+    "parameter_modes": {"*": "values"},
+    "prompt": {"image_max_characters": "value", "text_max_characters": "value"},
+    "reference_audio": {
+      "max_bytes": "value", "max_seconds": "value", "max_total_seconds": "value",
+      "mime_types": "values", "min_seconds": "value"
+    },
+    "reference_combination": {
+      "adaptive_requires_visual": "value", "audio_requires_visual": "value",
+      "frames_exclusive": "value", "images_and_elements_with_video": "value",
+      "images_and_elements_without_video": "value", "max_voices": "value"
+    },
+    "reference_image": {
+      "max_bytes": "value", "max_height": "value", "max_pixels": "value",
+      "max_ratio": "value", "max_width": "value", "mime_types": "values",
+      "min_height": "value", "min_ratio": "value", "min_width": "value"
+    },
+    "reference_transport": {"*": "values"},
+    "reference_video": {
+      "max_bytes": "value", "max_fps": "value", "max_height": "value",
+      "max_pixels": "value", "max_ratio": "value", "max_seconds": "value",
+      "max_total_seconds": "value", "max_width": "value", "mime_types": "values",
+      "min_fps": "value", "min_height": "value", "min_pixels": "value",
+      "min_ratio": "value", "min_seconds": "value", "min_width": "value"
+    },
+    "resolution_by_image_mode": {"*": "values"},
+    "resolution_by_mode": {"*": "values"},
+    "unsupported_inputs": {"*": "boolean"},
+    "unsupported_operations": {"*": "boolean"},
+    "unsupported_parameters_by_operation": {"*": "values"},
+    "audio_requires_reference_images": {"enabled": "boolean"},
+    "frame_parameters": {"unsupported": "values"},
+    "reference_counts": {"*": "number"},
+    "requires_together": {"*": "values"},
+    "frame_exclusivity": {"*": "values"},
+    "size_expression_precedence": {"order": "values"}
+  },
+  "lifecycle": {
+    "create": {"idField": "string", "initialStatuses": "values", "object": "string", "successStatus": "number"},
+    "poll": {
+      "failureStatuses": "values", "intervalSeconds": "number", "method": "method",
+      "path": "path", "pendingStatuses": "values", "resultFields": "values",
+      "statusField": "string", "successStatuses": "values"
+    }
+  },
+  "outputSizes": "values"
+}
