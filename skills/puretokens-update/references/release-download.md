@@ -20,7 +20,8 @@ No GitHub Token, new runtime, mirror or background service is required.
    allowing bounded HTTPS redirects only. Save to a unique temporary local
    file, verify both size and SHA-256 digest, then execute install with the
    already confirmed host/target where available. Never pipe a response to
-   a shell. Clean this bootstrap file after completion.
+   a shell. Keep the already verified metadata file until fetch exits, then
+   clean both bootstrap files after completion.
 5. A denied request, bad metadata, download failure or checksum mismatch
    stops before execution. Report the stage and safe error; do not read
    credentials, change permissions, install a runtime or try another source.
@@ -30,10 +31,26 @@ They are anonymous and never use gh authentication or local GitHub tokens.
 The initial bootstrap cannot repair its own download before it runs.
 Older hardcoded website prompts are not rewritten by this repository.
 
+New fetch accepts that same invocation's metadata as an absolute regular
+file through --release-metadata (Shell) or -ReleaseMetadata (PowerShell).
+Use this only with the new fetch distributed with this guidance; published
+v1.0.2 and older fetch do not accept it. Do not try an unsupported option and
+retry on error. With no supplied metadata, the existing command still works.
+Fetch validates the 2 MiB bound, stable unique self asset, fixed official
+URLs, its own size and SHA-256, then pins all downloads to that snapshot.
+It performs no new metadata lookup or browser-route probe. This saves work,
+not trust: the caller must still obtain metadata from the official HTTPS
+API and verify the bootstrap before execution. Do not use a historical cache
+or treat self-verification as authenticating arbitrary local metadata.
+The caller owns cleanup of the supplied file; fetch removes only its own
+private snapshot. Changed release or asset evidence stops before sync.
+
 ## Managed fetch downloads
 
-The normal browser-download path remains unchanged. Only a complete HTTP
-502, 503 or 504 permits a bounded alternate lookup and asset GET.
+Without supplied bootstrap metadata, the normal browser-download path is
+tried first. Only a complete HTTP 502, 503 or 504 permits a bounded alternate
+lookup and asset GET. Once that asset passes size and digest verification,
+the rest of this invocation uses the official asset API directly.
 
 - Read official metadata at most once per invocation. For the initial
   latest manifest resolve latest; after a manifest is available resolve
@@ -43,6 +60,9 @@ The normal browser-download path remains unchanged. Only a complete HTTP
   size and digest as above. Fetch one asset with application/octet-stream,
   then retain all existing manifest, source commit, selector, archive and
   executor checks. A fallback manifest must match the API-selected tag.
+- Reuse the successful route only in this process and only for that pinned
+  release. Every later asset still requires unique metadata, size and digest
+  checks. A later API error stops; never return to the browser route.
 - Each primary request keeps its existing 45-second budget, or 180 seconds
   for the archive. The one metadata lookup and one alternate request are
   separately bounded by the same limits; total failure time can therefore

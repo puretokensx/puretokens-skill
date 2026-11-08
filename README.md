@@ -31,20 +31,20 @@ Install or update the official Pure Tokens Skills from https://github.com/pureto
 ### Chinese installation prompt
 
 ```text
-请为当前客户端安装或更新 Pure Tokens 官方 Skills，并告知结果。
-从以下官方稳定发布 API 选择 puretokens-skill-fetch.sh 或 puretokens-skill-fetch.ps1，用资产 url 和 Accept: application/octet-stream 下载，校验 digest 后保存到本地并执行 install：
+安装或更新当前客户端的 Pure Tokens 官方 Skills，告知结果。
+从下方稳定 API 选择 puretokens-skill-fetch.sh／puretokens-skill-fetch.ps1，以 Accept: application/octet-stream 下载资产 url，校验 size 和 digest 后在本地执行 install：
 https://api.github.com/repos/puretokensx/puretokens-skill/releases/latest
 ```
 
 ### English installation prompt
 
 ```text
-Install or update the official Pure Tokens Skills for this client and report the result.
-Select puretokens-skill-fetch.sh or puretokens-skill-fetch.ps1 from the stable release API below. Download its asset url with Accept: application/octet-stream, verify digest, save locally and run install:
+Install/update Pure Tokens Skills for this client and report the result.
+From the stable API below, select puretokens-skill-fetch.sh or puretokens-skill-fetch.ps1. Download its asset url with Accept: application/octet-stream, verify size and digest, then run install locally:
 https://api.github.com/repos/puretokensx/puretokens-skill/releases/latest
 ```
 
-Bootstrap uses the anonymous official GitHub Releases API and the unique uploaded stable fetch asset, with exact repository URL, size and SHA-256 digest verification before execution. See [official release downloads](skills/puretokens-update/references/release-download.md). No GitHub Token is required. Installed copies in `.puretokens-executor` provide check-update and update. Never pipe remote content into a shell or use main, source archives or mirrors. Inside fetch only, a complete HTTP 502/503/504 permits one same-release official asset API download; permission, TLS, timeout, rate-limit and checksum failures still stop.
+Bootstrap uses the anonymous official GitHub Releases API and the unique uploaded stable fetch asset, with exact repository URL, size and SHA-256 digest verification before execution. See [official release downloads](skills/puretokens-update/references/release-download.md). No GitHub Token is required. Installed copies in `.puretokens-executor` provide check-update and update. Never pipe remote content into a shell or use main, source archives or mirrors. New fetch can reuse this invocation's verified bootstrap metadata; after a successful official asset API fallback it keeps that route for the remaining pinned assets. Permission, TLS, timeout, rate-limit and checksum failures still stop.
 
 With fetch 0.19.1, omit host/target when neither is already confirmed. Fetch examines at most eight direct launcher processes, reading names and parent IDs only; a direct native `codex` or `opencode` can select its registered host. Unknown interpreters/editors stop detection, including Node, Electron/VS Code and ambiguous Claude launchers. `detect-host` is an offline, read-only diagnostic, not a generation preflight. Unconfirmed detection stops before release downloads or installation writes with `current_host_unconfirmed`; ask only for the missing client and run once with `--host` / `-Host`. Older fetch versions may also require that explicit selection. Preserve any confirmed host and custom target; Octop requires an explicit workspace target. Detection does not verify credentials, API support, a selected chat model or attachment delivery.
 

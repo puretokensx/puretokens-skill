@@ -81,7 +81,8 @@ async function mockDownloads(f, mode = "platform", apiMode = "valid") {
   const apiFiles = [
     [101, "release-manifest.json", "release.json"],
     [102, "puretokens-skill-install.sh", "puretokens-skill/runtime/puretokens-skill-install.sh"],
-    [103, `puretokens-skill-${version}-${f.platform}.zip`, "platform.zip"]
+    [103, `puretokens-skill-${version}-${f.platform}.zip`, "platform.zip"],
+    [104, "puretokens-skill-fetch.sh", "puretokens-skill/runtime/puretokens-skill-fetch.sh"]
   ];
   const metadata = {tag_name: `v${version}`, draft: false, prerelease: false, body: 'Ignored "quoted" text and braces {}\n with escapes', assets: []};
   for (const [id, name, file] of apiFiles) {
@@ -139,6 +140,43 @@ printf 200
   return { ...f.env, PATH: `${tools}${path.delimiter}${f.env.PATH}`, PT_FETCH_FIXTURE: f.root, PT_FETCH_MODE: mode };
 }
 
+test("bootstrap reuses its verified metadata and pins every download without extra lookups", async t => {
+  const f = await fixture(t);
+  const env = await mockDownloads(f);
+  const metadata = path.join(f.root, "github-release.json");
+  const before = await readFile(metadata);
+  const {stdout} = await execFile("sh", [path.join(f.source, "runtime/puretokens-skill-fetch.sh"), "install", "--target", f.target, "--release-metadata", metadata], {env});
+  assert.match(stdout, /synchronized with the native API executor/);
+  assert.deepEqual((await readFile(path.join(f.root, "requests"), "utf8")).trim().split("\n"),
+    [101, 102, 103].map(id => `https://api.github.com/repos/puretokensx/puretokens-skill/releases/assets/${id}`));
+  assert.deepEqual(await readFile(metadata), before);
+  assert.deepEqual(await readdir(path.join(f.root, "tmp")), []);
+});
+
+for (const mode of ["wrong-self-digest", "wrong-self-size", "duplicate-self", "draft", "symlink", "oversize"]) {
+  test(`bootstrap rejects ${mode} metadata before network or installation writes`, async t => {
+    const f = await fixture(t);
+    const env = await mockDownloads(f);
+    const metadata = path.join(f.root, "github-release.json");
+    const release = JSON.parse(await readFile(metadata, "utf8"));
+    const self = release.assets.find(a => a.name === "puretokens-skill-fetch.sh");
+    if (mode === "wrong-self-digest") self.digest = "sha256:" + "0".repeat(64);
+    if (mode === "wrong-self-size") self.size++;
+    if (mode === "duplicate-self") release.assets.push(self);
+    if (mode === "draft") release.draft = true;
+    await writeFile(metadata, mode === "oversize" ? " ".repeat(2097153) : JSON.stringify(release));
+    let input = metadata;
+    if (mode === "symlink") { input = path.join(f.root, "linked-release.json"); await symlink(metadata, input); }
+    await assert.rejects(execFile("sh", [path.join(f.source, "runtime/puretokens-skill-fetch.sh"), "install", "--target", f.target, "--release-metadata", input], {env}), error => {
+      assert.match(error.stderr, /stage=verify_bootstrap_metadata error_code=validation_failed/);
+      return true;
+    });
+    await assert.rejects(stat(path.join(f.root, "requests")), {code: "ENOENT"});
+    await assert.rejects(stat(f.target), {code: "ENOENT"});
+    assert.deepEqual(await readdir(path.join(f.root, "tmp")), []);
+  });
+}
+
 for (const status of [502, 503, 504]) {
   test(`official asset API recovers HTTP ${status} without changing release or repeating installation`, async t => {
     const f = await fixture(t);
@@ -147,7 +185,8 @@ for (const status of [502, 503, 504]) {
     const {stdout} = await execFile("sh", [wrapper, "install", "--target", f.target], {env});
     assert.match(stdout, /synchronized with the native API executor/);
     const requests = (await readFile(path.join(f.root, "requests"), "utf8")).trim().split("\n");
-    assert.equal(requests.length, 7);
+    assert.equal(requests.length, 5);
+    assert.equal(requests.filter(x => x.startsWith("https://github.com/")).length, 1);
     assert.equal(requests.filter(x => x === "https://api.github.com/repos/puretokensx/puretokens-skill/releases/latest").length, 1);
     for (const id of [101, 102, 103]) assert.equal(requests.filter(x => x.endsWith(`/assets/${id}`)).length, 1);
     const options = await readFile(path.join(f.root, "download-options"), "utf8");
@@ -159,6 +198,7 @@ for (const status of [502, 503, 504]) {
     assert.match(again.stdout, /already current and verified; no archive downloaded, no files changed, init not run/);
     assert.equal((await stat(path.join(f.target, ".puretokens-executor/runtime.json"))).mtimeMs, before.mtimeMs);
     assert.doesNotMatch(await readFile(path.join(f.root, "requests"), "utf8"), new RegExp("assets/103|[.]zip"));
+    assert.equal((await readFile(path.join(f.root, "requests"), "utf8")).trim().split("\n").length, 4);
     assert.deepEqual(await readdir(path.join(f.root, "tmp")), []);
   });
 }

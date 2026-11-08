@@ -18,10 +18,22 @@
       "releaseManifest": "https://github.com/puretokensx/puretokens-skill/releases/latest/download/release-manifest.json",
       "bootstrapMetadata": "https://api.github.com/repos/puretokensx/puretokens-skill/releases/latest",
       "bootstrapValidation": "unique_uploaded_stable_asset_exact_repository_url_size_sha256_digest_before_execution",
+      "bootstrapMetadataReuse": {
+        "options": ["--release-metadata", "-ReleaseMetadata"],
+        "scope": "same_invocation_official_https_metadata_only_not_historical_cache",
+        "maxBytes": 2097152,
+        "requiresAbsoluteRegularNonLinkedFile": true,
+        "validatesStableSelfAssetSizeAndDigest": true,
+        "replacesPreExecutionVerification": false,
+        "additionalMetadataRequests": 0,
+        "pinsRemainingAssetsToSnapshot": true
+      },
       "downloadFallback": {
         "httpStatuses": [502, 503, 504],
         "metadataRequestsPerInvocation": 1,
         "assetRequestsPerFailedFile": 1,
+        "reuseVerifiedRouteForRemainingPinnedAssets": true,
+        "routeScope": "current_invocation_only",
         "source": "official_anonymous_github_asset_api_same_pinned_release",
         "requiresToken": false,
         "doesNotRetryAlternateOrBypassPermissions": true

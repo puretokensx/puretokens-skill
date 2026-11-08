@@ -29,20 +29,20 @@ Install or update the official Pure Tokens Skills from https://github.com/pureto
 ### 中文安装提示词
 
 ```text
-请为当前客户端安装或更新 Pure Tokens 官方 Skills，并告知结果。
-从以下官方稳定发布 API 选择 puretokens-skill-fetch.sh 或 puretokens-skill-fetch.ps1，用资产 url 和 Accept: application/octet-stream 下载，校验 digest 后保存到本地并执行 install：
+安装或更新当前客户端的 Pure Tokens 官方 Skills，告知结果。
+从下方稳定 API 选择 puretokens-skill-fetch.sh／puretokens-skill-fetch.ps1，以 Accept: application/octet-stream 下载资产 url，校验 size 和 digest 后在本地执行 install：
 https://api.github.com/repos/puretokensx/puretokens-skill/releases/latest
 ```
 
 ### 英文安装提示词
 
 ```text
-Install or update the official Pure Tokens Skills for this client and report the result.
-Select puretokens-skill-fetch.sh or puretokens-skill-fetch.ps1 from the stable release API below. Download its asset url with Accept: application/octet-stream, verify digest, save locally and run install:
+Install/update Pure Tokens Skills for this client and report the result.
+From the stable API below, select puretokens-skill-fetch.sh or puretokens-skill-fetch.ps1. Download its asset url with Accept: application/octet-stream, verify size and digest, then run install locally:
 https://api.github.com/repos/puretokensx/puretokens-skill/releases/latest
 ```
 
-首次下载使用 GitHub 官方匿名 Releases API，选择唯一同名已上传稳定资产，校验固定仓库资产 url、size 和 SHA-256 digest 后本地执行。详见[官方发布下载](skills/puretokens-update/references/release-download.md)，不需要 GitHub Token。已安装时使用同级 `.puretokens-executor` 中的 fetch 执行 check-update 或 update。不把远程响应管道进 shell，不回退 main、源码归档或镜像。仅 fetch 内网页附件明确返回 502／503／504 时，允许一次同版本官方资产 API 下载；权限、TLS、超时、限流与校验失败仍停止。
+首次下载使用 GitHub 官方匿名 Releases API，选择唯一同名已上传稳定资产，校验固定仓库资产 url、size 和 SHA-256 digest 后本地执行。详见[官方发布下载](skills/puretokens-update/references/release-download.md)，不需要 GitHub Token。已安装时使用同级 `.puretokens-executor` 中的 fetch 执行 check-update 或 update。不把远程响应管道进 shell，不回退 main、源码归档或镜像。新版 fetch 可复用本次 bootstrap 已验证的发布元数据；官方 API 备用下载校验成功后，本次其余固定版本资产沿用该路线。权限、TLS、超时、限流与校验失败仍停止。
 
 fetch 0.19.1 中，尚无已确认的宿主／目标时可省略这些参数。fetch 最多检查八层直接启动进程，仅看进程名和父 PID；明确的原生 `codex`、`opencode` 可选中对应宿主。Node、Electron／VS Code、无法区分的 Claude 等未知启动器会中止识别。`detect-host` 是离线只读诊断，不是生成预检。识别不明会在下载发布包或写入安装前返回 `current_host_unconfirmed`；只询问缺失客户端，再带 `--host`／`-Host` 执行一次。旧 fetch 版本也可能要求显式选择。沿用已确认宿主及自定义目标，Octop 必须指定工作区目标。识别成功不证明凭据、API 支持、当前聊天模型或附件交付。
 

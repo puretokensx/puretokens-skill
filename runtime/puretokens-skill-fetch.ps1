@@ -8,7 +8,8 @@ param(
   [Alias("Host")]
   [ValidateSet("claude-code", "codex", "workbuddy", "gemini-cli", "grok-build", "opencode", "trae", "claude-desktop", "dsh-desktop", "deepseek-harness", "minimax-code", "zcode", "kimi-code", "qoder", "pi", "hermes", "evox", "vscode", "octop", "oh-my-pi", "minimax-code-cli", "qwen-code", "codebuddy-code", "copilot-cli", "factory-droid", "mimo-coder", "paseo")]
   [string]$HostId,
-  [string]$Target
+  [string]$Target,
+  [string]$ReleaseMetadata
 )
 $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -64,7 +65,16 @@ function Get-OfficialAsset([string]$Url, [string]$Destination, [string]$Stage) {
     if ((Get-Item -LiteralPath $metadataFile).Length -gt 2097152) { Fail 'official release metadata exceeds the supported size' }
     try { $script:officialReleaseMetadata = Read-Json $metadataFile } catch { Fail 'official release metadata is unreadable' }
   }
-  $metadata = $script:officialReleaseMetadata
+  $asset = Get-ReleaseAsset $script:officialReleaseMetadata $expectedTag $name
+  $null = Get-OfficialFile $asset.url $Destination $Stage 'application/octet-stream' -NoFallback
+  if ((Get-Item -LiteralPath $Destination).Length -ne [long]$asset.size -or
+      (Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash.ToLowerInvariant() -cne $asset.digest.Substring(7)) { Fail 'official release asset size or checksum mismatch' }
+  $script:officialReleaseTag = $script:officialReleaseMetadata.tag_name
+  $script:officialAssetRoute = $true
+  return 200
+}
+function Get-ReleaseAsset($Metadata, [string]$ExpectedTag, [string]$Name) {
+  $prefix = 'https://github.com/puretokensx/puretokens-skill/releases/'
   $tag = $metadata.tag_name
   if ($tag -isnot [string] -or $tag -cnotmatch '^v[0-9]+[.][0-9]+[.][0-9]+$' -or
       ($expectedTag -cne 'latest' -and $tag -cne $expectedTag) -or
@@ -79,14 +89,32 @@ function Get-OfficialAsset([string]$Url, [string]$Destination, [string]$Stage) {
       $asset.state -cne 'uploaded' -or $asset.digest -cnotmatch '^sha256:[0-9a-f]{64}$' -or
       $asset.url -cne "https://api.github.com/repos/puretokensx/puretokens-skill/releases/assets/$id" -or
       $asset.browser_download_url -cne ($prefix + "download/$tag/$name")) { Fail 'official release asset metadata is invalid or ambiguous' }
-  $null = Get-OfficialFile "https://api.github.com/repos/puretokensx/puretokens-skill/releases/assets/$id" $Destination $Stage 'application/octet-stream' -NoFallback
-  if ((Get-Item -LiteralPath $Destination).Length -ne [long]$size -or
-      (Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash.ToLowerInvariant() -cne $asset.digest.Substring(7)) { Fail 'official release asset size or checksum mismatch' }
-  $script:officialReleaseTag = $tag
-  return 200
+  return $asset
+}
+function Test-AbsoluteLocalMetadataPath([string]$Path, [bool]$Windows = ([IO.Path]::DirectorySeparatorChar -eq '\')) {
+  # IsPathRooted also accepts drive-relative paths and remote shares on Windows.
+  if ($Windows) { return $Path -match '^[A-Za-z]:[\\/]' }
+  return $Path.StartsWith('/', [StringComparison]::Ordinal) -and -not $Path.StartsWith('//', [StringComparison]::Ordinal)
+}
+function Initialize-BootstrapMetadata([string]$MetadataFile, [string]$FetchFile) {
+  $script:installStage = 'verify_bootstrap_metadata'
+  if (-not (Test-AbsoluteLocalMetadataPath $MetadataFile)) { Fail 'bootstrap metadata requires an absolute local file' }
+  try { $file = Get-Item -LiteralPath $MetadataFile -ErrorAction Stop } catch { Fail 'bootstrap metadata is unreadable' }
+  if ($file -isnot [IO.FileInfo] -or ($file.Attributes -band [IO.FileAttributes]::ReparsePoint) -or $file.Length -gt 2097152) { Fail 'bootstrap metadata must be a bounded regular non-linked file' }
+  try { $metadata = Read-Json $MetadataFile } catch { Fail 'bootstrap metadata is unreadable' }
+  $asset = Get-ReleaseAsset $metadata latest puretokens-skill-fetch.ps1
+  if ((Get-Item -LiteralPath $FetchFile).Length -ne [long]$asset.size -or
+      (Get-FileHash -LiteralPath $FetchFile -Algorithm SHA256).Hash.ToLowerInvariant() -cne $asset.digest.Substring(7)) { Fail 'bootstrap script does not match the selected release' }
+  $script:officialReleaseMetadata = $metadata
+  $script:officialReleaseTag = $metadata.tag_name
+  $script:officialAssetRoute = $true
 }
 function Get-OfficialFile([string]$Url, [string]$Destination, [string]$Stage, [string]$Accept = 'application/vnd.github+json', [switch]$NoFallback) {
   $script:installStage = $Stage
+  if (-not $NoFallback -and $script:officialAssetRoute -and
+      $Url.StartsWith('https://github.com/puretokensx/puretokens-skill/releases/', [StringComparison]::Ordinal)) {
+    return Get-OfficialAsset $Url $Destination $Stage
+  }
   $status = 0
   $category = "transport_failure"
   $completed = $false
@@ -161,12 +189,13 @@ function Get-OfficialFile([string]$Url, [string]$Destination, [string]$Stage, [s
 $downloadRoot = $null
 $script:officialReleaseMetadata = $null
 $script:officialReleaseTag = $null
+$script:officialAssetRoute = $false
 $delegated = $false
 try {
   $script:installStage = "detect_host"
   # Keep selection in this script's scope so confirmed values reach sync/init.
   if ($Command -eq "detect-host") {
-    if ($HostId -or $Target) { Fail "detect-host takes no host or target options" }
+    if ($HostId -or $Target -or $ReleaseMetadata) { Fail "detect-host takes no host, target or release metadata options" }
     Get-CurrentHost
     return
   }
@@ -183,6 +212,7 @@ try {
   $script:installStage = "prepare_download"
   $downloadRoot = Join-Path ([IO.Path]::GetTempPath()) ("puretokens-download-" + [Guid]::NewGuid().ToString("N"))
   New-Item -ItemType Directory -Path $downloadRoot | Out-Null
+  if ($ReleaseMetadata) { Initialize-BootstrapMetadata $ReleaseMetadata $PSCommandPath }
   $releaseFile = Join-Path $downloadRoot "release.json"
   $script:installStage = "read_release_manifest"
   $null = Get-OfficialFile "https://github.com/puretokensx/puretokens-skill/releases/latest/download/release-manifest.json" $releaseFile read_release_manifest

@@ -17,73 +17,57 @@ description: 当前宿主使用 Pure Tokens 连接时，生成或编辑图片、
 文件路径／下载回执不等于交付；附件须实际附加，文本须展示校验后的结果。未知提交不证明未处理或未扣费，均不自动重发。
 <!-- /generated:operations -->
 
-只有用户要求生成／编辑图片时才进入新任务提交。仅索要现有品牌图标或已有图片，交回宿主普通资源检索与附件交付能力；不调用媒体执行器、不假定有检索工具、不把未找到变成 AI 重画授权，也不把生成图冒充官方资源。这不是生成失败后的备用传输。仅看图、OCR、解释截图报错或只写提示词，直接按理解／写作任务处理；只问用法读 puretokens-update 的使用指南，只问模型能力交给 puretokens-models。已有任务的进度、恢复或取结果走同任务续接，不创建新任务。单独出现图片附件、模型名称或“图片”一词不是生成授权。
+仅明确生成／编辑请求创建新任务。现有图标／图片走宿主资源检索，未找到不授权重画，生成图不冒充官方资源。看图、OCR、解释报错、写提示词不调用执行器；用法读 puretokens-update，能力交给 puretokens-models。附件／模型名不是生成授权；已有任务只续接。
 
-先按完整需求确定交付物、数量和对应关系，再选操作。“分别给我 A、B、C 的 icon”是三份独立图片，不是一张拼图；“生成一张包含 A、B、C 的海报”才是一份合成产物。不要只按关键词或主体数量推断；明确的数量、独立／合并要求不再追问，不漏项，也不擅自拼接或拆分。
+按需求确定交付物、数量和对应关系：“分别给我 A、B、C 的 icon”是三份独立图片；“生成一张包含 A、B、C 的海报”是一份合成产物。明确要求不重复追问、不漏项、不擅自拼接或拆分。
 
-| 用户需求 | 操作选择 |
-| --- | --- |
-| 用文字生成一张新图 | `generate`，读取所选 profile |
-| 生成 GIF／动图，或指定图片文件格式 | 仍用 `kind=image`；明确写 `output_format`，同时验证所选模型的生成／编辑和尺寸组合，不用默认静态格式替代 |
-| 同一主题的多张候选图 | 同一 prompt 的 `n`；遵守 profile 数量限制，不承诺不同设计一一对应 |
-| 明确要求分别生成不同图片 | 按独立 brief 逐项生成、记录并交付；按需读 [组合流程](references/workflows.md#独立图片清单)，不将多个 brief 塞进同一个 `n` |
-| 只修改附件背景、保留主体／文案 | 本地附件用声明的 `image_edit`；公网 URL 编辑须有对应 JSON 编辑声明 |
-| 公网原图配本地蒙版局部编辑 | 精确 GPT 2.6 系列声明的 `masked_image_edit`：`operation=edit`，公网原图放 `parameters.image_urls`，本地蒙版放 `attachments` 的 `mask`；全本地原图和蒙版仍用 multipart `image_edit` |
-| 参考附件的外观／风格生成新图 | 保留“参考”用途；本地参考走声明的 `image_edit`，公网参考用 profile 声明的 JSON 字段 |
-| 多张附件合成／分别参考 | 先明确各图角色，再验证同一 operation 的数量和组合；不由附件数量猜用途 |
-| 继续原任务、下载已有结果 | `resume`／同任务查询与交付；不得新 POST |
-
-用户已说明角色时不重复追问；用途不明或模型能力不支持时才澄清。此表只判断意图，具体字段、传输、数量和能力以所选 profile 为准。
+新图用 `generate`；同一 brief 候选图用 `n`，不同 brief 按 [独立图片清单](references/workflows.md#独立图片清单) 逐项记录、生成和交付，不塞入同一个 `n`。编辑／参考／合成保留每图角色及修改范围，本地用声明的 `image_edit`，公网用声明的 JSON 字段。只在用途不明或能力不支持时澄清。
 
 ## 执行边界
 
-必须调用安装的原生执行器；它是唯一 API 传输，固定请求 `https://api.puretokensx.com`。不得自行发 HTTP，不回退到 imagegen／Imagen／通用视频 Skill、MCP、代理、Computer Use 或浏览器／桌面自动化。仅执行器在内存中使用当前宿主匹配连接；Skill 不读配置、不传或展示凭据，不新增用户运行环境。
+必须调用安装的原生执行器；它是唯一 API 传输，固定请求 `https://api.puretokensx.com`。不得自行发 HTTP，或回退其他媒体 Skill、imagegen／Imagen、MCP、代理、Computer Use／浏览器。Skill 不读配置、不传或展示凭据、不新增用户运行环境。
 
-从本 SKILL.md 绝对目录解析 `../.puretokens-executor/puretokens-api`，Windows 使用 `puretokens-api.exe`；不依赖 PATH 或工作目录。沿用当前已绑定的 host；模式或附件交付方式不明确时，只读 [当前客户端交付](references/host-delivery.md) 对应部分。
+执行器为本 SKILL.md 绝对目录的 `../.puretokens-executor/puretokens-api`（Windows 为 `puretokens-api.exe`），不依赖 PATH；沿用绑定 host。模式／交付不明才读 [客户端交付](references/host-delivery.md)。
 
-宿主已明确无法提供本次附件字节或交付媒体时，提交前停止，不创建付费任务；远程／沙箱限制不允许复制凭据或换传输。安装、init、API 或夹具成功不证明实机附件能力，验收待完成也不等于不支持。未反映在有效连接文件中的会话覆盖必须停止；ZCode／Qoder 配置存在不证明当前聊天选择。
+宿主明确无法提供附件字节或交付媒体时，提交前停止；不绕过沙箱或换凭据／传输。安装、init、API 或夹具成功不证明实机附件能力，待验收也不等于不支持。未反映在有效连接文件中的会话覆盖必须停止；配置存在不证明当前聊天选择。
 
 ## 简单请求短路径
 
-- 模型、素材和用途明确的单次生成或编辑，直接「读取所选 profile → 写请求文件 → submit」。除非用户要求计划或任务属于复杂多阶段工作，不创建或更新任务清单，不为宣布下一步单独增加一轮。
-- 必要且互不依赖的读取放在同一轮；已读且仍在有效上下文中的说明不重读。仅缺命令用法时才读 executor-usage，与所选 profile 合并读取；不把完整指南当作固定前置。
-- 直接使用宿主提供且执行器可访问的附件绝对路径，不为整理目录复制、重命名或改写原图。宿主必须先物化附件时才保存一份字节不变的文件；这不允许绕过权限或变换附件传输。
-- 收到回执后直接按 `next_step` 执行，不在 wait、content、deliver 之间插入任务清单或额外规划。仍须先报告提交回执、逐步检查结果、遵守停止条件；不能把 submit、wait、content 合成一个命令。
+- 模型、素材和用途明确的单次生成或编辑：「所选 profile → 请求文件 → submit」。除非用户要求计划或任务属于复杂多阶段工作，不创建或更新任务清单。
+- 必要且互不依赖的读取放在同一轮；已读且仍在有效上下文中的说明不重读。仅缺命令用法时才读 executor-usage，与 profile 同轮读取。
+- 直接使用宿主提供且执行器可访问的附件绝对路径，不为整理目录复制、重命名或改写原图；宿主必须先物化附件时才保存一份字节不变的文件，不绕过权限或改传输。
+- 收到回执后直接按 `next_step` 执行，不在 wait、content、deliver 之间插入任务清单或额外规划；先报告回执，检查结果和停止条件，不能把 submit、wait、content 合成一个命令。
 - `next_step` 不扩大当前用户授权的索引范围；用户只要求取回某几张时，只处理这些索引，完成实际交接和确认后停止，即使记录还有其他未交付项。
 
 ## 选择与提交
 
-1. 默认 `gpt-image-2.6` 或用户精确 ID：只读 `references/profiles/<model>.json`；选模型或唯一别名解析才读 `references/model-index.json`。不遍历 profile，不先查余额、init、doctor、preflight 或实时目录。未知精确 ID 的纯文本请求可只传 model/prompt；字段／操作缺口由执行器按需读一次目录。
-2. 保留用户意图、指定文案和修改范围，只发 profile 声明的字段、值、operation。物理尺寸不是 API 尺寸。本地参考／编辑走声明的 `image_edit`；`gpt-image-2.6` 使用 `https://api.puretokensx.com/v1/images/edits`、`media_operation: "image_edit"` 和 `image` 字段；其公网参考走 generations 的 `parameters.image`。`n` 仅是同一 brief 的结果数，可省略 requested_count，提供时须一致。用户明确分别生成的有限清单按原范围执行，不重复索要同一授权；只有新增产物、拆分原本合并的设计、换模型或扩大收费范围才确认。
-3. 本次本地附件只用 profile 声明的 `multipart_file` 或精确模型的 `local_file_data_url`。后者仍传 `attachments` 原始绝对路径，由执行器校验并在内存编码 JSON；Skill 不自行编码、不把 data URL 写进请求。公网 HTTPS URL 只进声明字段。蒙版 JSON 只混合声明的 `image_urls` 与本地 `mask`；不下载、探测、转存参考媒体或改成提示词，没有声明的传输方式就停止。
-4. 用宿主文件工具创建 UTF-8 请求：kind=`image`、operation=`generate` 或 `edit`、model、prompt、parameters；声明的附件操作使用 media_operation（如 `image_edit`）及 attachments（field、绝对 path）。执行 `<执行器> submit --host <当前宿主> --request <绝对请求文件>`，之后清理该临时文件；提示词和凭据不进命令行。命令／请求示例按需读 [executor-usage.md](references/executor-usage.md)。
+1. 默认 `gpt-image-2.6` 或用户精确 ID：只读 `references/profiles/<model>.json`，选型／别名才读 `references/model-index.json`。不先查余额、init、doctor、preflight 或实时目录。未知精确 ID 的纯文本请求只传 model/prompt；字段缺口由执行器按需查一次。
+2. 只发 profile 声明的字段、值、operation；保留用户意图、文案和修改范围。物理尺寸不是 API 尺寸。`gpt-image-2.6` 本地编辑用 `https://api.puretokensx.com/v1/images/edits`、`media_operation: "image_edit"` 和 `image` 字段；公网参考用 generations 的 `parameters.image`。`n` 仅为同一 brief 数量，requested_count 可省略、提供须一致；明确独立清单按原范围执行，新增产物、拆分合并设计、换模型或扩大收费范围才确认。
+3. 本地附件仅用声明的 `multipart_file` 或 `local_file_data_url`，后者传原始绝对路径，由执行器内存编码，不自行写 data URL。公网 HTTPS URL 只进声明字段，不下载、探测、转存或改成提示词；没有声明的传输方式就停止。
+4. 创建 UTF-8 请求：kind=`image`、operation=`generate`／`edit`、model、prompt、parameters；附件用 media_operation 及 attachments（field、绝对 path）。执行 `<执行器> submit --host <当前宿主> --request <绝对请求文件>` 后清理临时文件，提示词／凭据不进命令行；示例按需读 [executor-usage.md](references/executor-usage.md)。
 
-用户要求原样使用的提示词逐字保留，不翻译、润色或追加质量词／负面词；海报指定文案逐字保留，不增写文案。提示词中的“8K”等画质描述不自动成为 API 尺寸；用户明确要求实际 8K 输出时才按 profile 检查支持。只有需要组织商品图、文字海报或局部编辑的模糊需求时，按需读 [场景提示词指南](references/prompt-guide.md) 对应段落；简单明确请求不额外读取。
-
-用户明确要求 GIF／动图或 SVG 时，先读 [特殊图片格式](references/image-formats.md) 对应段落与所选 profile；保留原始格式和真实附件，不转换、不手写替代。普通生成不读该指南。
+原样提示词／文案逐字保留，不翻译、润色或追加词；“8K”等描述不自动变成 API 尺寸。模糊场景才读 [提示词指南](references/prompt-guide.md)。
 
 ## 同任务完成交付
 
-多图、跨会话或需恢复时，首次 submit 加 `--record <工作区或用户指定的唯一绝对任务文件>`；Claude Desktop 映射连接的单图也必须带记录，其他单图短会话可不用。记录不含 prompt、凭据、参考 URL 或媒体字节；映射连接仅增加随机 connection_id，换连接后停止远程续取，不手改或重提。无记录时，每次续接保留 task_id、original_operation、model、确认数量、安全参数、reconciliation_required、retry_not_before、wait_windows_completed。
+多图、跨会话、需恢复或 Claude Desktop 映射连接首次 submit 带 `--record <明确工作区的唯一绝对任务文件>`；其他单图短会话可不用。记录不含 prompt、凭据、参考 URL 或媒体字节；不手改，映射连接改变即停止远程续取。无记录时续接保留 task_id、original_operation、model、确认数量、安全参数、reconciliation_required、retry_not_before、wait_windows_completed。
 
 - **提交一次**，先告知返回的 task_id 和状态，再按 `next_step` 继续。回执缺失／无法解析即提交未知；只清理本次临时请求文件后停止，不追加 API 操作、不重提、不猜扣费。
-- **本地拼装修正**：仅 `correct_request` + `not_submitted` + `media_request_invalid` 且无 task_id 时按 `references/receipt-guide.md` 修正一次 Agent 的明确拼装错误；不改用户意图，不处理已有任务或未知提交，不要求用户编辑 JSON。
+- **拼装修正**：仅 `correct_request` + `not_submitted` + `media_request_invalid` 且无 task_id，按 `references/receipt-guide.md` 修正一次本地拼装；不改意图、不处理旧任务或未知提交、不要求用户编辑 JSON。
 - **wait**：有记录用 `resume --host <host> --record <文件>`，否则用 `wait --host <host> --request <同任务文件>`。执行器按 retry_not_before 等待（首次默认 5 秒，其后每 3 秒），窗口最多 40 次读取／120 秒，含网络耗时；遵守 Retry-After，不另加 sleep。
 - **窗口结束**：`ok=true`、`wait_outcome=window_ended` 仍为生成中。仅 `next_step=wait` 且原授权和前台会话仍有效可自动再续一个窗口；累计两个窗口、retry_deferred 或 await_user 时暂停。取消、失败回执、网络超时、未知状态或对账均停止自动续接，不重置计数或后台循环。窗口内 429 只由执行器按剩余预算处理。
-- **content**：只下载已完成的原任务；用 `content --host <host> --record <文件> --index <索引> --output-dir <现有绝对目录>`，无记录用含 completed 状态和确认数量的同任务请求。按 0..n-1 每次一个索引，交付后才取下一个。
-- **取回停止**：响应等待最多 90 秒，读取连续 30 秒无字节进展即停止，总预算最多 10 分钟。失败或 `await_user` 后不自动重跑 content／resume、不加 sleep 循环；明确报告“原任务仍在，取回未完成”，用户明确要求后才再取同一索引。无字节进度证据不声称“正在缓慢传输”；客户端命令仍在运行不等于有下载进展。
-- **deliver**：按当前宿主已声明的附件工具或本地媒体格式交付 downloaded_paths 的原文件；方式不明确才读 [客户端交付](references/host-delivery.md)。下载、路径和任务号不等于交付，不能用 URL、HTML 或助手手写 SVG 代替；显式 SVG 交付已校验的 API 原文件。实际交接后才执行 `delivered --record <文件> --index <索引>`，不在媒体回复发出前预先确认；正常交接无需每次让用户确认已看见。done 结束本项，仅明确的独立图片清单可继续下一项；不自动审美检查或追加创作。
+- **content**：只取已完成原任务：`content --host <host> --record <文件> --index <索引> --output-dir <现有绝对目录>`；无记录用含 completed 和确认数量的同任务请求。按 0..n-1 逐索引交付后再取下一个。
+- **取回停止**：响应等待 90 秒／连续 30 秒无字节／总计 10 分钟超限停止。失败或 `await_user` 不自动重跑；报告原任务仍在、取回未完成，明确继续才取同索引。无字节证据不声称正在传输。
+- **deliver**：用当前宿主已声明的附件方式交付 downloaded_paths 原文件；不明确才读 [客户端交付](references/host-delivery.md)。路径／任务号不算交付，不用 URL、HTML、手写 SVG 替代。实际交接后才执行 `delivered --record <文件> --index <索引>`；不提前确认，也不要求用户每次确认看见。done 后结束本项，仅明确的独立清单继续下一项；不自动审美检查或追加创作。
 
-用户明确要求再次发送已交付文件时，用 `redeliver --host <host> --record <原记录> --index <索引>`：先校验本地原文件；缺失或不满足原请求格式／完整性时，仅按用户明确要求在新目录取回同任务同索引，不重新生成。具体恢复见下方续接指南。
-
-交付失败只重交已有文件。已完成且无对账标记的记录用 resume 本地校验，不读凭据或请求 API；跨命令复用须匹配 SHA-256、字节数、媒体类型。无记录仅重交本会话刚下载且未改变的文件；证明不足时保留文件，另选目录取同任务索引。换电脑、旧记录、对账或跨会话恢复时读 [续接与恢复](references/executor-usage.md#continuation-record)；无 ID 的未知提交不能靠记录恢复。
+交付失败只重交已有文件；明确再次发送用 `redeliver --host <host> --record <原记录> --index <索引>`，先校验原文件。缺失或不满足原请求格式／完整性才按授权换目录取同索引，不重新生成。交付失败、跨会话、旧记录或对账读 [续接与恢复](references/executor-usage.md#continuation-record)；无记录仅重交本会话未变文件，无 ID 未知提交不能恢复。
 
 ## 按需说明
 
-- 独立图片清单或组合需求（先出图再做首帧视频）才读 [组合流程](references/workflows.md)；单次请求不增加步骤。进度与交付含义不明才读 [回执说明](references/receipt-guide.md)。
+普通请求不读取按需说明。结果优先交付实际附件，进度简报确认状态。失败只给一个有证据的下一步，不展示命令／整份 JSON、不让用户管理阶段；解释含义才读 [回执说明](references/receipt-guide.md)。
 
-- 失败／费用／支持摘要：读 `references/failure-guide.md`，只说明实际阶段、已有任务及脱敏 next_action，不展示整份 JSON、原始错误、内部 URL 或配置。本地未识别不等于未配置，不据此要求重装、重配、换模型或凭据。
-- 失败后需要继续创作的选择时，按 [模型建议](references/model-alternatives.md) 核对当前连接的兼容候选，用户明确同意后才创建一次可能计费的新任务；未知、进行中、对账或交付失败仍恢复原任务，不自动换模型。
-- 模型权限拒绝或用户询问分组时，按 [线上分组指引](references/model-groups.md) 获取真实名称；公开归属不证明当前 Key 权限，不自动改配置或重提。
-- 用户明确检查参数才用 preflight；不创建任务、不报价、不证明权限。宿主限制读 `references/desktop-hosts.md`。
-- 复杂异常按 id 查 `references/behavior-scenarios.json`；正式字段见 `references/execution-contract.json`，展示规则见 `references/task-receipt.json`，均非普通生成前置。
+- GIF／SVG：读 [格式](references/image-formats.md)，明确 `output_format`，原格式交付。公网图配本地蒙版：读 [用法](references/executor-usage.md)，用声明的 `masked_image_edit`；全本地用 `image_edit`。
+- 组合需求读 [组合流程](references/workflows.md)。失败／费用读 [失败指南](references/failure-guide.md)，不暴露原始错误、内部 URL 或配置；未识别不等于未配置。
+- 明确失败且需继续创作选择：读 [模型建议](references/model-alternatives.md)，同意后才新建可能计费任务；未知、进行中、对账或交付失败只保留原任务，不自动换模型。
+- 权限拒绝／问分组：读 [线上分组](references/model-groups.md)，不猜名称／权限，不自动改配置／重提。
+- 显式参数检查才用 preflight，不报价／证明权限。宿主限制见 `references/desktop-hosts.md`，复杂异常见 `references/behavior-scenarios.json`，字段／展示见 `references/execution-contract.json`、`references/task-receipt.json`。

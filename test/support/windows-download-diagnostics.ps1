@@ -9,10 +9,30 @@ $ast = [System.Management.Automation.Language.Parser]::ParseInput($source, [ref]
 $functions = @($ast.FindAll({
   param($node)
   $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
-    $node.Name -in @('Fail', 'Read-Json', 'Get-OfficialFile', 'Get-OfficialAsset')
+    $node.Name -in @('Fail', 'Read-Json', 'Get-OfficialFile', 'Get-OfficialAsset', 'Get-ReleaseAsset', 'Test-AbsoluteLocalMetadataPath', 'Initialize-BootstrapMetadata')
 }, $true))
-if ($parseErrors.Count -ne 0 -or $functions.Count -ne 4) { throw 'Download fixture could not load production functions' }
+if ($parseErrors.Count -ne 0 -or $functions.Count -ne 7) { throw 'Download fixture could not load production functions' }
 . ([ScriptBlock]::Create(($functions | ForEach-Object { $_.Extent.Text }) -join "`n"))
+
+$pathCases = @(
+  @{ Path = 'C:\temp\release.json'; Windows = $true; Valid = $true },
+  @{ Path = 'C:/temp/release.json'; Windows = $true; Valid = $true },
+  @{ Path = 'C:release.json'; Windows = $true; Valid = $false },
+  @{ Path = '\release.json'; Windows = $true; Valid = $false },
+  @{ Path = '/release.json'; Windows = $true; Valid = $false },
+  @{ Path = '\\server\share\release.json'; Windows = $true; Valid = $false },
+  @{ Path = '//server/share/release.json'; Windows = $true; Valid = $false },
+  @{ Path = '\\?\C:\temp\release.json'; Windows = $true; Valid = $false },
+  @{ Path = 'release.json'; Windows = $true; Valid = $false },
+  @{ Path = ''; Windows = $true; Valid = $false },
+  @{ Path = '/tmp/release.json'; Windows = $false; Valid = $true },
+  @{ Path = '//server/share/release.json'; Windows = $false; Valid = $false },
+  @{ Path = 'release.json'; Windows = $false; Valid = $false }
+)
+foreach ($case in $pathCases) {
+  if ((Test-AbsoluteLocalMetadataPath $case.Path $case.Windows) -ne $case.Valid) { throw 'Bootstrap path qualification mismatch' }
+}
+Write-Output "Bootstrap path qualification: $($pathCases.Count) offline cases passed."
 
 if (-not ('PureTokensDownloadFixtureException' -as [type])) {
   Add-Type -TypeDefinition @'
@@ -125,6 +145,7 @@ try {
   $script:downloadRoot = $apiRoot
   foreach ($mode in @('valid','draft','prerelease','wrong-tag','duplicate','wrong-origin','bad-digest','wrong-size','unavailable')) {
     $script:officialReleaseMetadata = $null
+    $script:officialAssetRoute = $false
     $script:apiRequests = New-Object 'System.Collections.Generic.List[string]'
     $script:apiAssetFails = $mode -eq 'unavailable'
     $name = 'puretokens-skill-install.ps1'
@@ -148,6 +169,43 @@ try {
     if ($failed -ne ($mode -ne 'valid')) { throw "Wrong fallback outcome: $mode" }
     if ($script:apiRequests.Count -gt 3) { throw 'Official fallback looped' }
     if ($mode -eq 'valid' -and ((Get-FileHash -LiteralPath (Join-Path $apiRoot 'asset') -Algorithm SHA256).Hash.ToLowerInvariant() -ne $asset.digest.Substring(7))) { throw 'Downloaded wrong asset bytes' }
+    if ($mode -eq 'valid') {
+      $null=Get-OfficialFile "https://github.com/puretokensx/puretokens-skill/releases/download/v1.2.3/$name" (Join-Path $apiRoot 'asset-again') download_selector
+      if ($script:apiRequests.Count -ne 4 -or @($script:apiRequests | Where-Object { $_ -like 'https://github.com/*' }).Count -ne 1) { throw 'Verified route was not reused within the invocation' }
+      $script:apiAssetFails=$true
+      $failed=$false
+      try { $null=Get-OfficialFile "https://github.com/puretokensx/puretokens-skill/releases/download/v1.2.3/$name" (Join-Path $apiRoot 'asset-failed') download_selector } catch { $failed=$true }
+      if (-not $failed -or $script:apiRequests.Count -ne 5) { throw 'Reused route retried or fell back after failure' }
+    }
   }
   Write-Output 'Official asset fallback: 9 bounded offline cases passed.'
+  foreach ($mode in @('valid','wrong-digest','wrong-size','duplicate','draft','oversize')) {
+    $script:officialReleaseMetadata=$null
+    $script:officialAssetRoute=$false
+    $script:apiRequests.Clear()
+    $script:apiAssetFails=$false
+    $fetchFile=Join-Path $apiRoot 'bootstrap.ps1'
+    [IO.File]::WriteAllBytes($fetchFile, [byte[]]@(1,2,3))
+    $self=@{id=124;name='puretokens-skill-fetch.ps1';state='uploaded';size=3;digest='sha256:039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81';url='https://api.github.com/repos/puretokensx/puretokens-skill/releases/assets/124';browser_download_url='https://github.com/puretokensx/puretokens-skill/releases/download/v1.2.3/puretokens-skill-fetch.ps1'}
+    $release=@{tag_name='v1.2.3';draft=$false;prerelease=$false;assets=@($self)}
+    switch ($mode) {
+      'wrong-digest' { $self.digest='sha256:' + ('0' * 64) }
+      'wrong-size' { $self.size=4 }
+      'duplicate' { $release.assets=@($self,$self) }
+      'draft' { $release.draft=$true }
+    }
+    $metadataFile=Join-Path $apiRoot 'bootstrap-release.json'
+    if ($mode -eq 'oversize') { [IO.File]::WriteAllText($metadataFile, ' ' * 2097153) }
+    else { $release | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $metadataFile -Encoding UTF8 }
+    $failed=$false
+    try { Initialize-BootstrapMetadata $metadataFile $fetchFile }
+    catch {
+      $failed=$true
+      if ($_.Exception.Message -notlike '*stage=verify_bootstrap_metadata error_code=validation_failed*') { throw 'Unexpected bootstrap failure stage' }
+    }
+    if ($failed -ne ($mode -ne 'valid') -or $script:apiRequests.Count -ne 0) { throw "Wrong bootstrap outcome: $mode" }
+    if ($mode -eq 'valid' -and (-not $script:officialAssetRoute -or $script:officialReleaseTag -cne 'v1.2.3')) { throw 'Bootstrap did not bind the verified release' }
+    if ($mode -ne 'valid' -and $script:officialAssetRoute) { throw 'Invalid bootstrap enabled asset downloads' }
+  }
+  Write-Output 'Bootstrap metadata: 6 bounded offline cases passed.'
 } finally { Remove-Item -LiteralPath $apiRoot -Recurse -Force }

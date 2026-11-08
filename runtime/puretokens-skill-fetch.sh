@@ -6,6 +6,7 @@ umask 077
 stage=arguments
 failure_reported=false
 download_root=
+official_asset_route=false
 fail() {
   failure_reported=true
   case "$*" in
@@ -65,15 +66,17 @@ case "$command_name" in detect-host|check-update|install|update|repair) ;; *) fa
 shift
 host=
 target=
+release_metadata=
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --host) [ "$#" -ge 2 ] || fail "--host requires a value"; host=$2; shift 2 ;;
     --target) [ "$#" -ge 2 ] || fail "--target requires a value"; target=$2; shift 2 ;;
+    --release-metadata) [ "$#" -ge 2 ] || fail "--release-metadata requires a value"; release_metadata=$2; shift 2 ;;
     *) fail "unsupported option" ;;
   esac
 done
 if [ "$command_name" = detect-host ]; then
-  [ -z "$host$target" ] || fail "detect-host takes no host or target options"
+  [ -z "$host$target$release_metadata" ] || fail "detect-host takes no host, target or release metadata options"
   stage=detect_host
   detect_current_host
   exit 0
@@ -187,6 +190,9 @@ project_release_asset() {
   ' "$1"
 }
 download() {
+  if [ "$official_asset_route" = true ]; then
+    api_download "$1" "$2" "$3"; return
+  fi
   download_once "$1" "$2" "$3" application/vnd.github+json
   [ -n "$download_error" ] || return 0
   # Only an explicit gateway HTTP failure allows one alternate asset GET.
@@ -220,6 +226,7 @@ EOF
   download_once "https://api.github.com/repos/puretokensx/puretokens-skill/releases/assets/$api_asset_id" "$2" "$3" application/octet-stream "$api_asset_size"
   [ -z "$download_error" ] || download_failure "$3"
   [ "$(wc -c < "$2" | tr -d ' ')" = "$api_asset_size" ] && [ "$(sha256_file "$2")" = "$api_asset_sha" ] || fail "official release asset size or checksum mismatch"
+  official_asset_route=true
 }
 json_string() { sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" "$1" 2>/dev/null | sed -n '1p'; }
 json_number() { sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*\\([0-9][0-9]*\\)[[:space:]]*[,}]*[[:space:]]*$/\\1/p" "$1" 2>/dev/null | sed -n '1p'; }
@@ -244,6 +251,19 @@ run_installer() {
   fail "stage=$stage error_code=installer_unavailable installation_status=$state installed_files_changed=$changed next_step=review_host_execution_permissions; the installer did not return a usable failure receipt. Check current-session execution permissions; the exact cause is unconfirmed. No automatic retry."
 }
 
+if [ -n "$release_metadata" ]; then
+  stage=verify_bootstrap_metadata
+  case "$release_metadata" in /*) ;; *) fail "bootstrap metadata requires an absolute local file" ;; esac
+  [ -f "$release_metadata" ] && [ ! -L "$release_metadata" ] || fail "bootstrap metadata must be a regular non-linked file"
+  [ "$(wc -c < "$release_metadata" | tr -d ' ')" -le 2097152 ] || fail "bootstrap metadata exceeds the supported size"
+  cp "$release_metadata" "$download_root/github-release.json" 2>/dev/null || fail "bootstrap metadata is unreadable"
+  bootstrap_projection=$(project_release_asset "$download_root/github-release.json" latest puretokens-skill-fetch.sh) || fail "bootstrap metadata is invalid or ambiguous"
+  read -r api_release_tag bootstrap_id bootstrap_size bootstrap_sha <<EOF
+$bootstrap_projection
+EOF
+  [ "$(wc -c < "$0" | tr -d ' ')" = "$bootstrap_size" ] && [ "$(sha256_file "$0")" = "$bootstrap_sha" ] || fail "bootstrap script does not match the selected release"
+  official_asset_route=true
+fi
 download 'https://github.com/puretokensx/puretokens-skill/releases/latest/download/release-manifest.json' "$download_root/release.json" read_release_manifest
 [ "$(json_number "$download_root/release.json" schemaVersion)" = 2 ] || fail "the stable release manifest format is unsupported; no source fallback"
 source_commit=$(json_string "$download_root/release.json" sourceCommit)

@@ -44,7 +44,7 @@ After a completed same-task receipt, `content --host codex --request <file>` dow
 {"kind":"video","original_operation":"generate","task_id":"RETURNED_ID","model":"MiniMax-H3","requested_count":1,"parameters":{"duration":5},"task_status":"completed","index":0,"output_dir":"/absolute/existing/output-directory"}
 ```
 
-A video task has one output, index 0. Attach the returned `downloaded_paths` file; video has no next index. Downloading is not delivery. Reuse requires a matching SHA-256, byte count and media type in an explicit task record. Without that proof, preserve any existing file and select another output directory for this same task index.
+A normal video task has one artifact, index 0. Only reviewed Super Vega Pro exact models with explicitly requested `return_last_frame=true` add a tail-frame image: `requested_count=1` still counts one video; index 1 is its declared tail frame. Verify the original task artifact manifest, attach index 0 before retrieving index 1, and acknowledge each actual handoff separately. Never infer a tail-frame artifact for another model or follow artifact URLs; missing output stops same-task retrieval, not regeneration. See [reviewed video usage](reviewed-video-usage.md). Downloading is not delivery. Reuse requires a matching SHA-256, byte count and media type in an explicit task record. Without that proof, preserve any existing file and select another output directory for this same task index.
 
 ## Choose the next command
 
@@ -78,8 +78,9 @@ Use `--record <absolute-task-json>` in an explicit workspace/user location by de
 Across computers or operating systems, keep the original record unchanged and
 use the current explicitly selected host's own connection. Never copy credentials.
 If old paths are unavailable, choose an existing absolute directory on this
-computer with `content --output-dir`; retrieve only the undelivered index 0 of
-the same task. A fully delivered record returns `done` without downloading again. When the user explicitly asks to receive that file again, use `redeliver --host <host> --record <record> --index <index>`; ordinary `content` does not re-deliver a historically delivered index.
+computer with `content --output-dir`; retrieve only the currently authorized,
+undelivered artifact indexes of the same task (ordinary video: 0; explicitly
+requested reviewed tail frame: 1). A fully delivered record returns `done` without downloading again. When the user explicitly asks to receive that file again, use `redeliver --host <host> --record <record> --index <index>`; ordinary `content` does not re-deliver a historically delivered index.
 Missing legacy download proofs do not authorize overwriting old files or
 inventing proof: preserve them and retrieve the same index into another directory.
 
@@ -89,7 +90,7 @@ inventing proof: preserve them and retrieve the same index into another director
 
 Existing local type/range/enum restrictions are not automatically relaxed by a live catalog read. To inspect a changed declaration, explicitly query `models` for that exact ID. Catalog queries do not refresh installed files; install a compatible stable release only when the user requests an update, then validate against its profile. If no compatible release exists, report the pending adaptation. Never edit managed profiles or resubmit an existing task to bypass validation.
 
-Machine receipts preserve available context with `original_operation` separate from the invoked command. `retry_not_before` is an RFC3339 lower bound for the next same-task read; preserve it across continuation. An omitted continuation count is unknown, not one; video tasks only allow one output. Report `submission_outcome: unknown` as uncertainty; never automatically resubmit. Show API codes only if actually returned, and retain only sanitized error detail. Keep user-facing updates to task ID/status, actual artifact delivery or the needed corrective action.
+Machine receipts preserve available context with `original_operation` separate from the invoked command. `retry_not_before` is an RFC3339 lower bound for the next same-task read; preserve it across continuation. An omitted continuation count is unknown, not one; the count of videos does not authorize additional artifacts. Preserve the original reviewed tail-frame request and artifact manifest when applicable. Report `submission_outcome: unknown` as uncertainty; never automatically resubmit. Show API codes only if actually returned, and retain only sanitized error detail. Keep user-facing updates to task ID/status, actual artifact delivery or the needed corrective action.
 
 A record requiring reconciliation is an exception to bounded waiting: an explicit `resume` reads its status once, keeping the same task ID and honoring Retry-After. Continue from the new receipt; never clear the flag by hand or resubmit.
 
