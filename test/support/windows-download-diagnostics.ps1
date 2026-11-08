@@ -9,9 +9,9 @@ $ast = [System.Management.Automation.Language.Parser]::ParseInput($source, [ref]
 $functions = @($ast.FindAll({
   param($node)
   $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
-    $node.Name -in @('Fail', 'Get-OfficialFile')
+    $node.Name -in @('Fail', 'Read-Json', 'Get-OfficialFile', 'Get-OfficialAsset')
 }, $true))
-if ($parseErrors.Count -ne 0 -or $functions.Count -ne 2) { throw 'Download fixture could not load production functions' }
+if ($parseErrors.Count -ne 0 -or $functions.Count -ne 4) { throw 'Download fixture could not load production functions' }
 . ([ScriptBlock]::Create(($functions | ForEach-Object { $_.Extent.Text }) -join "`n"))
 
 if (-not ('PureTokensDownloadFixtureException' -as [type])) {
@@ -28,7 +28,7 @@ public sealed class PureTokensDownloadFixtureException : System.Exception {
 '@
 }
 function Invoke-WebRequest {
-  param($Uri, $OutFile, $TimeoutSec, $Headers, $UserAgent, [switch]$UseBasicParsing, [switch]$PassThru)
+  param($Uri, $OutFile, $TimeoutSec, $Headers, $UserAgent, [switch]$UseBasicParsing, [switch]$PassThru, $MaximumRedirection)
   $script:calls++
   $script:observedTimeout = $TimeoutSec
   $script:observedProgress = $ProgressPreference
@@ -56,6 +56,18 @@ function Invoke-WebRequest {
       throw $nested
     }
     'success' { return [PSCustomObject]@{ StatusCode = 200 } }
+    'asset_api' {
+      $script:apiRequests.Add([string]$Uri)
+      if ($Uri -like 'https://github.com/*') { return [PSCustomObject]@{ StatusCode = 504 } }
+      if ($Uri -eq 'https://api.github.com/repos/puretokensx/puretokens-skill/releases/tags/v1.2.3') {
+        $script:apiMetadata | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $OutFile -Encoding UTF8
+      } elseif ($Uri -eq 'https://api.github.com/repos/puretokensx/puretokens-skill/releases/assets/123') {
+        if ($Headers.Accept -cne 'application/octet-stream') { throw 'Expected binary asset request' }
+        if ($script:apiAssetFails) { return [PSCustomObject]@{ StatusCode = 504 } }
+        [IO.File]::WriteAllBytes($OutFile, [byte[]]@(1,2,3))
+      } else { throw 'Unexpected official API fixture URL' }
+      return [PSCustomObject]@{ StatusCode = 200 }
+    }
     default { throw 'Unknown download fixture' }
   }
 }
@@ -106,3 +118,36 @@ foreach ($stage in @('read_release_manifest', 'download_selector', 'download_pla
     throw "Unexpected timeout or progress policy for $stage"
   }
 }
+$apiRoot = Join-Path ([IO.Path]::GetTempPath()) ('pt-api-fixture-' + [Guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Path $apiRoot | Out-Null
+try {
+  $script:fixtureKind = 'asset_api'
+  $script:downloadRoot = $apiRoot
+  foreach ($mode in @('valid','draft','prerelease','wrong-tag','duplicate','wrong-origin','bad-digest','wrong-size','unavailable')) {
+    $script:officialReleaseMetadata = $null
+    $script:apiRequests = New-Object 'System.Collections.Generic.List[string]'
+    $script:apiAssetFails = $mode -eq 'unavailable'
+    $name = 'puretokens-skill-install.ps1'
+    $asset = @{ id=123; name=$name; state='uploaded'; size=3; digest='sha256:039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81'; url='https://api.github.com/repos/puretokensx/puretokens-skill/releases/assets/123'; browser_download_url="https://github.com/puretokensx/puretokens-skill/releases/download/v1.2.3/$name" }
+    $script:apiMetadata = @{tag_name='v1.2.3'; draft=$false; prerelease=$false; assets=@($asset)}
+    switch ($mode) {
+      'draft' { $script:apiMetadata.draft=$true }
+      'prerelease' { $script:apiMetadata.prerelease=$true }
+      'wrong-tag' { $script:apiMetadata.tag_name='v9.9.9' }
+      'duplicate' { $script:apiMetadata.assets=@($asset,$asset) }
+      'wrong-origin' { $asset.url='https://example.invalid/asset' }
+      'bad-digest' { $asset.digest='sha256:' + ('0' * 64) }
+      'wrong-size' { $asset.size=4 }
+    }
+    $failed=$false
+    try { $null=Get-OfficialFile "https://github.com/puretokensx/puretokens-skill/releases/download/v1.2.3/$name" (Join-Path $apiRoot 'asset') download_selector }
+    catch {
+      $failed=$true
+      if ($_.Exception.Message -notlike '*Pure Tokens Skill download:*' -or $_.Exception.Message -match 'example.invalid|private-fixture') { throw 'Unsafe fallback failure' }
+    }
+    if ($failed -ne ($mode -ne 'valid')) { throw "Wrong fallback outcome: $mode" }
+    if ($script:apiRequests.Count -gt 3) { throw 'Official fallback looped' }
+    if ($mode -eq 'valid' -and ((Get-FileHash -LiteralPath (Join-Path $apiRoot 'asset') -Algorithm SHA256).Hash.ToLowerInvariant() -ne $asset.digest.Substring(7))) { throw 'Downloaded wrong asset bytes' }
+  }
+  Write-Output 'Official asset fallback: 9 bounded offline cases passed.'
+} finally { Remove-Item -LiteralPath $apiRoot -Recurse -Force }

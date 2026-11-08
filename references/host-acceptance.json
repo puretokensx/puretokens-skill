@@ -1,16 +1,9 @@
 {
   "schemaVersion": 1,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "checkedAt": "2026-11-08",
-  "method": "Privacy repair release with offline fixture coverage only. Real-host and paid dedicated API acceptance remain pending. Publication approval is recorded separately and does not promote fixture results to real-host evidence.",
+  "method": "Bounded official release download repair candidate. Offline fixtures and an isolated macOS download/install smoke test do not establish real-host authentication or delivery. Paid API and real-host acceptance remain pending. No publication approval is carried forward from 1.0.1.",
   "guide": "references/host-acceptance-guide.md",
-  "stablePublicationException": {
-    "kind": "maintainer-approved-pending-acceptance",
-    "version": "1.0.1",
-    "approved": true,
-    "approvedAt": "2026-11-08",
-    "reason": "The maintainer explicitly requested publication of 1.0.1 after the privacy repair handoff. Pending real-host acceptance remains recorded without being promoted to passed; engineering checks, cross-platform publication checks and artifact verification remain required."
-  },
   "evidence": [],
   "hosts": [
     {

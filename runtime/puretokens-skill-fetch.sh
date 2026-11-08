@@ -91,15 +91,16 @@ stage=prepare_download
 download_root=$(mktemp -d "${TMPDIR:-/tmp}/puretokens-download.XXXXXX" 2>/dev/null) ||
   fail "stage=$stage error_code=local_io_failure installation_status=not_started installed_files_changed=false next_step=review_download_directory_permissions; cannot create the private download directory. Check available disk space and temporary-directory write permission."
 
-download() {
+download_once() {
   stage=$3
   # URLs are constructed below from fixed official origins and validated IDs.
   download_budget=45
   [ "$stage" != download_platform_archive ] || download_budget=180
+  [ "${5:-}" != 2097152 ] || download_budget=45
   printf '%s\n' "Pure Tokens download progress: stage=$stage status=started" >&2
   download_exit=0
-  download_status=$(curl --silent --show-error --location --proto '=https' --proto-redir '=https' --tlsv1.2 --connect-timeout 15 --max-time "$download_budget" --speed-limit 1 --speed-time 30 \
-    --header 'Accept: application/vnd.github+json' --user-agent 'puretokens-skill-installer' --output "$2" --write-out '%{http_code}' "$1" 2>/dev/null) || download_exit=$?
+  download_status=$(curl -q --silent --show-error --location --proto '=https' --proto-redir '=https' --tlsv1.2 --connect-timeout 15 --max-time "$download_budget" --speed-limit 1 --speed-time 30 \
+    --max-redirs 5 --max-filesize "${5:-33554432}" --header "Accept: $4" --user-agent 'puretokens-skill-installer' --output "$2" --write-out '%{http_code}' "$1" 2>/dev/null) || download_exit=$?
   case "$download_status" in [1-5][0-9][0-9]) ;; *) download_status=0 ;; esac
   download_error=
   if [ "$download_exit" -ne 0 ]; then
@@ -114,11 +115,111 @@ download() {
   elif [ "$download_status" != 200 ]; then
     download_error=http_error
   fi
-  if [ -n "$download_error" ]; then
+}
+download_failure() {
     next_step=review_download_failure
     [ "$download_error" != local_io_failure ] || next_step=review_download_directory_permissions
-    fail "stage=$3 error_code=$download_error http_status=$download_status installation_status=not_completed installed_files_changed=false next_step=$next_step; the official source download failed. For local I/O failures, check temporary-directory write permission and available disk space. No installed files were changed; no automatic retry."
+    fail "stage=$1 error_code=$download_error http_status=$download_status installation_status=not_completed installed_files_changed=false next_step=$next_step; the official source download failed. For local I/O failures, check temporary-directory write permission and available disk space. No installed files were changed; no automatic retry."
+}
+# Self-contained bounded JSON projection; no installed jq, Node or Python.
+project_release_asset() {
+  LC_ALL=C awk -v expected="$2" -v wanted="$3" '
+    function bad() { invalid=1; exit 1 }
+    function ws() { while(substr(s,p,1) ~ /[ \t\r\n]/ && p<=length(s)) p++ }
+    function string( start,c,e) {
+      start=p++; while(p<=length(s)) {
+        c=substr(s,p++,1)
+        if(c=="\"") return substr(s,start,p-start)
+        if(c ~ /[[:cntrl:]]/) bad()
+        if(c=="\\") {
+          e=substr(s,p++,1)
+          if(e=="u") { if(substr(s,p,4) !~ /^[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]$/) bad(); p+=4 }
+          else if(e !~ /^["\\\/bfnrt]$/) bad()
+        }
+      }; bad()
+    }
+    function value(ctx,idx,depth, c,t,key,id,child,n) {
+      if(depth>32) bad(); ws(); c=substr(s,p,1)
+      if(c=="{") {
+        id=++serial; p++; ws()
+        if(substr(s,p,1)=="}") { p++; return "object" }
+        while(1) {
+          ws(); if(substr(s,p,1)!="\"") bad(); key=string()
+          if(index(key,"\\") || seen[id SUBSEP key]++) bad()
+          ws(); if(substr(s,p++,1)!=":") bad()
+          child=(ctx=="root" && key=="\"assets\"") ? "assets" : "other"
+          t=value(child,idx,depth+1)
+          if(ctx=="root") root[key]=t
+          if(ctx=="asset") asset[idx SUBSEP key]=t
+          ws(); c=substr(s,p++,1); if(c=="}") return "object"; if(c!=",") bad()
+        }
+      }
+      if(c=="[") {
+        p++; ws(); if(substr(s,p,1)=="]") { p++; return "array" }
+        n=0; while(1) {
+          n++; if(ctx=="assets" && n>100) bad()
+          t=value(ctx=="assets" ? "asset" : "other",n,depth+1)
+          if(ctx=="assets") { count=n; if(t!="object") bad() }
+          ws(); c=substr(s,p++,1); if(c=="]") return "array"; if(c!=",") bad()
+        }
+      }
+      if(c=="\"") return string()
+      if(match(substr(s,p),/^(true|false|null|-?(0|[1-9][0-9]*)(\.[0-9]+)?([eE][+-]?[0-9]+)?)/)) {
+        t=substr(s,p,RLENGTH); p+=RLENGTH; return t
+      }; bad()
+    }
+    function field(i,k) { return asset[i SUBSEP "\"" k "\""] }
+    function unquote(t) { if(t !~ /^"[^"\\]*"$/) bad(); return substr(t,2,length(t)-2) }
+    { s=s $0 "\n"; if(length(s)>2097152) bad() }
+    END {
+      if(invalid) exit 1
+      p=1; if(value("root",0,0)!="object") bad(); ws(); if(p<=length(s)) bad()
+      tag=unquote(root["\"tag_name\""])
+      if(tag !~ /^v[0-9]+\.[0-9]+\.[0-9]+$/ || (expected!="latest" && tag!=expected) || root["\"draft\""]!="false" || root["\"prerelease\""]!="false" || root["\"assets\""]!="array") bad()
+      for(i=1;i<=count;i++) if(field(i,"name")=="\"" wanted "\"") { selected=i; matches++ }
+      if(matches!=1) bad()
+      id=field(selected,"id"); size=field(selected,"size"); digest=unquote(field(selected,"digest"))
+      base="https://api.github.com/repos/puretokensx/puretokens-skill/releases/assets/"
+      public="https://github.com/puretokensx/puretokens-skill/releases/download/" tag "/" wanted
+      if(id !~ /^[1-9][0-9]*$/ || length(id)>16 || size !~ /^[1-9][0-9]*$/ || size+0>33554432 || field(selected,"state")!="\"uploaded\"" || digest !~ /^sha256:[0-9a-f]+$/ || length(digest)!=71 || field(selected,"url")!="\"" base id "\"" || field(selected,"browser_download_url")!="\"" public "\"") bad()
+      print tag, id, size, substr(digest,8)
+    }
+  ' "$1"
+}
+download() {
+  download_once "$1" "$2" "$3" application/vnd.github+json
+  [ -n "$download_error" ] || return 0
+  # Only an explicit gateway HTTP failure allows one alternate asset GET.
+  if [ "$download_exit" -eq 0 ]; then
+    case "$download_status:$1" in
+      502:https://github.com/puretokensx/puretokens-skill/releases/*|503:https://github.com/puretokensx/puretokens-skill/releases/*|504:https://github.com/puretokensx/puretokens-skill/releases/*)
+        api_download "$1" "$2" "$3"; return ;;
+    esac
   fi
+  download_failure "$3"
+}
+api_download() {
+  asset_name=${1##*/}
+  case "$1" in
+    https://github.com/puretokensx/puretokens-skill/releases/latest/download/release-manifest.json) expected_tag=latest; api_metadata_path=latest ;;
+    https://github.com/puretokensx/puretokens-skill/releases/download/v*)
+      expected_tag=${1#https://github.com/puretokensx/puretokens-skill/releases/download/}; expected_tag=${expected_tag%%/*}
+      version_valid "${expected_tag#v}" || fail "invalid fallback release version"
+      api_metadata_path=tags/$expected_tag ;;
+    *) fail "unsupported official release fallback" ;;
+  esac
+  printf '%s\n' "Pure Tokens download progress: stage=$3 status=official_asset_fallback" >&2
+  if [ ! -f "$download_root/github-release.json" ]; then
+    download_once "https://api.github.com/repos/puretokensx/puretokens-skill/releases/$api_metadata_path" "$download_root/github-release.json" "$3" application/vnd.github+json 2097152
+    [ -z "$download_error" ] || download_failure "$3"
+  fi
+  asset_projection=$(project_release_asset "$download_root/github-release.json" "$expected_tag" "$asset_name") || fail "official release asset metadata is invalid or ambiguous"
+  read -r api_release_tag api_asset_id api_asset_size api_asset_sha <<EOF
+$asset_projection
+EOF
+  download_once "https://api.github.com/repos/puretokensx/puretokens-skill/releases/assets/$api_asset_id" "$2" "$3" application/octet-stream "$api_asset_size"
+  [ -z "$download_error" ] || download_failure "$3"
+  [ "$(wc -c < "$2" | tr -d ' ')" = "$api_asset_size" ] && [ "$(sha256_file "$2")" = "$api_asset_sha" ] || fail "official release asset size or checksum mismatch"
 }
 json_string() { sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" "$1" 2>/dev/null | sed -n '1p'; }
 json_number() { sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*\\([0-9][0-9]*\\)[[:space:]]*[,}]*[[:space:]]*$/\\1/p" "$1" 2>/dev/null | sed -n '1p'; }
@@ -149,6 +250,7 @@ source_commit=$(json_string "$download_root/release.json" sourceCommit)
 printf '%s\n' "$source_commit" | grep -Eq '^[0-9a-f]{40}$' || fail "the stable release has no verified source commit"
 available_version=$(json_string "$download_root/release.json" version)
 version_valid "$available_version" || fail "the stable release version is invalid"
+[ -z "${api_release_tag:-}" ] || [ "$api_release_tag" = "v$available_version" ] || fail "the manifest version does not match the selected official release"
 release_origin="https://github.com/puretokensx/puretokens-skill/releases/download/v$available_version"
 sed -n '/"shell"[[:space:]]*:/,/}/p' "$download_root/release.json" > "$download_root/selector.json"
 selector_name=$(json_string "$download_root/selector.json" filename)

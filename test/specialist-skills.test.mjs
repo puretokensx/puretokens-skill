@@ -260,7 +260,8 @@ test("the public install prompt remains extractable in both README files", async
     ];
     assert.ok(complete.every(Boolean), "both complete prompts must remain copyable");
     for (const prompt of complete) {
-      assert.ok(prompt.includes("https://github.com/puretokensx/puretokens-skill/releases/latest/download/"));
+      assert.ok(prompt.includes("https://api.github.com/repos/puretokensx/puretokens-skill/releases/latest"));
+      assert.ok(prompt.includes("Accept: application/octet-stream") && prompt.includes("digest"));
       assert.ok(prompt.includes("puretokens-skill-fetch.sh") && prompt.includes("puretokens-skill-fetch.ps1"));
       assert.ok(prompt.includes("install"));
       assert.doesNotMatch(prompt, /--host codex|-Host codex/);

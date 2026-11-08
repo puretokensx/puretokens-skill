@@ -90,11 +90,5 @@ jobs:
       - name: Verify anonymous stable installation downloads
         timeout-minutes: 10
         run: |
-          mkdir "$RUNNER_TEMP/public-stable-assets"
-          for asset in dist/releases/*; do
-            filename="$(basename "$asset")"
-            curl -q --fail --location --silent --show-error --proto '=https' --proto-redir '=https' --connect-timeout 15 --max-time 60 \
-              "https://github.com/${{ github.repository }}/releases/latest/download/$filename" \
-              --output "$RUNNER_TEMP/public-stable-assets/$filename"
-          done
+          node scripts/download-public-release.mjs "$RELEASE_TAG" "$RUNNER_TEMP/public-stable-assets"
           npm run release:verify -- --publishable --directory "$RUNNER_TEMP/public-stable-assets"

@@ -66,7 +66,7 @@ test("repackaging replaces the archive and removes deleted members", async t => 
   assert.equal((await readdir(releases)).some(p => p.endsWith(".tmp")), false);
 });
 
-async function mockDownloads(f, mode = "platform") {
+async function mockDownloads(f, mode = "platform", apiMode = "valid") {
   const tools = path.join(f.root, "tools");
   await mkdir(tools);
   await execFile("zip", ["-qr", path.join(f.root, "platform.zip"), "puretokens-skill"], { cwd: f.root });
@@ -78,6 +78,30 @@ async function mockDownloads(f, mode = "platform") {
   }, files: {
     [f.platform]: { filename: `puretokens-skill-${version}-${f.platform}.zip`, sha256: mode === "bad-checksum" ? "0".repeat(64) : checksum, executorSha256: executorChecksum }
   } }, null, 2));
+  const apiFiles = [
+    [101, "release-manifest.json", "release.json"],
+    [102, "puretokens-skill-install.sh", "puretokens-skill/runtime/puretokens-skill-install.sh"],
+    [103, `puretokens-skill-${version}-${f.platform}.zip`, "platform.zip"]
+  ];
+  const metadata = {tag_name: `v${version}`, draft: false, prerelease: false, body: 'Ignored "quoted" text and braces {}\n with escapes', assets: []};
+  for (const [id, name, file] of apiFiles) {
+    const bytes = await readFile(path.join(f.root, file));
+    metadata.assets.push({id, name, state: "uploaded", size: bytes.length, digest: `sha256:${createHash("sha256").update(bytes).digest("hex")}`,
+      url: `https://api.github.com/repos/puretokensx/puretokens-skill/releases/assets/${id}`,
+      browser_download_url: `https://github.com/puretokensx/puretokens-skill/releases/download/v${version}/${name}`});
+  }
+  if (apiMode === "wrong-tag") metadata.tag_name = "v9.9.9";
+  if (apiMode === "draft") metadata.draft = true;
+  if (apiMode === "prerelease") metadata.prerelease = true;
+  if (apiMode === "missing") metadata.assets = [];
+  if (apiMode === "duplicate") metadata.assets.push(metadata.assets[0]);
+  if (apiMode === "wrong-origin") metadata.assets[0].url = "https://example.invalid/asset";
+  if (apiMode === "wrong-browser-url") metadata.assets[0].browser_download_url = "https://example.invalid/asset";
+  if (apiMode === "bad-digest") metadata.assets[0].digest = `sha256:${"0".repeat(64)}`;
+  if (apiMode === "wrong-size") metadata.assets[0].size++;
+  await writeFile(path.join(f.root, "github-release.json"), JSON.stringify(metadata));
+  if (apiMode === "malformed") await writeFile(path.join(f.root, "github-release.json"), '{"tag_name":"v0.17.0",');
+  if (apiMode === "duplicate-key") await writeFile(path.join(f.root, "github-release.json"), JSON.stringify(metadata).replace('"draft":false', '"draft":false,"draft":true'));
   const curl = path.join(tools, "curl");
   await writeFile(curl, `#!/bin/sh
 printf '%s\\n' "$*" >> "$PT_FETCH_FIXTURE/download-options"
@@ -93,6 +117,10 @@ if [ -n "\${PT_FAIL_MATCH:-}" ]; then
   esac
 fi
 case "$request_url" in
+  https://api.github.com/repos/puretokensx/puretokens-skill/releases/latest|https://api.github.com/repos/puretokensx/puretokens-skill/releases/tags/v${version}) file=github-release.json ;;
+  https://api.github.com/repos/puretokensx/puretokens-skill/releases/assets/101) file=release.json ;;
+  https://api.github.com/repos/puretokensx/puretokens-skill/releases/assets/102) file=puretokens-skill/runtime/puretokens-skill-install.sh ;;
+  https://api.github.com/repos/puretokensx/puretokens-skill/releases/assets/103) file=platform.zip ;;
   https://github.com/puretokensx/puretokens-skill/releases/latest/download/release-manifest.json)
     if [ "$PT_FETCH_MODE" = missing ]; then printf 404; exit 0; fi
     file=release.json ;;
@@ -110,6 +138,67 @@ printf 200
   await chmod(curl, 0o700);
   return { ...f.env, PATH: `${tools}${path.delimiter}${f.env.PATH}`, PT_FETCH_FIXTURE: f.root, PT_FETCH_MODE: mode };
 }
+
+for (const status of [502, 503, 504]) {
+  test(`official asset API recovers HTTP ${status} without changing release or repeating installation`, async t => {
+    const f = await fixture(t);
+    const env = {...await mockDownloads(f), PT_FAIL_MATCH: "https://github.com/", PT_FAIL_HTTP: String(status), PT_FAIL_EXIT: "0"};
+    const wrapper = path.join(f.source, "runtime/puretokens-skill-fetch.sh");
+    const {stdout} = await execFile("sh", [wrapper, "install", "--target", f.target], {env});
+    assert.match(stdout, /synchronized with the native API executor/);
+    const requests = (await readFile(path.join(f.root, "requests"), "utf8")).trim().split("\n");
+    assert.equal(requests.length, 7);
+    assert.equal(requests.filter(x => x === "https://api.github.com/repos/puretokensx/puretokens-skill/releases/latest").length, 1);
+    for (const id of [101, 102, 103]) assert.equal(requests.filter(x => x.endsWith(`/assets/${id}`)).length, 1);
+    const options = await readFile(path.join(f.root, "download-options"), "utf8");
+    assert.ok(options.includes("Accept: application/octet-stream"));
+    assert.doesNotMatch(options, /Authorization|--retry|--insecure|codeload|raw\.githubusercontent/);
+    const before = await stat(path.join(f.target, ".puretokens-executor/runtime.json"));
+    await writeFile(path.join(f.root, "requests"), "");
+    const again = await execFile("sh", [wrapper, "update", "--target", f.target], {env});
+    assert.match(again.stdout, /already current and verified; no archive downloaded, no files changed, init not run/);
+    assert.equal((await stat(path.join(f.target, ".puretokens-executor/runtime.json"))).mtimeMs, before.mtimeMs);
+    assert.doesNotMatch(await readFile(path.join(f.root, "requests"), "utf8"), new RegExp("assets/103|[.]zip"));
+    assert.deepEqual(await readdir(path.join(f.root, "tmp")), []);
+  });
+}
+
+for (const mode of ["wrong-tag", "draft", "prerelease", "missing", "duplicate", "wrong-origin", "wrong-browser-url", "bad-digest", "wrong-size", "malformed", "duplicate-key"]) {
+  test(`official asset fallback rejects ${mode} before installation`, async t => {
+    const f = await fixture(t);
+    const env = {...await mockDownloads(f, "platform", mode), PT_FAIL_MATCH: "https://github.com/", PT_FAIL_HTTP: "504", PT_FAIL_EXIT: "0"};
+    await assert.rejects(execFile("sh", [path.join(f.source, "runtime/puretokens-skill-fetch.sh"), "install", "--target", f.target], {env}), error => {
+      assert.match(error.stderr, /error_code=validation_failed/);
+      assert.doesNotMatch(error.stderr, /private-exception|example.invalid/);
+      return true;
+    });
+    await assert.rejects(stat(f.target), {code: "ENOENT"});
+    assert.ok((await readFile(path.join(f.root, "requests"), "utf8")).trim().split("\n").length <= 3);
+    assert.deepEqual(await readdir(path.join(f.root, "tmp")), []);
+  });
+}
+
+test("official asset fallback resolves a pinned tag when only the archive route fails", async t => {
+  const f = await fixture(t);
+  const env = {...await mockDownloads(f), PT_FAIL_MATCH: ".zip", PT_FAIL_HTTP: "504", PT_FAIL_EXIT: "0"};
+  await execFile("sh", [path.join(f.source, "runtime/puretokens-skill-fetch.sh"), "install", "--target", f.target], {env});
+  const requests = (await readFile(path.join(f.root, "requests"), "utf8")).trim().split("\n");
+  assert.equal(requests.length, 5);
+  assert.equal(requests[3], `https://api.github.com/repos/puretokensx/puretokens-skill/releases/tags/v${version}`);
+  assert.ok(requests[4].endsWith("/assets/103"));
+});
+
+test("official asset fallback stops after its metadata request fails without looping", async t => {
+  const f = await fixture(t);
+  const env = {...await mockDownloads(f), PT_FAIL_MATCH: "https://", PT_FAIL_HTTP: "504", PT_FAIL_EXIT: "0"};
+  await assert.rejects(execFile("sh", [path.join(f.source, "runtime/puretokens-skill-fetch.sh"), "install", "--target", f.target], {env}), error => {
+    assert.match(error.stderr, /error_code=http_error http_status=504/);
+    return true;
+  });
+  assert.equal((await readFile(path.join(f.root, "requests"), "utf8")).trim().split("\n").length, 2);
+  await assert.rejects(stat(f.target), {code: "ENOENT"});
+  assert.deepEqual(await readdir(path.join(f.root, "tmp")), []);
+});
 
 test("check-update reads stable metadata and its verified selector only", async t => {
   const f = await fixture(t);

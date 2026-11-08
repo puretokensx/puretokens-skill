@@ -23,7 +23,7 @@ description: 用户询问 Pure Tokens 是什么、有什么用、怎么开始、
 
 本地同步失败保留 stage、error_code、installation_status、installed_files_changed、next_step。unknown 不代表旧安装完好；仅 `recovery_status=restored` 才确认恢复，incomplete 保留事务。同步成功后的执行器启动／输出／超时失败只报连接未验证，不重装、补跑 doctor 或自动重试。恢复须按失败阶段和用户明确授权处理，详见 `references/install-permissions.md`；同一错误不循环测试，不换宿主或传输。
 
-已安装且使用本版本时，从本 SKILL.md 的绝对目录解析`../.puretokens-executor/puretokens-skill-fetch.sh`（Windows 为 `.ps1`）。用户通过当前官方安装提示词安装或升级旧版本时，由宿主现成 HTTPS 下载能力把 `https://github.com/puretokensx/puretokens-skill/releases/latest/download/puretokens-skill-fetch.sh`（Windows 改为 `.ps1`）下载为唯一临时本地文件，沿用已确认的宿主和目标目录执行 install／update。旧 fetch 可能指向旧仓库；不执行它、不手改受管脚本，不在下载失败后自动改路。不把远程响应管道进 shell，不安装 Git、Node、Python 或 Go。
+已安装且使用本版本时，从本 SKILL.md 的绝对目录解析`../.puretokens-executor/puretokens-skill-fetch.sh`（Windows 为 `.ps1`）。首次安装或升级旧入口时，按 `references/release-download.md` 从固定 GitHub 官方匿名 Releases API 选择唯一同名稳定资产，用 application/octet-stream 下载，校验 size 和 SHA-256 digest 后保存本地执行 install／update。沿用已确认的宿主和目标，不执行可能指向旧仓库的 fetch，不手改受管脚本，不把远程响应管道进 shell，不安装 Git、Node、Python 或 Go，不索取 GitHub Token。fetch 内只有明确 502／503／504 可触发一次同版本官方资产 API 下载；其余失败停止，Agent 不追加重试或其他来源。
 
 ```text
 macOS/Linux: sh <fetch脚本绝对路径> check-update --host <当前宿主ID>

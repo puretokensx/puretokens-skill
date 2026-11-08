@@ -4,6 +4,11 @@
 
 # Changelog
 
+## 1.0.2 - 2026-11-08
+
+- Recover official release downloads from HTTP 502/503/504 through one anonymous GitHub asset API request for the same verified version. Preserve checksums, existing files and bounded failure handling; do not require a token or new runtime.
+- Use verified official API assets for initial bootstrap instructions and anonymous publication checks. Keep permission, TLS, timeout, rate-limit and integrity failures terminal.
+
 ## 1.0.1 - 2026-11-08
 
 - Restrict model catalog receipts to reviewed public schema fields, preserve current model parameters, and reject unreviewed metadata during catalog/profile publication. Keep actual API validation and existing-task recovery unchanged.

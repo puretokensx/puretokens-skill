@@ -16,6 +16,16 @@
       "commandTemplate": "native_fetch install_or_update --host <current-supported-host>",
       "sourceRepository": "https://github.com/puretokensx/puretokens-skill.git",
       "releaseManifest": "https://github.com/puretokensx/puretokens-skill/releases/latest/download/release-manifest.json",
+      "bootstrapMetadata": "https://api.github.com/repos/puretokensx/puretokens-skill/releases/latest",
+      "bootstrapValidation": "unique_uploaded_stable_asset_exact_repository_url_size_sha256_digest_before_execution",
+      "downloadFallback": {
+        "httpStatuses": [502, 503, 504],
+        "metadataRequestsPerInvocation": 1,
+        "assetRequestsPerFailedFile": 1,
+        "source": "official_anonymous_github_asset_api_same_pinned_release",
+        "requiresToken": false,
+        "doesNotRetryAlternateOrBypassPermissions": true
+      },
       "validationCommand": "pin_stable_manifest_verify_selector_and_platform_package_then_native_sync",
       "directorySelector": "download_checksum_verified_selector_from_the_same_stable_release",
       "sameVersion": "verify_release_executor_checksum_and_all_managed_inventories_then_no_download_sync_or_init",

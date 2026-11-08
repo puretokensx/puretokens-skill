@@ -49,17 +49,55 @@ function Get-CurrentHost {
   }
   Fail "stage=detect_host error_code=current_host_unconfirmed installation_status=not_started installed_files_changed=false next_step=confirm_current_client; confirm this client's host ID and run once with -Host <id>. Supported IDs: claude-code, codex, workbuddy, gemini-cli, grok-build, opencode, trae, claude-desktop, dsh-desktop, deepseek-harness, minimax-code, zcode, kimi-code, qoder, pi, hermes, evox, vscode, octop, oh-my-pi, minimax-code-cli, qwen-code, codebuddy-code, copilot-cli, factory-droid, mimo-coder, paseo. No network request or installation write was made."
 }
-function Get-OfficialFile([string]$Url, [string]$Destination, [string]$Stage) {
+function Get-OfficialAsset([string]$Url, [string]$Destination, [string]$Stage) {
+  $prefix = 'https://github.com/puretokensx/puretokens-skill/releases/'
+  $suffix = $Url.Substring($prefix.Length)
+  if ($suffix -ceq 'latest/download/release-manifest.json') {
+    $expectedTag = 'latest'; $metadataPath = 'latest'; $name = 'release-manifest.json'
+  } elseif ($suffix -cmatch '^download/(v[0-9]+[.][0-9]+[.][0-9]+)/([^/]+)$') {
+    $expectedTag = $Matches[1]; $metadataPath = "tags/$expectedTag"; $name = $Matches[2]
+  } else { Fail 'unsupported official release fallback' }
+  Write-Information "Pure Tokens download progress: stage=$Stage status=official_asset_fallback" -InformationAction Continue
+  if ($null -eq $script:officialReleaseMetadata) {
+    $metadataFile = Join-Path $downloadRoot 'github-release.json'
+    $null = Get-OfficialFile "https://api.github.com/repos/puretokensx/puretokens-skill/releases/$metadataPath" $metadataFile $Stage 'application/vnd.github+json' -NoFallback
+    if ((Get-Item -LiteralPath $metadataFile).Length -gt 2097152) { Fail 'official release metadata exceeds the supported size' }
+    try { $script:officialReleaseMetadata = Read-Json $metadataFile } catch { Fail 'official release metadata is unreadable' }
+  }
+  $metadata = $script:officialReleaseMetadata
+  $tag = $metadata.tag_name
+  if ($tag -isnot [string] -or $tag -cnotmatch '^v[0-9]+[.][0-9]+[.][0-9]+$' -or
+      ($expectedTag -cne 'latest' -and $tag -cne $expectedTag) -or
+      $metadata.draft -isnot [bool] -or $metadata.draft -or $metadata.prerelease -isnot [bool] -or $metadata.prerelease -or
+      $metadata.assets -isnot [array] -or $metadata.assets.Count -gt 100) { Fail 'official release asset metadata is invalid or ambiguous' }
+  $assets = @($metadata.assets | Where-Object { $_.name -ceq $name })
+  if ($assets.Count -ne 1) { Fail 'official release asset metadata is invalid or ambiguous' }
+  $asset = $assets[0]
+  $id = [string]$asset.id
+  $size = [string]$asset.size
+  if ($id -cnotmatch '^[1-9][0-9]{0,15}$' -or $size -cnotmatch '^[1-9][0-9]{0,8}$' -or [long]$size -gt 33554432 -or
+      $asset.state -cne 'uploaded' -or $asset.digest -cnotmatch '^sha256:[0-9a-f]{64}$' -or
+      $asset.url -cne "https://api.github.com/repos/puretokensx/puretokens-skill/releases/assets/$id" -or
+      $asset.browser_download_url -cne ($prefix + "download/$tag/$name")) { Fail 'official release asset metadata is invalid or ambiguous' }
+  $null = Get-OfficialFile "https://api.github.com/repos/puretokensx/puretokens-skill/releases/assets/$id" $Destination $Stage 'application/octet-stream' -NoFallback
+  if ((Get-Item -LiteralPath $Destination).Length -ne [long]$size -or
+      (Get-FileHash -LiteralPath $Destination -Algorithm SHA256).Hash.ToLowerInvariant() -cne $asset.digest.Substring(7)) { Fail 'official release asset size or checksum mismatch' }
+  $script:officialReleaseTag = $tag
+  return 200
+}
+function Get-OfficialFile([string]$Url, [string]$Destination, [string]$Stage, [string]$Accept = 'application/vnd.github+json', [switch]$NoFallback) {
+  $script:installStage = $Stage
   $status = 0
   $category = "transport_failure"
   $completed = $false
   $networkAccessDenied = $false
   $securityContextUnavailable = $false
   $timeoutSeconds = if ($Stage -eq 'download_platform_archive') { 180 } else { 45 }
+  if ($NoFallback -and $Accept -eq 'application/vnd.github+json') { $timeoutSeconds = 45 }
   Write-Information "Pure Tokens download progress: stage=$Stage status=started" -InformationAction Continue
   try {
     $ProgressPreference = 'SilentlyContinue'
-    $result = Invoke-WebRequest -UseBasicParsing -Uri $Url -OutFile $Destination -PassThru -TimeoutSec $timeoutSeconds -Headers @{ Accept = "application/vnd.github+json" } -UserAgent "puretokens-skill-installer"
+    $result = Invoke-WebRequest -UseBasicParsing -Uri $Url -OutFile $Destination -PassThru -TimeoutSec $timeoutSeconds -MaximumRedirection 5 -Headers @{ Accept = $Accept } -UserAgent "puretokens-skill-installer"
     $status = [int]$result.StatusCode
     $category = "http_error"
     $completed = $true
@@ -94,6 +132,11 @@ function Get-OfficialFile([string]$Url, [string]$Destination, [string]$Stage) {
     }
   }
   if ($status -eq 200 -and $completed) { return 200 }
+  if (-not $NoFallback -and -not $networkAccessDenied -and -not $securityContextUnavailable -and
+      $category -in @('http_error','transport_failure') -and $status -in @(502,503,504) -and
+      $Url.StartsWith('https://github.com/puretokensx/puretokens-skill/releases/', [StringComparison]::Ordinal)) {
+    return Get-OfficialAsset $Url $Destination $Stage
+  }
   if ($networkAccessDenied) { $category = 'network_access_denied' }
   if ($securityContextUnavailable) { $category = 'tls_security_context_unavailable' }
   if ($status -ge 400 -and $status -le 599) { $category = 'http_error' } elseif ($status -lt 100 -or $status -gt 599) { $status = 0 }
@@ -116,6 +159,8 @@ function Get-OfficialFile([string]$Url, [string]$Destination, [string]$Stage) {
   Fail "stage=$Stage error_code=$category http_status=$status installation_status=not_completed installed_files_changed=false next_step=$nextStep; $guidance Installed files were not changed. After resolving the issue and explicitly choosing to continue, run the same official fetch command once; no automatic retry."
 }
 $downloadRoot = $null
+$script:officialReleaseMetadata = $null
+$script:officialReleaseTag = $null
 $delegated = $false
 try {
   $script:installStage = "detect_host"
@@ -147,6 +192,7 @@ try {
   if ($sourceCommit -cnotmatch '^[0-9a-f]{40}$') { Fail "the stable release has no verified source commit" }
   $availableVersion = $release.version
   if ($availableVersion -cnotmatch '^\d+\.\d+\.\d+$') { Fail "the stable release version is invalid" }
+  if ($script:officialReleaseTag -and $script:officialReleaseTag -cne "v$availableVersion") { Fail 'the manifest version does not match the selected official release' }
   $releaseOrigin = "https://github.com/puretokensx/puretokens-skill/releases/download/v$availableVersion"
   $selector = $release.installers.powershell
   if ($null -eq $selector -or $selector.filename -cne "puretokens-skill-install.ps1" -or $selector.sha256 -cnotmatch '^[0-9a-f]{64}$') { Fail "the stable directory selector is invalid" }
