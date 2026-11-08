@@ -55,6 +55,7 @@ client attachment handoff was tested. Existing host acceptance remains at
 268 pending host/OS summary checks and zero recorded real-host case passes.
 No acceptance state is promoted by these fixtures.
 
-This change is an unreleased local source update. It does not modify Web,
-Switch or the gateway, change the package version, push a tag or publish a
-stable release. Any later release needs its own version and release checks.
+This capability work initially ended as an unreleased local source update.
+It was subsequently included in stable 1.0.3 under a separate version-specific
+publication decision and complete release checks; see 1.0.3-release.md. No Web,
+Switch or gateway change, paid acceptance or real-host delivery is implied.
