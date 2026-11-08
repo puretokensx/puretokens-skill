@@ -4,6 +4,27 @@ End users follow README installation guidance and receive a native executable. N
 
 Use CHANGELOG.md for shipped and candidate changes, and references/host-acceptance.json for outstanding real-host acceptance. Keep local handoff notes separate from public release documentation.
 
+## Repository hygiene
+
+Keep current contracts, source generators, regression fixtures and version-bound
+acceptance evidence. Historical evidence is not a current capability declaration;
+use `references/switch-skill-compatibility.md` for the release boundary and
+`references/host-acceptance.json` for real-host results. Archived task progress and
+one-time authorization remain in Git history, not competing handoff documents.
+
+Local `dist/releases/` should retain only the current verified release/candidate's
+six archives, four installer scripts and manifest. Before deleting superseded
+packages, verify the retained manifest/checksums and that no packaging or
+verification process uses the old files. Remove completed redundant local task
+drafts and system metadata; preserve unique research, incident evidence and local
+customizations. Do not delete Git tags, releases or history as build residue.
+
+The six committed executor binaries and self-contained generated Skill references
+are required distribution inputs, not disposable duplicates. The README brand
+image and `runtime/executor/testdata/tiny.webm` are active documentation/test assets.
+Do not rewrite published Skill bytes during repository-only cleanup; version-bound
+wording in installed copies requires the normal next-version synchronization.
+
 ## Validation
 
 Run the authoritative engineering gate from the repository root:
@@ -146,7 +167,7 @@ Release preparation remains read-only with respect to GitHub releases. The separ
 
 From 0.18.1 onward, each distributed version is immutable. Increment the version before changing installed Skills, profiles, executors or installation/build inputs; same-version fast verification and downgrade protection rely on this. `release:validate` checks complete first-parent Git history, including same-version changes that were later reverted, and includes untracked/deleted distribution files. A version-bumped dirty tree is only a candidate, never proof of publishable assets. Executor test-only changes do not require a new version. Keep the gate before push and publication; main changes are no longer the default installation source.
 
-Stable promotion also runs `node scripts/validate-host-acceptance.mjs --stable`: every declared available target needs real evidence, API-capable targets need all nineteen cases passed in one local environment, and an empty/all-unavailable matrix is rejected. The original media level does not accept audio, music, Jev, composite workflows or help; capability groups are reported separately. Prepare pending-only entries with `node scripts/prepare-host-acceptance.mjs --host <id> --output <new-file>` and follow the guide for optional observed stage timings. Regular development gates still accept honest pending evidence. Run real-host acceptance only with explicit authorization; do not turn it into paid CI traffic.
+Stable promotion also runs `node scripts/validate-host-acceptance.mjs --stable`: every declared available target needs real evidence, API-capable targets need all cases declared by that validator passed in one local environment, and an empty/all-unavailable matrix is rejected. An explicit version-bound publication exception may permit pending results without changing their status; it is neither real-host proof nor authorization for paid tests or another release. The original media level does not accept audio, music, Jev, composite workflows or help; capability groups are reported separately. Prepare pending-only entries with `node scripts/prepare-host-acceptance.mjs --host <id> --output <new-file>` and follow the guide for optional observed stage timings. Regular development gates still accept honest pending evidence. Run real-host acceptance only with explicit authorization; do not turn it into paid CI traffic.
 
 Acceptance classification must match the credential adapter state in `references/host-support.json`. Hosts without an adapter keep installation acceptance separate and mark API-dependent summaries and detailed cases `unavailable` with an explicit reason, not `pending` or `passed`. Credential fixtures never substitute for real-host evidence.
 

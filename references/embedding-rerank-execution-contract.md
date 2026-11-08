@@ -1,7 +1,8 @@
 # Embedding and rerank execution contract
 
-Candidate 0.19.5, 2026-10-18. This repository owns the native commands, installed
-Skills and distribution. Gateway deployment, account eligibility, billing and
+Introduced in 0.19.5; included in stable 1.0.0. This repository owns the native
+commands, installed Skills and distribution. Publication evidence is recorded in
+`acceptance/1.0.0-release.md`; gateway deployment, account eligibility, billing and
 real-host acceptance remain separate evidence.
 
 ## Commands and authentication
@@ -117,6 +118,6 @@ in that client. Dedicated model permission comes from the full selected-group
 model union; it need not enter the chat-compatible subset. Users retain their
 existing groups when adding access. Only an actual typed execution receipt can
 establish this invocation's outcome; a copied prompt, configuration write,
-chat success, init or directory visibility cannot do so. The paired Switch
-source changes and this unpublished candidate do not establish a published
-installer or deployed gateway.
+chat success, init or directory visibility cannot do so. Skills publication
+does not establish deployment of a compatible Switch/gateway or real-host
+execution. Verify those independently before claiming end-to-end support.

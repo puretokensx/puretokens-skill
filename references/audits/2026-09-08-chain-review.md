@@ -20,7 +20,7 @@
 
 当前 Codex 的实际前置检查在网络请求前安全停止：`active_connection_not_puretokens`，`api_request_executed=false`。未读取/输出连接详情，未改客户端配置、未创建付费任务；因此真实图片、编辑、视频与附件验收仍未完成，不标记 passed。Windows 新用例未在本机执行。
 
-最终工程检查结果和交付状态见 `references/maintainer-handoff.md` 当前任务；本报告不作为实时进度日志。
+当时的交接过程保留在 Git 历史中；本报告不作为实时进度日志。当前维护规则见 `CONTRIBUTING.md`，版本发布证据见 `references/acceptance/`，实机状态见 `references/host-acceptance.json`。
 
 ## 已确认问题
 
@@ -106,7 +106,7 @@ ZCode 还存在必须明确的语义边界：适配器选的是唯一启用的 P
 
 ## 验证与建议顺序
 
-- 本轮隔离 Go 探针四项通过（表示上述现状成功复现，不表示缺陷修复）。源码保留于 `2026-09-08-chain-probes.go.txt`，可临时复制到 runtime/executor 下的 `_test.go` 文件，执行 `go test ./... -run TestAudit -v`；执行后删除临时测试。
+- 本轮隔离 Go 探针四项通过（表示当时缺陷成功复现，不表示修复通过）。`2026-09-08-chain-probes.go.txt` 仅保留为修复前审计证据，不复制到当前测试目录或作为现行验收指令。当前回归见 `runtime/executor/chain_regression_test.go`，统一运行 `npm run check`。
 - Shell 旧选择器探针一项成功复现。既有发布溯源测试重新执行。
 - 审查探针未留在常规测试目录，不用“断言缺陷存在”的测试增加工程通过数。
 - 建议先修 1/2/3，随后 4/5/6，再在明确授权范围完成 7 的实机验收。各修复应补断言正确行为的回归测试，并重建六平台执行器、归档和候选包。

@@ -1,5 +1,11 @@
 # Media Parameter Review
 
+The dated sections below preserve review provenance, not multiple active
+contracts. The November 7 review is the current installed baseline, included in
+1.0.0; older IDs, defaults and publication wording apply only to their dated
+snapshots. See `acceptance/1.0.0-release.md` for publication evidence and the
+current installed profiles for executable parameter rules.
+
 ## Current review - 2026-11-07
 
 The publication follow-up is recorded in `acceptance/web-model-review-20261106.md`.
