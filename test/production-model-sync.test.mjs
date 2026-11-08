@@ -64,8 +64,13 @@ test("embedding default is declared without making the executor model implicit",
   assert.equal(contract.parameterValidation.defaultModel, manifest.rules.defaultModel);
   assert.equal(schema.properties.model.default, manifest.rules.defaultModel);
   assert.ok(schema.required.includes("model"));
-  assert.deepEqual(schema.properties.model.enum, ["qwen3.7-text-embedding", "qwen3.7-text-embedding-flash"]);
+  assert.deepEqual(schema.properties.model.enum, ["qwen3.7-text-embedding", "qwen3.7-text-embedding-flash", "voyage-4-large"]);
   assert.deepEqual(contract.parameterValidation.reviewedModelIds, schema.properties.model.enum);
+  const help = await readFile(new URL("../skills/puretokens-update/references/usage-guide.md", import.meta.url), "utf8");
+  for (const id of schema.properties.model.enum) assert.ok(help.includes(id), `local help omits ${id}`);
+  assert.match(help, /input_type=query\/document/);
+  assert.match(help, /output_dimension=256\/512\/1024\/2048/);
+  assert.match(help, /不把这些参数传给 Qwen/);
 });
 
 test("generic public visibility does not invent a dedicated media schema or chat alias", () => {
@@ -101,9 +106,10 @@ test("published model projections narrow unsafe transports without mutating API 
     assert.equal(projected.properties.return_last_frame.default, undefined);
   }
   const wan = supplementReviewedParameters({ id: "wan3.0-video", parameterSchema });
-  assert.equal(wan.properties.input, undefined);
-  assert.equal(wan.operations.native_generation, undefined);
-  assert.equal(wan.constraints.unsupported_inputs.input, true);
+  assert.deepEqual(wan.properties.input, { type: "json" });
+  assert.deepEqual(wan.operations.native_generation.request, { method: "POST", path: "/v1/videos", contentType: "application/json" });
+  assert.equal(wan.constraints.unsupported_inputs.idempotency_key, true);
+  assert.equal(wan.constraints.unsupported_inputs.input, undefined);
   const unknown = supplementReviewedParameters({ id: "fixture-unrestricted-model", parameterSchema });
   assert.deepEqual(unknown.operations.image_edit.inputs.images.transports, before.operations.image_edit.inputs.images.transports);
   assert.deepEqual(unknown.properties.input, before.properties.input);

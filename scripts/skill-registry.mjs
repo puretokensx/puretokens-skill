@@ -474,8 +474,8 @@ function validateExecutionContract(errors, directory, contract) {
       if (contract.result?.[rule] !== true) errors.push(`${label} must require ${rule}`);
     }
     const limits = contract.parameterValidation;
-    const reviewed = embedding ? ["qwen3.7-text-embedding", "qwen3.7-text-embedding-flash"] : ["qwen3.7-text-rerank"];
-    const requestFields = embedding ? ["model", "input", "output_file"] : ["model", "query", "documents", "top_n", "output_file"];
+    const reviewed = embedding ? ["qwen3.7-text-embedding", "qwen3.7-text-embedding-flash", "voyage-4-large"] : ["qwen3.7-text-rerank"];
+    const requestFields = embedding ? ["model", "input", "output_file", "input_type", "output_dimension"] : ["model", "query", "documents", "top_n", "output_file"];
     if (contract.result?.deadlineSeconds !== 90 || contract.result?.outputFormat !== (embedding ? "jsonl" : "json") ||
       limits?.maxRequestBytes !== 1048576 || limits?.maxResponseBytes !== 2097152 ||
       limits?.minItems !== 1 || limits?.maxItems !== 64 || limits?.maxTextRunes !== 32768 ||
@@ -484,6 +484,12 @@ function validateExecutionContract(errors, directory, contract) {
       errors.push(`${label} must retain bounded reviewed text inputs and an explicit new output file`);
     }
     if (embedding) {
+      const voyage = limits?.modelSpecificControls?.["voyage-4-large"];
+      if (!sameArray(voyage?.input_type, ["query", "document"]) ||
+        !sameArray(voyage?.output_dimension, [256, 512, 1024, 2048]) || voyage?.defaultOutputDimension !== 1024 ||
+        voyage?.fixedBody?.truncation !== false || voyage?.fixedBody?.output_dtype !== "float" || voyage?.verifyOutputDimension !== true) {
+        errors.push(`${label} must preserve the reviewed Voyage float and no-truncation contract`);
+      }
       if (operations.submit?.fixedBody?.encoding_format !== "float" ||
         !sameArray(contract.result?.outputFields, ["index", "dimensions", "embedding"]) ||
         contract.result?.outputOrder !== "original_zero_based_input_index" ||

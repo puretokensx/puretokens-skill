@@ -134,10 +134,13 @@ the current host's verified Pure Tokens connection in memory, and make one
 synchronous 90-second request without polling or automatic retry.
 
 Embedding defaults to `qwen3.7-text-embedding` when unspecified and preserves
-explicit model choices. Reviewed exact IDs are `qwen3.7-text-embedding` and
-`qwen3.7-text-embedding-flash` at fixed `POST /v1/embeddings`, with
+explicit model choices. Reviewed exact IDs are `qwen3.7-text-embedding`,
+`qwen3.7-text-embedding-flash` and `voyage-4-large` at fixed `POST /v1/embeddings`, with
 `encoding_format=float`. JSONL rows contain `index`, `dimensions`, `embedding`
 in original input order; chat reports only count, dimensions and the user path.
+Voyage alone supports optional `input_type=query|document` and dimensions
+256/512/1024/2048 via `output_dimension`. It uses float output, disables
+truncation and validates the returned dimension; the default model stays Qwen.
 Rerank uses `qwen3.7-text-rerank` at fixed `POST /v1/rerank`, with
 `return_documents=false` and `top_n` defaulting to all candidates. JSON contains
 `results` with one-based rank, zero-based original index and the raw finite
@@ -237,7 +240,7 @@ The selected installed profile governs ordinary requests. An explicit authentica
 <!-- media-model-catalog:start -->
 ## Media model catalog
 
-Synchronized with the base model catalog: 2026-11-07T09:20:36.335Z.
+Synchronized with the base model catalog: 2026-11-08T13:27:39.712Z.
 
 This list is an installed selection aid, not a per-request authorization check. Ordinary generation reads only the selected profile; live discovery is limited to explicit requests, profile gaps or rejection diagnosis. Reviewed local compatibility supplements are separately sourced.
 
@@ -249,7 +252,6 @@ README is generated only from base-catalog models with explicit image/video capa
 | --- | --- | --- | --- | --- |
 | `dola-seedream-5-0-pro-260628` | ByteDance | Exact ID only | Image generation | `Use dola-seedream-5-0-pro-260628 to generate an image.` |
 | `gemini-3.0-pro-image` | Google | Exact ID only | Image generation | `Use gemini-3.0-pro-image to generate an image.` |
-| `gemini-3.1-flash-image` | Google | Exact ID only | Image generation | `Use gemini-3.1-flash-image to generate an image.` |
 | `gemini-nano-banana-2.1` | Google | Exact ID only | Image generation | `Use gemini-nano-banana-2.1 to generate an image.` |
 | `gpt-image-2` | OpenAI | `image2` | Image generation | `Use gpt-image-2 to generate an image.` |
 | `gpt-image-2.5` | OpenAI | Exact ID only | Image generation | `Use gpt-image-2.5 to generate an image.` |

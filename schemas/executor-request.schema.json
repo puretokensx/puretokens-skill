@@ -134,6 +134,20 @@
       "properties": {
         "kind": { "const": "video" },
         "operation": { "const": "generate" },
+        "model": { "enum": ["wan3.0-video", "wan3.0-video-prime"] },
+        "media_operation": { "const": "native_generation" },
+        "parameters": {
+          "required": ["input"],
+          "properties": { "input": { "type": "object" }, "parameters": { "type": "object" } },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "required": ["kind", "operation", "model", "media_operation", "parameters"],
+      "properties": {
+        "kind": { "const": "video" },
+        "operation": { "const": "generate" },
         "model": { "enum": ["kling-video-v4", "kling-video-v3", "kling-video-v3-turbo", "kling-video-v3-omni", "kling-video-motion-control-v3.0", "kling-video-motion-control-v2.6"] },
         "media_operation": { "const": "native_video" },
         "parameters": { "required": ["contents"], "properties": { "contents": { "type": "array", "minItems": 1, "maxItems": 16 } } }

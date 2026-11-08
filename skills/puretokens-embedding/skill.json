@@ -162,5 +162,5 @@
     "doesNotUseMcpOrFallbackTransport": true,
     "neverAutomaticallyRetries": true
   },
-  "sourceSha256": "6f84118b24caa847881af7961772b5d7e66d49fe6c20f86b1c2fa2aa8f022b05"
+  "sourceSha256": "8998de8320cb93e8281e5103a97ee3a7657418fe9bb862ea69672bab03f77b3e"
 }

@@ -57,7 +57,7 @@ description: 查询当前 Pure Tokens 连接的图片／视频模型、参数、
 运行 `<绝对执行器路径> models --host <当前宿主 ID> --request <绝对筛选文件>`。
 每次只发一个 `GET https://api.puretokensx.com/v1/models`：
 embedding 取返回 ID 与 `qwen3.7-text-embedding`、
-`qwen3.7-text-embedding-flash` 的交集；rerank 只与
+`qwen3.7-text-embedding-flash`、`voyage-4-large` 的交集；rerank 只与
 `qwen3.7-text-rerank` 相交。去重后展示，不按名称前缀猜能力，
 不接受 operation／parameters，不回退媒体目录或用静态名单冒充实时结果。
 

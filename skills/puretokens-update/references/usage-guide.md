@@ -89,8 +89,11 @@ Pure Tokens 是一个提供多种模型能力的 AI 服务平台。你可以在�
 ## 文本向量与重排
 
 `puretokens-embedding` 将明确提供的1–64条非空文本生成向量，写入用户明确的
-绝对新 `.jsonl` 文件。审核型号为 `qwen3.7-text-embedding` 和
-`qwen3.7-text-embedding-flash`。每行保留零基原编号、维度和向量；
+绝对新 `.jsonl` 文件。默认 `qwen3.7-text-embedding`，也支持
+`qwen3.7-text-embedding-flash` 和 `voyage-4-large`。仅 Voyage 可选
+`input_type=query/document` 以及 `output_dimension=256/512/1024/2048`，
+省略维度时为1024；固定浮点输出并禁止静默截断，不把这些参数传给 Qwen。
+每行保留零基原编号、维度和向量；
 聊天只显示条数、实际维度及文件路径，不铺满向量、不自动建库或扫描目录。
 
 `puretokens-rerank` 使用 `qwen3.7-text-rerank`，对一个非空查询和1–64条

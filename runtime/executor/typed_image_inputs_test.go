@@ -15,7 +15,7 @@ func TestTypedLocalReferencesPreserveRolesInJSON(t *testing.T) {
 		model, kind, op, media string
 		fields                 []string
 	}{
-		{"gemini-3.1-flash-image", "image", "edit", "", []string{"images", "images"}},
+		{"gemini-nano-banana-2.1", "image", "edit", "", []string{"images", "images"}},
 		{"veo-3.1", "video", "generate", "first_last_frame_video", []string{"first_frame_image", "last_frame_image"}},
 		{"omni-flash", "video", "generate", "reference_image_video", []string{"reference_images", "reference_images"}},
 	} {

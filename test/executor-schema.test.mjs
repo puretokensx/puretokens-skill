@@ -57,6 +57,22 @@ function rejects(schema, document, keyword) {
   if (keyword) assert.ok(errors.some((error) => error.includes(keyword)), errors.join("\n"));
 }
 
+test("Voyage request schema isolates dedicated controls from Qwen and rerank", () => {
+  const request = { model: "voyage-4-large", input: ["fixture document"], input_type: "document", output_dimension: 256, output_file: "/workspace/embeddings.jsonl" };
+  assert.deepEqual(validators.get("embedding-request.schema.json")(request), []);
+  for (const changes of [{model: "qwen3.7-text-embedding"}, {input_type: "chat"}, {input_type: null}, {output_dimension: 768}, {output_dimension: "256"}, {truncation: true}, {output_dtype: "binary"}, {dimensions: 256}]) {
+    rejects("embedding-request.schema.json", { ...request, ...changes });
+  }
+});
+
+test("Wan native request schema permits a nested prompt only on the reviewed models", () => {
+  const request = { kind: "video", operation: "generate", model: "wan3.0-video", media_operation: "native_generation", parameters: { input: { prompt: "fixture", media: [{type: "file", url: "https://example.com/ref"}] }, parameters: {prompt_extend: true} } };
+  assert.deepEqual(validators.get("executor-request.schema.json")(request), []);
+  for (const changes of [{model: "MiniMax-H3"}, {operation: "edit"}, {parameters: {input: null}}, {parameters: {...request.parameters, duration: 5}}]) {
+    rejects("executor-request.schema.json", {...request, ...changes});
+  }
+});
+
 test("actual executor JSON and executable documentation conform to their schemas", async () => {
   const coveredSchemas = new Set();
   const names = new Set();

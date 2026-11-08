@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
   "schemaVersion": 1,
   "capability": "video",
-  "catalogUpdatedAt": "2026-11-07",
-  "catalogCapturedAt": "2026-11-07T09:20:36.335Z",
+  "catalogUpdatedAt": "2026-11-08",
+  "catalogCapturedAt": "2026-11-08T13:27:39.712Z",
   "id": "Super Vega 1.5-pro",
   "parameterSchema": {
     "properties": {

@@ -17,9 +17,9 @@ func TestPublishedModelUpdate(t *testing.T) {
 		count                                        int
 		valid                                        bool
 	}{
-		{name: "gemini-local-typed-input", kind: "image", model: "gemini-3.1-flash-image", operation: "edit", fields: []string{"images"}, valid: true},
-		{name: "gemini-https", kind: "image", model: "gemini-3.1-flash-image", operation: "edit", parameters: map[string]any{"images": []any{"https://example.com/ref.png"}}, valid: true},
-		{name: "gemini-missing", kind: "image", model: "gemini-3.1-flash-image", operation: "edit"},
+		{name: "gemini-local-typed-input", kind: "image", model: "gemini-nano-banana-2.1", operation: "edit", fields: []string{"images"}, valid: true},
+		{name: "gemini-https", kind: "image", model: "gemini-nano-banana-2.1", operation: "edit", parameters: map[string]any{"images": []any{"https://example.com/ref.png"}}, valid: true},
+		{name: "gemini-missing", kind: "image", model: "gemini-nano-banana-2.1", operation: "edit"},
 		{name: "veo-local-typed-pair", kind: "video", model: "veo-3.1-fast", mediaOperation: "first_last_frame_video", fields: []string{"first_frame_image", "last_frame_image"}, valid: true},
 		{name: "veo-local-missing", kind: "video", model: "veo-3.1-fast", mediaOperation: "first_last_frame_video", fields: []string{"first_frame_image"}},
 		{name: "veo-reference-1080", kind: "video", model: "veo-3.1-fast", parameters: map[string]any{"reference_images": []any{"https://example.com/ref.png"}, "resolution": "1080p"}},
@@ -129,9 +129,10 @@ func TestPublishedPolicyProjectionPreservesEvidence(t *testing.T) {
 		}
 	}
 	wan := reviewedMediaSchema("wan3.0-video", schema)
-	if jsonObject(wan["properties"])["input"] != nil || jsonObject(wan["operations"])["native_generation"] != nil ||
-		jsonObject(jsonObject(wan["constraints"])["unsupported_inputs"])["input"] != true {
-		t.Fatal("Wan projection restored unreviewed nested input")
+	if jsonObject(jsonObject(wan["properties"])["input"])["type"] != "json" ||
+		jsonObject(jsonObject(jsonObject(wan["operations"])["native_generation"])["request"])["path"] != "/v1/videos" ||
+		jsonObject(jsonObject(wan["constraints"])["unsupported_inputs"])["idempotency_key"] != true {
+		t.Fatal("Wan projection lost its reviewed native operation or idempotency restriction")
 	}
 	unknown := reviewedMediaSchema("fixture-unrestricted-model", schema)
 	formats := array(jsonObject(jsonObject(unknown["properties"])["output_format"])["enum"])

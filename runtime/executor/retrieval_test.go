@@ -295,16 +295,16 @@ func TestRetrievalDiscoveryUsesAuthenticatedDirectoryAndReviewedExactIDs(t *test
 			if r.Method != "GET" || r.URL.String() != "https://api.puretokensx.com/v1/models" {
 				t.Error("discovery used the wrong directory or submitted inference")
 			}
-			return evaluationHTTP(200, `{"data":[{"id":"qwen3.7-text-embedding"},{"id":"qwen3.7-text-embedding-flash"},{"id":"qwen3.7-text-rerank"},{"id":"qwen3.7-text-rerank-guessed"},{"id":"private-model"},{"id":"qwen3.7-text-rerank"}]}`), nil
+			return evaluationHTTP(200, `{"data":[{"id":"qwen3.7-text-embedding"},{"id":"qwen3.7-text-embedding-flash"},{"id":"voyage-4-large"},{"id":"voyage-4-large"},{"id":"voyage-unreviewed"},{"id":"qwen3.7-text-rerank"},{"id":"qwen3.7-text-rerank-guessed"},{"id":"private-model"},{"id":"qwen3.7-text-rerank"}]}`), nil
 		})}}
 		err := executeModelQuery(&output, svc, strings.NewReader(`{"kind":"`+kind+`"}`))
 		var result map[string]any
 		json.Unmarshal(output.Bytes(), &result)
-		count := float64(2)
+		count := float64(3)
 		if kind == "rerank" {
 			count = 1
 		}
-		if err != nil || calls != 1 || jsonObject(result["result"])["matched_count"] != count || strings.Contains(output.String(), "private-model") {
+		if err != nil || calls != 1 || jsonObject(result["result"])["matched_count"] != count || strings.Contains(output.String(), "private-model") || strings.Contains(output.String(), "voyage-unreviewed") {
 			t.Fatalf("discovery guessed capability or leaked catalog: %v %v", result, err)
 		}
 	}

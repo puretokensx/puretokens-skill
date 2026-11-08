@@ -26,6 +26,7 @@ type reviewedMediaPolicy struct {
 	SVGOutput                        bool                `json:"svgOutput"`
 	TailFrameOutput                  bool                `json:"tailFrameOutput"`
 	KlingNative                      bool                `json:"klingNative"`
+	WanNative                        bool                `json:"wanNative"`
 }
 
 var reviewedMediaPolicies = sync.OnceValue(func() map[string]reviewedMediaPolicy {
@@ -183,6 +184,34 @@ func reviewedMediaSchema(id string, schema map[string]any) map[string]any {
 		operations["native_video"] = map[string]any{
 			"request":            map[string]any{"method": "POST", "path": "/v1/videos", "contentType": "application/json"},
 			"requiredBodyFields": []any{"model", "contents"},
+		}
+		result["operations"] = operations
+	}
+	if policy.WanNative {
+		unsupported := maps.Clone(jsonObject(constraints["unsupported_inputs"]))
+		if properties == nil {
+			properties = make(map[string]any)
+		}
+		for _, field := range []string{"input", "parameters"} {
+			delete(unsupported, field)
+			properties[field] = map[string]any{"type": "json"}
+		}
+		if unsupported != nil {
+			constraints["unsupported_inputs"] = unsupported
+		}
+		closed := maps.Clone(jsonObject(constraints["unsupported_operations"]))
+		delete(closed, "native_generation")
+		if closed != nil {
+			constraints["unsupported_operations"] = closed
+		}
+		result["properties"] = properties
+		operations := maps.Clone(jsonObject(result["operations"]))
+		if operations == nil {
+			operations = make(map[string]any)
+		}
+		operations["native_generation"] = map[string]any{
+			"request":            map[string]any{"method": "POST", "path": "/v1/videos", "contentType": "application/json"},
+			"requiredBodyFields": []any{"model", "input"},
 		}
 		result["operations"] = operations
 	}

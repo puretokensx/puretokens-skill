@@ -50,6 +50,19 @@ export function supplementReviewedParameters(model) {
         ];
       }
     }
+    if (boundary.wanNative) {
+      schema.properties ??= {};
+      for (const field of ["input", "parameters"]) {
+        schema.properties[field] = { type: "json" };
+        if (schema.constraints.unsupported_inputs) delete schema.constraints.unsupported_inputs[field];
+      }
+      if (schema.constraints.unsupported_operations) delete schema.constraints.unsupported_operations.native_generation;
+      schema.operations ??= {};
+      schema.operations.native_generation = {
+        request: { method: "POST", path: "/v1/videos", contentType: "application/json" },
+        requiredBodyFields: ["model", "input"]
+      };
+    }
     if (boundary.klingNative) {
       schema.properties ??= {};
       for (const field of ["contents", "settings", "options"]) {

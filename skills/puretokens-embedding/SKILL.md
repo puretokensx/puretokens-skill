@@ -20,15 +20,17 @@ description: 当前宿主使用 Pure Tokens 连接，用户明确要求将给定
 
 只处理用户明确提供的 1–64 条非空文本，保留内容和顺序。每条最多 32768 个 Unicode 字符，整个 UTF-8 JSON 请求最多 1 MiB；不把路径或 URL 当成隐式读取指令，不扫描目录、不自动抓取文件、不建立向量库。超限时说明限制和必要拆分的请求数，范围未明确才澄清，不静默截断、改写或扩大收费批次。
 
-模型必须是精确审核 ID：`qwen3.7-text-embedding` 或 `qwen3.7-text-embedding-flash`。用户未指定模型时默认使用 `qwen3.7-text-embedding`；明确指定 flash 时保留原选择，不从名称猜别名、维度或可用性。Skill 在请求文件中显式写入所选精确 ID，执行器仍拒绝缺失 model 的请求，不自动换模型。输出必须是绝对路径、尚不存在的 `.jsonl` 文件，父目录已存在且可写，不覆盖或删除已有文件。
+模型必须是精确审核 ID：`qwen3.7-text-embedding`、`qwen3.7-text-embedding-flash` 或 `voyage-4-large`。用户未指定模型时默认使用 `qwen3.7-text-embedding`；明确指定其他审核 ID 时保留原选择，不从名称猜别名或可用性。Skill 在请求文件中显式写入所选精确 ID，执行器仍拒绝缺失 model 的请求，不自动换模型。输出必须是绝对路径、尚不存在的 `.jsonl` 文件，父目录已存在且可写，不覆盖或删除已有文件。
+
+Voyage 可按明确用途添加 `input_type=query|document`；明确维度才加 `output_dimension=256|512|1024|2048`，否则使用其默认 1024 维。执行器固定 `truncation=false` 和 `output_dtype=float`，不静默截断，不把量化／二进制向量伪装成 float。Qwen 不接受这些专用字段。
 
 用户未指定文件名时，在已明确且获准写入的工作区／输出目录选择唯一新文件名并告知结果；目录不明确时才询问。不把任意当前工作目录、系统目录或 Skill 安装目录当作输出授权。执行器仍接收明确的绝对 `output_file`，不增加默认目录或覆盖行为。
 
 ## 执行
 
-1. 按需读 [请求与回执](references/executor-usage.md)，用宿主文件工具创建权限受限的绝对路径 UTF-8 JSON 临时文件。请求仅含 `model`、`input`、`output_file`；`input` 始终为字符串数组。正文和凭据不放进命令行，执行后清理本次请求文件。
+1. 按需读 [请求与回执](references/executor-usage.md)，用宿主文件工具创建权限受限的绝对路径 UTF-8 JSON 临时文件。请求含 `model`、`input`、`output_file`，只有 Voyage 可加上述两个专用字段；`input` 始终为字符串数组。正文和凭据不放进命令行，执行后清理本次请求文件。
 2. 从本 SKILL.md 的绝对目录解析 `../.puretokens-executor/puretokens-api`，Windows 使用 `puretokens-api.exe`；不依赖 PATH 或工作目录。执行 `<执行器> embedding --host <当前宿主> --request <绝对请求文件>`，只有这两个 flags。
-3. 执行器先校验请求与新文件路径，再在内存中解析当前宿主已验证的 Pure Tokens 连接凭据，只向 `POST https://api.puretokensx.com/v1/embeddings` 提交一次；API body 固定 `model`、`input`、`encoding_format=float`。同步总预算 90 秒，响应最多 2 MiB，无重试、轮询、任务记录或恢复命令。
+3. 执行器先校验请求与新文件路径，再在内存中解析当前宿主已验证的 Pure Tokens 连接凭据，只向 `POST https://api.puretokensx.com/v1/embeddings` 提交一次；API body 含 `model`、`input`、`encoding_format=float`，Voyage 增加其已审核控制。同步总预算 90 秒，响应最多 2 MiB，无重试、轮询、任务记录或恢复命令。
 4. 成功文件每行仅有 `{index,dimensions,embedding}`，按原输入的零基 `index` 排序。仅 `ok=true`、`next_step=done`、`output_verified=true` 时，按 artifact 报告条数、维度和用户文件路径；不把向量数组铺进聊天，不把保存文件宣称为已建库或完成检索。
 
 安装的原生执行器是唯一 API 传输；仅它可读取当前宿主声明的有效连接并在内存中用凭据。Skill 不读或展示配置、不索取 Key、不增加 Node、Python、SDK、MCP、代理、浏览器或其他 Skill 作为回退。宿主特定限制才读 [宿主说明](references/desktop-hosts.md)。仅问用法／支持范围时读本地说明，不运行 init、doctor、models、余额或 embedding。

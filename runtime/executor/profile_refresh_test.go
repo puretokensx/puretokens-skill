@@ -242,6 +242,10 @@ func TestInstalledProfileFieldsAndNativeOperationsNeedNoRefresh(t *testing.T) {
 			t.Run(id, func(t *testing.T) {
 				svc, transport := catalogProfileService(t, profile)
 				for name, rule := range profile.Parameters.Properties {
+					if reviewedWanModel(id) && (name == "input" || name == "parameters") {
+						// Native fields are validated together by TestWanNativeInputsPrepareWithoutChangingIntent.
+						continue
+					}
 					if reviewedKlingVariant(id) != "" && contains([]string{"contents", "settings", "options"}, name) {
 						// These form one bounded envelope, not independently valid flat fields.
 						// All six envelopes and fields are exercised by TestKlingNativeProfilePreparationPreservesIntent.
@@ -330,6 +334,17 @@ func TestInstalledProfileFieldsAndNativeOperationsNeedNoRefresh(t *testing.T) {
 					}
 				}
 				for name, op := range profile.Parameters.Operations {
+					if name == "native_generation" && reviewedWanModel(id) {
+						request := wanNativeFixture(id)
+						before := transport.calls
+						if err := prepareProfileRequest(&request, svc); err != nil || transport.calls != before {
+							t.Fatalf("native Wan envelope refreshed or failed: %v", err)
+						}
+						if _, _, _, err := taskRequestBody(request); err != nil {
+							t.Fatal(err)
+						}
+						continue
+					}
 					if name == "native_video" {
 						request := klingNativeFixture(id)
 						if reviewedKlingVariant(id) == "motion" {

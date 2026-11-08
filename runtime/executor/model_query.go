@@ -270,6 +270,17 @@ func modelQueryMatches(query modelQuery, entry map[string]any) bool {
 			query.Operation, query.Parameters = "native_video", nil
 		}
 	}
+	if reviewedWanModel(id) {
+		request := taskRequest{Kind: "video", Operation: "generate", MediaOperation: query.Operation, Model: id, Parameters: query.Parameters}
+		if hasWanNativeEnvelope(request) {
+			if len(query.Parameters) > 0 {
+				if _, err := validateWanNativeRequest(request); err != nil {
+					return false
+				}
+			}
+			query.Operation, query.Parameters = "native_generation", nil
+		}
+	}
 	return modelSchemaMatches(query, capabilities, schema)
 }
 

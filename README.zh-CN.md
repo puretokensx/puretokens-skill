@@ -120,9 +120,11 @@ Computer Use、浏览器自动化以及打开或点击 Pure Tokens Switch/Deskto
 同步单次最多90秒，不轮询、不自动重试。
 
 embedding 未指定时默认使用 `qwen3.7-text-embedding`，保留用户明确选择。审核 ID 为 `qwen3.7-text-embedding`、
-`qwen3.7-text-embedding-flash`，固定 `POST /v1/embeddings` 与
+`qwen3.7-text-embedding-flash`、`voyage-4-large`，固定 `POST /v1/embeddings` 与
 `encoding_format=float`。JSONL 每行为 `index`、`dimensions`、`embedding`，
 按原输入编号排序；聊天只报条数、维度和用户文件路径，不铺满向量。
+仅 Voyage 可选 `input_type=query|document` 与 `output_dimension=256/512/1024/2048`，
+固定 float 输出并关闭截断，校验实际维度；默认模型仍为 Qwen。
 rerank 使用 `qwen3.7-text-rerank`，固定 `POST /v1/rerank`、
 `return_documents=false`，top_n 省略时返回全部候选。JSON 的 `results`
 保留从1起的排名、从0起的原始编号及原始有限相关分；可展示同排序摘要，
@@ -210,7 +212,7 @@ Claude Desktop 请选择本地 Code 会话并使用宿主 ID `claude-desktop`；
 <!-- media-model-catalog:start -->
 ## 媒体模型清单
 
-已与基础模型目录同步：2026-11-07T09:20:36.335Z。
+已与基础模型目录同步：2026-11-08T13:27:39.712Z。
 
 这份清单用于安装后的模型选择，不是每次请求的认证检查。普通生成只读选中 profile；仅明确查询、profile 缺口或拒绝诊断时读取实时目录。经审查的本地兼容补充定义单独注明来源。
 
@@ -222,7 +224,6 @@ README 只从基础目录中带有明确图片/视频能力的模型生成，不
 | --- | --- | --- | --- | --- |
 | `dola-seedream-5-0-pro-260628` | ByteDance | 仅精确 ID | 图片生成 | `用 dola-seedream-5-0-pro-260628 生成一张图片。` |
 | `gemini-3.0-pro-image` | Google | 仅精确 ID | 图片生成 | `用 gemini-3.0-pro-image 生成一张图片。` |
-| `gemini-3.1-flash-image` | Google | 仅精确 ID | 图片生成 | `用 gemini-3.1-flash-image 生成一张图片。` |
 | `gemini-nano-banana-2.1` | Google | 仅精确 ID | 图片生成 | `用 gemini-nano-banana-2.1 生成一张图片。` |
 | `gpt-image-2` | OpenAI | `image2` | 图片生成 | `用 gpt-image-2 生成一张图片。` |
 | `gpt-image-2.5` | OpenAI | 仅精确 ID | 图片生成 | `用 gpt-image-2.5 生成一张图片。` |

@@ -249,6 +249,9 @@ func requestedMediaOperation(request taskRequest) (string, error) {
 	return opName, nil
 }
 func prepareProfileRequest(request *taskRequest, svc service) error {
+	if err := prepareWanNativeRequest(request); err != nil {
+		return err
+	}
 	if err := prepareKlingNativeRequest(request); err != nil {
 		return err
 	}
@@ -262,7 +265,8 @@ func prepareProfileRequest(request *taskRequest, svc service) error {
 		return err
 	}
 	nativeKling := request.MediaOperation == "native_video" && reviewedKlingVariant(request.Model) != ""
-	if !nativeKling {
+	nativeWan := request.MediaOperation == "native_generation" && reviewedWanModel(request.Model)
+	if !nativeKling && !nativeWan {
 		if err := prepareReviewedVideoOperation(request); err != nil {
 			return err
 		}
@@ -287,7 +291,7 @@ func prepareProfileRequest(request *taskRequest, svc service) error {
 	if err != nil {
 		return err
 	}
-	if rule, exists := profile.Parameters.Properties["prompt"]; exists {
+	if rule, exists := profile.Parameters.Properties["prompt"]; exists && !(nativeWan && request.Prompt == "") {
 		if err = validateProperty("prompt", request.Prompt, rule); err != nil {
 			return err
 		}
@@ -340,6 +344,9 @@ func prepareProfileRequest(request *taskRequest, svc service) error {
 		}
 	}
 	for key, rule := range profile.Parameters.Properties {
+		if nativeWan && key != "input" && key != "parameters" {
+			continue
+		}
 		if nativeKling && !contains([]string{"contents", "settings", "options"}, key) {
 			continue
 		}
@@ -364,7 +371,7 @@ func prepareProfileRequest(request *taskRequest, svc service) error {
 		}
 		constraintParameters["n"] = request.RequestedCount
 	}
-	if !nativeKling {
+	if !nativeKling && !nativeWan {
 		if err = validateModelConstraints(profile.Parameters, opName, constraintParameters, counts); err != nil {
 			return err
 		}

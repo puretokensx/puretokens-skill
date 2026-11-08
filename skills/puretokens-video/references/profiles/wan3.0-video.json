@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
   "schemaVersion": 1,
   "capability": "video",
-  "catalogUpdatedAt": "2026-11-07",
-  "catalogCapturedAt": "2026-11-07T09:20:36.335Z",
+  "catalogUpdatedAt": "2026-11-08",
+  "catalogCapturedAt": "2026-11-08T13:27:39.712Z",
   "id": "wan3.0-video",
   "parameterSchema": {
     "properties": {
@@ -95,6 +95,12 @@
       "watermark": {
         "type": "boolean",
         "default": false
+      },
+      "input": {
+        "type": "json"
+      },
+      "parameters": {
+        "type": "json"
       }
     },
     "constraints": {
@@ -122,12 +128,7 @@
         ]
       },
       "unsupported_inputs": {
-        "input": true,
-        "parameters": true,
         "idempotency_key": true
-      },
-      "unsupported_operations": {
-        "native_generation": true
       }
     },
     "operations": {
@@ -295,6 +296,17 @@
             ]
           }
         }
+      },
+      "native_generation": {
+        "request": {
+          "method": "POST",
+          "path": "/v1/videos",
+          "contentType": "application/json"
+        },
+        "requiredBodyFields": [
+          "model",
+          "input"
+        ]
       }
     }
   }

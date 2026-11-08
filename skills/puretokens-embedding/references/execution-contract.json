@@ -42,8 +42,17 @@
   },
   "parameterValidation": {
     "defaultModel": "qwen3.7-text-embedding",
-    "requestFields": ["model", "input", "output_file"],
-    "reviewedModelIds": ["qwen3.7-text-embedding", "qwen3.7-text-embedding-flash"],
+    "requestFields": ["model", "input", "output_file", "input_type", "output_dimension"],
+    "reviewedModelIds": ["qwen3.7-text-embedding", "qwen3.7-text-embedding-flash", "voyage-4-large"],
+    "modelSpecificControls": {
+      "voyage-4-large": {
+        "input_type": ["query", "document"],
+        "output_dimension": [256, 512, 1024, 2048],
+        "defaultOutputDimension": 1024,
+        "fixedBody": { "truncation": false, "output_dtype": "float" },
+        "verifyOutputDimension": true
+      }
+    },
     "maxRequestBytes": 1048576,
     "maxResponseBytes": 2097152,
     "minItems": 1,

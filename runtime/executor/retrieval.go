@@ -26,16 +26,19 @@ const maxEmbeddingDimensions = 65536
 var retrievalModels = map[string]string{
 	"qwen3.7-text-embedding":       "embedding",
 	"qwen3.7-text-embedding-flash": "embedding",
+	"voyage-4-large":               "embedding",
 	"qwen3.7-text-rerank":          "rerank",
 }
 
 type retrievalRequest struct {
-	Model      string
-	Input      []string
-	Query      string
-	Documents  []string
-	TopN       int
-	OutputFile string
+	Model           string
+	Input           []string
+	Query           string
+	Documents       []string
+	TopN            int
+	OutputFile      string
+	InputType       string
+	OutputDimension int
 }
 
 type embeddingRow struct {
@@ -110,6 +113,22 @@ func decodeRetrievalRequest(kind string, data []byte) (retrievalRequest, error) 
 	if kind == "embedding" {
 		allowed["input"] = true
 		request.Input, ok = retrievalTexts(body["input"])
+		if request.Model == "voyage-4-large" {
+			allowed["input_type"], allowed["output_dimension"] = true, true
+			if value, exists := body["input_type"]; exists {
+				request.InputType, _ = value.(string)
+				if !contains([]string{"query", "document"}, request.InputType) {
+					return request, fail
+				}
+			}
+			if value, exists := body["output_dimension"]; exists {
+				var valid bool
+				request.OutputDimension, valid = retrievalIndex(value, 256, 2048)
+				if !valid || (request.OutputDimension != 256 && request.OutputDimension != 512 && request.OutputDimension != 1024 && request.OutputDimension != 2048) {
+					return request, fail
+				}
+			}
+		}
 	} else {
 		extension = ".json"
 		allowed["query"], allowed["documents"], allowed["top_n"] = true, true, true
@@ -221,6 +240,15 @@ func executeRetrieval(output io.Writer, svc service, kind string, request retrie
 	path := "/v1/embeddings"
 	if kind == "embedding" {
 		payload["input"], payload["encoding_format"] = request.Input, "float"
+		if request.Model == "voyage-4-large" {
+			payload["truncation"], payload["output_dtype"] = false, "float"
+			if request.InputType != "" {
+				payload["input_type"] = request.InputType
+			}
+			if request.OutputDimension != 0 {
+				payload["output_dimension"] = request.OutputDimension
+			}
+		}
 	} else {
 		path = "/v1/rerank"
 		payload["query"], payload["documents"], payload["top_n"], payload["return_documents"] = request.Query, request.Documents, request.TopN, false
@@ -308,11 +336,18 @@ func projectRetrievalResult(kind string, data []byte, request retrievalRequest) 
 	var output bytes.Buffer
 	if kind == "embedding" {
 		rows, dimensions := make([]embeddingRow, count), 0
+		expectedDimension := request.OutputDimension
+		if request.Model == "voyage-4-large" && expectedDimension == 0 {
+			expectedDimension = 1024
+		}
 		for _, entry := range entries {
 			object := jsonObject(entry)
 			index, valid := retrievalIndex(object["index"], 0, count-1)
 			vector, ok := object["embedding"].([]any)
 			if !valid || seen[index] || !ok || len(vector) < 1 || len(vector) > maxEmbeddingDimensions || (dimensions != 0 && len(vector) != dimensions) {
+				return invalid()
+			}
+			if expectedDimension != 0 && len(vector) != expectedDimension {
 				return invalid()
 			}
 			seen[index], dimensions = true, len(vector)

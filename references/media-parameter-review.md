@@ -46,7 +46,13 @@ before the fixed last_frame content route; never follow returned URLs. Both
 artifacts have independent proof and handoff records. Missing tail output stops
 same-task recovery without changing the request or resubmitting.
 Wan uses `audio` as a boolean, duration `-1` or 2-30 and declared HTTPS reference
-operations. Native nested inputs/idempotency claims remain outside this contract.
+operations. The 2026-11-08 source update adds reviewed `native_generation` for
+the two exact Wan 3.0 IDs at `/v1/videos`: bounded `input.prompt/media` and
+nested settings, including public HTTPS `file/link` with explicit
+`prompt_extend=true`. No flat/native mixing, local upload, resource creation
+or client idempotency guarantee. The dedicated validator enforces roles,
+counts, prompt consistency and settings before networking; records never
+store the native inputs. See the installed Wan native usage guide.
 
 Generic JSON operations can use multipart only when every local role explicitly
 declares that transport. The seven exact Gemini/Nano 2.1, Veo and Omni Flash

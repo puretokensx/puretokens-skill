@@ -43,7 +43,7 @@ description: 当前宿主使用 Pure Tokens 连接时，生成或编辑视频、
 3. 本地附件仅用声明的 `multipart_file` 或 `local_file_data_url`，后者传原始绝对路径，由执行器内存编码并保留角色，不自行写 data URL。公网 HTTPS URL 只进声明字段，不下载、探测、转存或改成提示词；没有声明的传输方式就停止。
 4. 创建 UTF-8 请求：kind=`video`、operation=`generate`／`edit`、model、prompt、parameters；附件用 media_operation 及 attachments（field、绝对 path）。执行 `<执行器> submit --host <当前宿主> --request <绝对请求文件>` 后清理临时文件，提示词／凭据不进命令行；示例按需读 [executor-usage.md](references/executor-usage.md)。
 
-原样提示词逐字保留，不翻译、润色或追加质量词。画质／节奏描述不自动变成 API 分辨率、时长或声音参数；明确输出规格按 profile 校验。模糊镜头／参考关系才读 [提示词指南](references/prompt-guide.md)。
+原样提示词不翻译、润色或增词。画质／节奏描述不自动变成 API 分辨率、时长或声音参数；明确输出规格按 profile 校验。模糊镜头／参考关系才读 [提示词指南](references/prompt-guide.md)。
 
 ## 同任务完成交付
 
@@ -61,11 +61,12 @@ description: 当前宿主使用 Pure Tokens 连接时，生成或编辑视频、
 
 ## 按需说明
 
-普通请求不读取按需说明。结果优先交付实际附件，进度简报确认状态。失败只给一个有证据的下一步，不展示命令／整份 JSON、不让用户管理阶段；解释含义才读 [回执说明](references/receipt-guide.md)。
+普通请求不读取按需说明。结果优先交付实际附件。失败只给一个有证据的下一步，不展示命令／整份 JSON、不让用户管理阶段；解释含义才读 [回执说明](references/receipt-guide.md)。
 
 - Grok 编辑：读 [编辑限制](references/grok-edit.md)。非默认视频组合不明确：读 [新增参数](references/reviewed-video-usage.md)；`sourceReview` 只证明契约审核，`Super Vega` 内部空格保留。
 - 独立尾帧：读 [尾帧用法](references/reviewed-video-usage.md)，仅精确 Super Vega Pro 声明的 `return_last_frame=true`；记录中 requested_count=1，索引 0 是视频、1 是尾帧。先视频再尾帧逐份交付，不漏交、不跟随产物 URL、不本地截帧／重新生成。
 - Kling 高级输入：读 [专用指南](references/kling-native-usage.md)，六个精确 ID 的 `media_operation=native_video`；不创建主体／克隆音色。多阶段需求才读 [组合流程](references/workflows.md)。
+- Wan 原生／文件参考：读 [专用指南](references/wan-native-usage.md)。
 - 失败／费用／支持摘要：读 [失败指南](references/failure-guide.md)，不暴露原始错误、内部 URL 或配置；未识别不等于未配置。
 - 明确失败且需继续创作选择：读 [模型建议](references/model-alternatives.md)，同意后才新建可能计费任务；未知、进行中、对账或交付失败只保留原任务，不自动换模型。
 - 权限拒绝／询问分组：读 [线上分组](references/model-groups.md)，不猜名称或当前 Key 权限，不自动改配置／重提。
