@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { acceptanceCases, acceptanceGroups, acceptancePlatforms, hostAcceptanceLevel, hostCapabilityAcceptance, validateAcceptanceMeasurements, validStablePublicationException, validateHostAcceptance, validateStableHostAcceptance } from "../scripts/validate-host-acceptance.mjs";
 import { createAcceptanceEvidence } from "../scripts/prepare-host-acceptance.mjs";
@@ -7,6 +8,14 @@ const sha = "a".repeat(64);
 const manifest = { artifacts: { "darwin-arm64": { sha256: sha } } };
 const supportedHosts = [{ id: "codex", credentialAdapter: "fixture-tested" }];
 const installationOnlyHosts = [{ id: "trae", credentialAdapter: "pending" }];
+
+test("acceptance guide lists exactly the authoritative detailed cases", async () => {
+  const guide = await readFile(new URL("../references/host-acceptance-guide.md", import.meta.url), "utf8");
+  const cases = [...guide.matchAll(/^\| ([a-zA-Z][a-zA-Z-]*) \|/gm)]
+    .map(match => match[1]).filter(id => id !== "Case");
+  assert.deepEqual(cases.sort(), [...acceptanceCases].sort());
+});
+
 function fixture() {
   const checks = () => ({ installation: "pending", authenticatedAPI: "pending", sameTaskResume: "pending", nativeAttachmentDelivery: "pending" });
   return { schemaVersion: 1, version, checkedAt: "2026-09-06", hosts: [{ host: "codex", credentialFixtures: "passed", macOS: checks(), windows: checks(), linux: checks() }], evidence: [] };

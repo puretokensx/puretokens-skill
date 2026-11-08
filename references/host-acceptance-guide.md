@@ -157,9 +157,17 @@ fixture classification and reassess each unavailable check and reason; never
 carry forward the old no-adapter exclusion or mark real-host checks passed
 from fixtures.
 
-This release schedules Linux targets for Claude Code, Codex, Gemini CLI, Grok Build and OpenCode; other Linux combinations are unavailable with an explicit reason until a client execution target is verified. Record Linux evidence with `os: linux` and a matching `linux-amd64` or `linux-arm64` executor. Do not substitute Windows/macOS hashes.
+Use each host's OS entries in `references/host-acceptance.json` for the current
+acceptance scope; do not infer it from the presence of a platform binary or an
+older list of clients. An unavailable target requires an explicit reason. Record
+Linux evidence with `os: linux` and a matching `linux-amd64` or `linux-arm64`
+executor. Do not substitute Windows/macOS hashes.
 
-Four summary checks and the twenty-one detailed cases above are distinct. The validator reports pending summary cells, detailed outcomes and separate capability groups; absence of evidence is never a pass. Do not rewrite historical release records to add new passes.
+The four summary checks and the detailed cases above are distinct. The
+authoritative case IDs and capability groups are exported by
+`scripts/validate-host-acceptance.mjs`; the table must stay aligned with them.
+The validator reports current counts and outcomes; absence of evidence is never
+a pass. Do not rewrite historical release records to add new passes.
 
 For installation, retain separate outcomes for a clean install and an upgrade
 from the preceding distributed version, default and explicit directories, spaces
@@ -233,7 +241,7 @@ remain in test reports, never in real-host measurements.
 
 The manual stable publication gate requires every declared available host/OS
 summary check to pass with matching real-host evidence. An API-capable target
-also needs all twenty-one detailed cases passed together in one local environment,
+also needs all declared detailed cases passed together in one local environment,
 including the new capability groups. Older media-only evidence cannot satisfy
 this requirement by combining different hosts or unrelated runs.
 Hosts without an adapter require only installation acceptance on their declared
@@ -249,12 +257,11 @@ share the acceptance record date, and explain the approval. It only bypasses the
 stable promotion gate; it never changes pending, unavailable or failed evidence,
 does not count as real-host acceptance, and must not be copied to a later version.
 
-For 0.19.5, the maintainer explicitly authorized direct stable publication on
-2026-10-18 and will verify production behavior personally. This independent
-version-specific decision does not reuse an older approval. Gaps remain in the
-maintenance record, not in user-facing release, installation or update notices.
-`host-acceptance.json` retains all 166 pending summary checks and the empty
-real-host evidence array. The exception does not waive engineering tests,
+Read the current version-specific decision and outstanding results from
+`host-acceptance.json`; older approvals belong to their versioned evidence in
+`acceptance/`, not this operating guide. Gaps remain in the maintenance record,
+not in user-facing release, installation or update notices. An exception does
+not waive engineering tests,
 committed-source CI, reproducible builds or uploaded asset verification. Product
 restrictions and actual command failures retain their normal behavior;
 publication does not create real-host evidence.

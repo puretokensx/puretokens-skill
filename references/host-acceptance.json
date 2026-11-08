@@ -421,7 +421,7 @@
         "authenticatedAPI": "unavailable",
         "sameTaskResume": "unavailable",
         "nativeAttachmentDelivery": "unavailable",
-        "reason": "Only local macOS/Windows default-profile credential paths are represented; multi-model configurations are ambiguous."
+        "reason": "Only local macOS/Windows default-profile credential paths are represented; no verified Linux credential path or local delivery target."
       }
     },
     {
@@ -455,21 +455,21 @@
         "authenticatedAPI": "pending",
         "sameTaskResume": "pending",
         "nativeAttachmentDelivery": "pending",
-        "reason": "Source-only compatibility change on 2026-11-03; no real-host or paid acceptance. Existing publication exception does not approve this change."
+        "reason": "Implementation shipped in Skills 1.0.0; real-host and paid acceptance remain pending. Publication does not count as acceptance."
       },
       "windows": {
         "installation": "pending",
         "authenticatedAPI": "pending",
         "sameTaskResume": "pending",
         "nativeAttachmentDelivery": "pending",
-        "reason": "Source-only compatibility change on 2026-11-03; no real-host or paid acceptance. Existing publication exception does not approve this change."
+        "reason": "Implementation shipped in Skills 1.0.0; real-host and paid acceptance remain pending. Publication does not count as acceptance."
       },
       "linux": {
         "installation": "pending",
         "authenticatedAPI": "pending",
         "sameTaskResume": "pending",
         "nativeAttachmentDelivery": "pending",
-        "reason": "Source-only compatibility change on 2026-11-03; no real-host or paid acceptance. Existing publication exception does not approve this change."
+        "reason": "Implementation shipped in Skills 1.0.0; real-host and paid acceptance remain pending. Publication does not count as acceptance."
       }
     },
     {
@@ -480,21 +480,21 @@
         "authenticatedAPI": "pending",
         "sameTaskResume": "pending",
         "nativeAttachmentDelivery": "pending",
-        "reason": "Source-only compatibility change on 2026-11-03; no real-host or paid acceptance. Existing publication exception does not approve this change."
+        "reason": "Implementation shipped in Skills 1.0.0; real-host and paid acceptance remain pending. Publication does not count as acceptance."
       },
       "windows": {
         "installation": "pending",
         "authenticatedAPI": "pending",
         "sameTaskResume": "pending",
         "nativeAttachmentDelivery": "pending",
-        "reason": "Source-only compatibility change on 2026-11-03; no real-host or paid acceptance. Existing publication exception does not approve this change."
+        "reason": "Implementation shipped in Skills 1.0.0; real-host and paid acceptance remain pending. Publication does not count as acceptance."
       },
       "linux": {
         "installation": "pending",
         "authenticatedAPI": "pending",
         "sameTaskResume": "pending",
         "nativeAttachmentDelivery": "pending",
-        "reason": "Source-only compatibility change on 2026-11-03; no real-host or paid acceptance. Existing publication exception does not approve this change."
+        "reason": "Implementation shipped in Skills 1.0.0; real-host and paid acceptance remain pending. Publication does not count as acceptance."
       }
     },
     {

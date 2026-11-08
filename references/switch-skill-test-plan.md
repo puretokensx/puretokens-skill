@@ -1,8 +1,8 @@
 # Switch × Skills 实机验收方案与费用边界
 
-本方案不授权任何实机或计费请求。1.0.0 的发布验收例外仅允许发布，
+本方案不授权任何实机或计费请求。每个版本的发布验收例外仅允许该版本发布，
 不授权新增测试，不把待验收项改为通过。发布证据见
-[1.0.0](acceptance/1.0.0-release.md)，当前结果见
+[已记录发布边界](switch-skill-compatibility.md)，当前结果见
 [宿主验收记录](host-acceptance.json)。
 
 每次执行前固定客户端、系统、架构、Skills 执行器 SHA、Switch／客户端版本、

@@ -10,11 +10,13 @@
 `gemini-3.1-flash-image`，但不据此宣布永久下架，旧任务身份及恢复保持不变。
 实现、协议及测试证据见[能力补齐记录](acceptance/capability-coverage-20261108.md)。
 
-## 当前发布边界：1.0.0
+## 已记录发布边界：1.0.2
 
-2026-11-08，Skills 1.0.0 已发布，包含 27 个注册宿主、十个 Skill 和六个平台执行器。发布提交为 `44beed8953e9b8213423a03e4150f2c51e58add4`，见[发布证据](acceptance/1.0.0-release.md)。下方 11 月增量均已进入本版；较早的数量、型号和发布状态仅为带日期的历史记录，不作为当前配置指令。
+2026-11-08，Skills 1.0.2 已发布，发布提交为 `5cacdb605504514c3ec0d47905504274c5e9dff2`，见[1.0.2 发布证据](acceptance/1.0.2-release.md)。它延续 1.0.0 的 27 个注册宿主、十个 Skill 和六个平台执行器，增加安装分发修复；各能力首次分发的证据保留在[1.0.0 记录](acceptance/1.0.0-release.md)。本页明确标注的未发布源码增量不属于该稳定版，较早的数量、型号和发布状态不作为当前配置指令。
 
-发布实现不等于实机通过：`host-acceptance.json` 仍保留 268 项待验收，不提升任何①至⑤状态。Switch 写入、网关部署、账户权限和真实宿主交付各自需要证据，本次 Skills 发布不证明其他项目已发布。Claude 映射模式仅在兼容 Switch 已写入并通过校验的同宿主连接记录存在时可用；1.0.0 随包映射说明中的发布前措辞不替代本节发布证据，也不放宽连接条件。
+发布实现不等于实机通过：`host-acceptance.json` 仍保留 268 项待验收，不提升任何①至⑤状态。Switch 写入、网关部署、账户权限和真实宿主交付各自需要证据，本次 Skills 发布不证明其他项目已发布。Claude 映射模式仅在兼容 Switch 已写入并通过校验的同宿主连接记录存在时可用。
+
+已发布的宿主说明仍有发布前的 `source-only`／`unreleased` 措辞，涉及六个新增 CLI、Oh My Pi、MiniMax Code CLI 和 Claude 映射模式。这些措辞不替代上述发布证据，也不放宽连接条件。下一分发版本须统一修正 `references/desktop-hosts.md`、`references/host-support.json`、`references/claude-mapped-connection.md` 及其生成的安装内副本；工程资料清理不重写旧版本资产。
 
 ## 2026-11-07 按宿主读取与共享安装
 
