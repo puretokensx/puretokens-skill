@@ -1,8 +1,9 @@
 # Claude Desktop mapped Skills connection v1
 
-Status: unreleased source support. This contract is owned jointly with Switch
-`docs/decisions/ADR-0008-claude-desktop-model-mapping.md`. Both projects must ship
-compatible versions; installing the existing 0.19.8 release cannot enable it.
+Skills support shipped in 1.0.0. This contract is owned jointly with Switch
+`docs/decisions/ADR-0008-claude-desktop-model-mapping.md`. Both projects require
+compatible versions and a valid same-host connection written by Switch Apply.
+Skill installation alone does not create that record or prove real-host delivery.
 
 ## One application action
 

@@ -2,7 +2,7 @@
 
 Bound host: `--host claude-desktop`.
 
-Claude Desktop direct profiles retain existing support. Mapped mode has unreleased source support through Switch's same-host applied Skills connection, not its local chat token. Read [the exact binding and lifecycle contract](../claude-mapped-connection.md) only for mapped mode. Missing legacy records return `active_connection_endpoint_unsupported` without an API request; compatible Switch configuration application is required, not reinstallation or another host's Key.
+Claude Desktop direct profiles retain existing support. Mapped-mode Skills support shipped in 1.0.0 and requires Switch's same-host applied Skills connection, not its local chat token. Read [the exact binding and lifecycle contract](../claude-mapped-connection.md) only for mapped mode. Missing legacy records return `active_connection_endpoint_unsupported` without an API request; compatible Switch configuration application is required, not reinstallation or another host's Key.
 
 Use --host claude-desktop in a local Desktop Code session. Local Code sessions discover ~/.claude/skills (or the explicitly configured CLAUDE_CONFIG_DIR/skills); this directory is shared with Claude Code. The executor uses the active Desktop third-party gateway profile, never Claude Code settings as a fallback. Restart/start a new local session after installation.
 

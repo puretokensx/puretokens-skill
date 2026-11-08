@@ -4,6 +4,12 @@
 
 # Changelog
 
+## 1.0.3 - Unreleased
+
+- Correct installed host guidance for capabilities shipped in 1.0.0, including the six additional CLI hosts, Oh My Pi, MiniMax Code CLI and conditional Claude Desktop mapped connections. Synchronize every self-contained Skill without changing connection checks or claiming real-host acceptance.
+- Carry forward the post-1.0.2 lightweight installation/media instructions and verified same-invocation download metadata/route reuse. Preserve checksums, failure boundaries and same-task recovery.
+- Add reviewed Voyage float embedding controls and Wan native public file/link inputs, and refresh installed media selection without changing defaults or historical task recovery.
+
 ## 1.0.2 - 2026-11-08
 
 - Recover official release downloads from HTTP 502/503/504 through one anonymous GitHub asset API request for the same verified version. Preserve checksums, existing files and bounded failure handling; do not require a token or new runtime.

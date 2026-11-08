@@ -2,7 +2,7 @@
 
 Bound host: `--host paseo`.
 
-Use the actual host ID `paseo`, not Codex because it shares an engine. Install to `~/.agents/skills`, shared with Codex; `doctor` checks declared roots only. This entry is source/fixture support, not yet stable release or real-host API/attachment acceptance.
+Use the actual host ID `paseo`, not Codex because it shares an engine. Install to `~/.agents/skills`, shared with Codex; `doctor` checks declared roots only. This conditional support shipped in Skills 1.0.0; real-host API/attachment acceptance remains pending.
 
 Local Paseo is restricted to its Codex engine and a confirmed saved custom provider. Require the existing absolute PASEO_HOME plus inherited connection matching; if unavailable, stop with a sanitized selection error. Do not set environment credentials to manufacture a match, read independent Codex auth, or access a remote daemon. An inner Codex process is not sufficient to classify the host.
 

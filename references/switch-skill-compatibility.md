@@ -1,6 +1,6 @@
 # Switch × Skills 专用模型兼容矩阵
 
-## 2026-11-08 未发布源码增量
+## 1.0.3 未发布候选增量（2026-11-08）
 
 本轮只改 Skills：新增 `voyage-4-large` 的 float 向量协议与可选用途／维度，
 两个 Wan 3.0 型号新增受校验的 `native_generation` 公网 file/link 及原生素材输入。
@@ -16,7 +16,7 @@
 
 发布实现不等于实机通过：`host-acceptance.json` 仍保留 268 项待验收，不提升任何①至⑤状态。Switch 写入、网关部署、账户权限和真实宿主交付各自需要证据，本次 Skills 发布不证明其他项目已发布。Claude 映射模式仅在兼容 Switch 已写入并通过校验的同宿主连接记录存在时可用。
 
-已发布的宿主说明仍有发布前的 `source-only`／`unreleased` 措辞，涉及六个新增 CLI、Oh My Pi、MiniMax Code CLI 和 Claude 映射模式。这些措辞不替代上述发布证据，也不放宽连接条件。下一分发版本须统一修正 `references/desktop-hosts.md`、`references/host-support.json`、`references/claude-mapped-connection.md` 及其生成的安装内副本；工程资料清理不重写旧版本资产。
+1.0.3 候选已统一修正六个新增 CLI、Oh My Pi、MiniMax Code CLI 和 Claude 映射模式的发布状态，包括三份维护源及十个 Skill 内的生成副本；不再把已随 1.0.0 分发的能力写成 `source-only`／`unreleased`。连接限制和实机验收等级不变。已发布的 1.0.2 资产保持不变，用户安装版要在新版本发布并升级后才会获得文案修正。
 
 ## 2026-11-07 按宿主读取与共享安装
 

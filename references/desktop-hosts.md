@@ -2,7 +2,7 @@
 
 ## paseo
 
-Use the actual host ID `paseo`, not Codex because it shares an engine. Install to `~/.agents/skills`, shared with Codex; `doctor` checks declared roots only. This entry is source/fixture support, not yet stable release or real-host API/attachment acceptance.
+Use the actual host ID `paseo`, not Codex because it shares an engine. Install to `~/.agents/skills`, shared with Codex; `doctor` checks declared roots only. This conditional support shipped in Skills 1.0.0; real-host API/attachment acceptance remains pending.
 
 Local Paseo is restricted to its Codex engine and a confirmed saved custom provider. Require the existing absolute PASEO_HOME plus inherited connection matching; if unavailable, stop with a sanitized selection error. Do not set environment credentials to manufacture a match, read independent Codex auth, or access a remote daemon. An inner Codex process is not sufficient to classify the host.
 
@@ -12,15 +12,15 @@ Unknown project/session/runtime overrides stop; do not guess a selected model or
 
 Oh My Pi uses `--host oh-my-pi`, never the Pi entry. Installation, doctor and credentials share the selected profile: validated `PI_CONFIG_DIR` (default `.omp`), then `OMP_PROFILE` before `PI_PROFILE`; an explicitly empty canonical profile means default. Named profiles use `<home>/<config>/profiles/<profile>/agent/skills` and ignore `PI_CODING_AGENT_DIR`; only the default may use that absolute override. The executor accepts up to four explicitly declared absolute `PI_CONFIG_FILES` overlays in order, using the resulting exact `modelRoles.default` and the selected profile's models file. Before invoking it, confirm the current local session uses this saved/file-overlay selection; absence of a visible override is not proof. Project settings, dotenv scopes and unrepresented session/runtime/extension or compatibility-provider selection remain unsupported. Do not inspect another client or profile to establish the connection.
 
-This entry is source-only; standalone installation still fetches the published stable release. Do not promise an update can install unreleased bytes.
+This support shipped in Skills 1.0.0. Standalone installation fetches the published stable release; fixture coverage does not establish real-host API or attachment delivery acceptance.
 
 ## minimax-code-cli
 
-MiniMax Code CLI (`mcode`) uses `--host minimax-code-cli`; Desktop retains `--host minimax-code`. CLI resolves `MINIMAX_DATA_DIR`, then `MAVIS_DATA_DIR`, then `~/.minimax`, without Desktop preferences. Its installer loads `<root>/skills`. Only a confirmed local saved-default conversation is supported; profiles and unrepresented overrides stop. This entry is source-only; standalone installation still fetches the published stable release. Do not promise an update can install unreleased bytes.
+MiniMax Code CLI (`mcode`) uses `--host minimax-code-cli`; Desktop retains `--host minimax-code`. CLI resolves `MINIMAX_DATA_DIR`, then `MAVIS_DATA_DIR`, then `~/.minimax`, without Desktop preferences. Its installer loads `<root>/skills`. Only a confirmed local saved-default conversation is supported; profiles and unrepresented overrides stop. This support shipped in Skills 1.0.0. Standalone installation fetches the published stable release; real-host API and attachment delivery acceptance remain pending.
 
 ## claude-desktop
 
-Claude Desktop direct profiles retain existing support. Mapped mode has unreleased source support through Switch's same-host applied Skills connection, not its local chat token. Read [the exact binding and lifecycle contract](claude-mapped-connection.md) only for mapped mode. Missing legacy records return `active_connection_endpoint_unsupported` without an API request; compatible Switch configuration application is required, not reinstallation or another host's Key.
+Claude Desktop direct profiles retain existing support. Mapped-mode Skills support shipped in 1.0.0 and requires Switch's same-host applied Skills connection, not its local chat token. Read [the exact binding and lifecycle contract](claude-mapped-connection.md) only for mapped mode. Missing legacy records return `active_connection_endpoint_unsupported` without an API request; compatible Switch configuration application is required, not reinstallation or another host's Key.
 
 Use --host claude-desktop in a local Desktop Code session. Local Code sessions discover ~/.claude/skills (or the explicitly configured CLAUDE_CONFIG_DIR/skills); this directory is shared with Claude Code. The executor uses the active Desktop third-party gateway profile, never Claude Code settings as a fallback. Restart/start a new local session after installation.
 

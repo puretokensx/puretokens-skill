@@ -1,15 +1,8 @@
 {
   "schemaVersion": 1,
-  "version": "1.0.2",
+  "version": "1.0.3",
   "checkedAt": "2026-11-08",
-  "method": "Bounded official release download repair. Offline fixtures and an isolated macOS download/install smoke test do not establish real-host authentication or delivery. Paid API and real-host acceptance remain pending. Publication is explicitly approved for 1.0.2 on 2026-11-08, not inherited from 1.0.1.",
-  "stablePublicationException": {
-    "kind": "maintainer-approved-pending-acceptance",
-    "version": "1.0.2",
-    "approved": true,
-    "approvedAt": "2026-11-08",
-    "reason": "The maintainer explicitly authorized publishing 1.0.2 after the bounded download repair on 2026-11-08. Retain pending real-host acceptance without marking fixtures as real-host passes; engineering and release artifact checks remain required."
-  },
+  "method": "Unreleased 1.0.3 candidate: post-1.0.2 lightweight flow and capability updates plus corrected installed host guidance. Offline checks do not establish real-host authentication or delivery. Existing pending outcomes remain unchanged; the 1.0.2 publication approval is not inherited. No publication is authorized by this record.",
   "guide": "references/host-acceptance-guide.md",
   "evidence": [],
   "hosts": [

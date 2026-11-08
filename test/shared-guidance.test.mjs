@@ -7,6 +7,38 @@ import test from "node:test";
 import { syncSkillGuidance } from "../scripts/sync-skill-guidance.mjs";
 import { repositoryRoot } from "../scripts/skill-registry.mjs";
 
+test("shipped host guidance does not retain pre-release availability claims", async () => {
+  const read = file => readFile(path.join(repositoryRoot, file), "utf8");
+  const support = JSON.parse(await read("references/host-support.json"));
+  const registry = JSON.parse(await read("skills/index.json"));
+  const hosts = ["qwen-code", "codebuddy-code", "copilot-cli", "factory-droid", "mimo-coder", "paseo", "oh-my-pi", "minimax-code-cli", "claude-desktop"];
+  const stale = /unreleased source|source-only|not yet stable release/i;
+  for (const host of hosts) {
+    const entry = support.supported.find(item => item.id === host);
+    assert.ok(entry, host);
+    assert.doesNotMatch(entry.guidance, stale, host);
+    assert.equal(entry.credentialAdapter, "fixture-tested", host);
+    assert.match(entry.guidance, /(?:pending|remain separate)/i, host);
+  }
+  const desktop = await read("references/desktop-hosts.md");
+  assert.doesNotMatch(desktop, stale);
+  const mapped = await read("references/claude-mapped-connection.md");
+  assert.doesNotMatch(mapped, stale);
+  assert.match(mapped, /Skills support shipped in 1\.0\.0/);
+  assert.match(mapped, /compatible versions/);
+  assert.match(mapped, /API\s+permission and real attachment delivery remain independent acceptance checks/);
+  assert.match(mapped, /Missing legacy companion returns `active_connection_endpoint_unsupported`/);
+  for (const skill of registry.skills) {
+    const root = `${path.dirname(skill.entry)}/references`;
+    assert.equal(await read(`${root}/claude-mapped-connection.md`), mapped);
+    for (const host of hosts) {
+      const text = await read(`${root}/hosts/${host}.md`);
+      assert.doesNotMatch(text, stale, `${skill.name}/${host}`);
+      assert.match(text, /shipped in (?:Skills )?1\.0\.0/i, `${skill.name}/${host}`);
+    }
+  }
+});
+
 test("shared guidance is generated, detects drift and synchronizes self-contained Skills", async t => {
   assert.deepEqual(await syncSkillGuidance(repositoryRoot), []);
   const root = await mkdtemp(path.join(os.tmpdir(), "pt-guidance-"));
