@@ -4,10 +4,10 @@
 
 # Changelog
 
-## 1.0.1 - Unreleased
+## 1.0.1 - 2026-11-08
 
 - Restrict model catalog receipts to reviewed public schema fields, preserve current model parameters, and reject unreviewed metadata during catalog/profile publication. Keep actual API validation and existing-task recovery unchanged.
-- Minimize public acceptance records and add privacy regression checks. Legacy asynchronous audio wire identifiers still require a backwards-compatible gateway contract before they can be removed.
+- Minimize public acceptance records and add privacy regression checks.
 
 ## 1.0.0 - 2026-11-08
 
