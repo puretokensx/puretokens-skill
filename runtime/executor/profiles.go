@@ -338,6 +338,11 @@ func prepareProfileRequest(request *taskRequest, svc service) error {
 			return err
 		}
 	}
+	if request.Kind == "image" && request.Operation != "continue" {
+		if err = applyImageDimensionDefaults(request, profile.Parameters, operation, opName); err != nil {
+			return err
+		}
+	}
 	for _, input := range operation.Inputs {
 		if len(request.Attachments) > 0 && input.Required && counts[input.Field] < max(1, input.Min) && request.Parameters[input.Field] == nil {
 			return errors.New("A required current attachment is missing for this operation.")

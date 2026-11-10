@@ -142,6 +142,33 @@
     "allOptionalParametersRequire": "selected_profile_with_model_index_only_for_selection_parameter_schema_or_on_demand_live_input_schema",
     "enforcesDeclaredRequiresTogether": true,
     "sizeExpressionPrecedence": "send_only_the_highest_precedence_user_supplied_declared_size_expression",
+    "dimensionDefaults": {
+      "scope": "new_image_generation_and_edit_requests_only",
+      "source": "selected_exact_model_profile_declared_defaults",
+      "fields": [
+        "image_size",
+        "resolution",
+        "size",
+        "aspect_ratio"
+      ],
+      "precedence": "explicit_values_then_declared_size_expression_order_else_one_of_image_size_resolution_size_and_aspect_ratio",
+      "explicitSizeOrPixelDimensions": "do_not_add_competing_size_or_ratio_fields",
+      "validation": "validate_filled_fields_and_combination_before_submission_no_silent_substitution",
+      "materializedIn": [
+        "json_or_multipart_request",
+        "safe_receipt_parameters",
+        "new_task_record_parameters"
+      ],
+      "neverChanges": [
+        "explicit_values",
+        "model",
+        "prompt",
+        "count",
+        "quality",
+        "existing_task"
+      ],
+      "missingDefault": "do_not_invent_values_or_add_catalog_requests"
+    },
     "whenProfileIsMissing": "do_not_submit_requested_optional_parameters_or_media_operations",
     "explicitPreflightCommand": "preflight --host <host-id> --request <request-file>; never POST; not a normal-generation preflight"
   },

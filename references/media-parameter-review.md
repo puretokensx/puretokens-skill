@@ -6,6 +6,23 @@ contracts. The November 7 review is the current installed baseline, included in
 snapshots. See `acceptance/1.0.0-release.md` for publication evidence and the
 current installed profiles for executable parameter rules.
 
+## Source follow-up - 2026-11-10
+
+New image generation and editing now materialize omitted dimension defaults
+from the selected profile before validation and submission. This closes the
+gap where constraints used `image_size`/`aspect_ratio` defaults in memory but
+the actual request omitted them. GPT 2.6 uses its declared `1K` and `1:1`;
+other models retain their own declarations. Explicit values win, and explicit
+`size`/pixel dimensions suppress competing defaults. Declared size-expression
+precedence remains authoritative; otherwise only one of `image_size`,
+`resolution`, `size` is defaulted, with a declared aspect ratio. Unsupported
+fields and undeclared defaults are not invented. Invalid defaults or
+combinations stop locally without catalog retries, resolution changes or POST.
+Effective safe dimensions appear in new receipts/records; existing tasks,
+counts, quality, model selection and other media kinds are unchanged.
+This source fix and offline regression evidence do not establish the cause
+of any individual production failure or real-host generation acceptance.
+
 ## Current review - 2026-11-07
 
 The publication follow-up is recorded in `acceptance/web-model-review-20261106.md`.

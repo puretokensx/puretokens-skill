@@ -18,6 +18,16 @@ Generation (the default when no model was requested):
 {"kind":"image","operation":"generate","model":"gpt-image-2.6","prompt":"A mountain lake at sunrise","parameters":{"image_size":"1K"}}
 ```
 
+For new generation and edit requests, the executor fills omitted dimension
+fields from the selected model profile, validates the effective combination,
+and includes it in the actual JSON or multipart body. The example uses
+`image_size=1K` and `aspect_ratio=1:1`. Explicit user values are never replaced;
+an explicit `size`, `width` or `height` prevents competing dimension defaults.
+Models keep their own field names and defaults; no declaration means no guessed
+value or additional catalog request. Counts, quality and other controls are not
+defaulted by this rule. Copy effective safe parameters from the submission
+receipt into continuation requests; existing tasks never receive new defaults.
+
 Current local image edit:
 
 ```json

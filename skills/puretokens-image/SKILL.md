@@ -46,7 +46,7 @@ description: 当前宿主使用 Pure Tokens 连接时，生成或编辑图片、
 3. 本地附件仅用声明的 `multipart_file` 或 `local_file_data_url`，后者传原始绝对路径，由执行器内存编码，不自行写 data URL。公网 HTTPS URL 只进声明字段，不下载、探测、转存或改成提示词；没有声明的传输方式就停止。
 4. 创建 UTF-8 请求：kind=`image`、operation=`generate`／`edit`、model、prompt、parameters；附件用 media_operation 及 attachments（field、绝对 path）。执行 `<执行器> submit --host <当前宿主> --request <绝对请求文件>` 后清理临时文件，提示词／凭据不进命令行；示例按需读 [executor-usage.md](references/executor-usage.md)。
 
-原样提示词／文案逐字保留，不翻译、润色或追加词；“8K”等描述不自动变成 API 尺寸。模糊场景才读 [提示词指南](references/prompt-guide.md)。
+执行器按 profile 补尺寸／比例默认值，不改显式值／旧任务。文案逐字保留，描述不作 API 尺寸；歧义见[提示词指南](references/prompt-guide.md)。
 
 ## 同任务完成交付
 
