@@ -6,7 +6,11 @@ contracts. The November 7 review is the current installed baseline, included in
 snapshots. See `acceptance/1.0.0-release.md` for publication evidence and the
 current installed profiles for executable parameter rules.
 
-## Source follow-up - 2026-11-10
+## Published dimension follow-up - 2026-11-10
+
+Included in stable 1.0.4; publication evidence is recorded in
+`acceptance/1.0.4-release.md`. This does not identify the cause of unrelated
+HTTP 400 image-edit reports.
 
 New image generation and editing now materialize omitted dimension defaults
 from the selected profile before validation and submission. This closes the
