@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "version": "1.0.3",
-  "checkedAt": "2026-11-08",
-  "method": "Version 1.0.3 publication review: lightweight flow and capability updates plus corrected installed host guidance. On 2026-11-08 the maintainer explicitly requested this release while retaining the existing pending acceptance outcomes. Offline checks and publication do not establish real-host authentication or delivery. See references/acceptance/1.0.3-release.md.",
+  "version": "1.0.4",
+  "checkedAt": "2026-11-10",
+  "method": "Version 1.0.4 publication review: materialize declared image dimension defaults. On 2026-11-10 the maintainer explicitly requested publication of the current changes while retaining pending acceptance outcomes. Offline checks and publication do not establish real-host authentication or delivery. See references/acceptance/1.0.4-release.md.",
   "stablePublicationException": {
     "kind": "maintainer-approved-pending-acceptance",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "approved": true,
-    "approvedAt": "2026-11-08",
-    "reason": "The maintainer explicitly authorized the current 1.0.3 stable release on 2026-11-08, retaining all 268 pending host/OS checks and existing evidence. This decision applies only to 1.0.3 and is not real-host or paid API acceptance."
+    "approvedAt": "2026-11-10",
+    "reason": "The maintainer explicitly authorized publication of the current changes on 2026-11-10 as the 1.0.4 patch release, retaining all 268 pending host/OS checks and existing evidence. This decision applies only to 1.0.4 and is not real-host or paid API acceptance."
   },
   "guide": "references/host-acceptance-guide.md",
   "evidence": [],

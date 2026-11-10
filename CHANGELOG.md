@@ -4,6 +4,11 @@
 
 # Changelog
 
+## 1.0.4 - 2026-11-10
+
+- Send the selected image model's declared default dimensions in new generation and editing requests instead of using them only during validation. GPT 2.6 supplies `1K` and `1:1` when omitted; explicit dimensions and each model's size rules remain authoritative.
+- Preserve effective safe dimensions in new receipts and task records without changing existing-task recovery, model selection, quality, output count or retry behavior. No additional user runtime or preflight request is required.
+
 ## 1.0.3 - 2026-11-08
 
 - Correct installed host guidance for capabilities shipped in 1.0.0, including the six additional CLI hosts, Oh My Pi, MiniMax Code CLI and conditional Claude Desktop mapped connections. Synchronize every self-contained Skill without changing connection checks or claiming real-host acceptance.
