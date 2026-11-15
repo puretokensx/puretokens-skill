@@ -30,8 +30,10 @@ Normal executables exclude the `content_diagnostic` test build tag.
 - Resolve only the active host's existing credential adapter and connection
   binding. Make one fixed same-task content GET per authorized invocation.
   No status/model/preflight requests, POST, redirect, retry loop, credential
-  export, URL extraction, custom origin, or alternate authentication. A second
-  underlying transport connection assignment is cancelled to block replay.
+  export, URL extraction, custom origin, or alternate authentication. The Go
+  probes cancel a second transport connection assignment. The Windows native
+  probe disables failed-connection resends, redirects, cookies and automatic
+  authentication; unsupported policy options stop before sending the GET.
 - Default and plain probes use the same 120-second HTTP total, 30-second
   response-header and 30-second read-idle budgets. These are diagnostic limits,
   not changes to production's 10-minute total or 90-second header budget.
@@ -39,6 +41,8 @@ Normal executables exclude the `content_diagnostic` test build tag.
   canonical gateway request ID only, plus the diagnostic build identity.
   No media bytes, digest of user media, URLs, raw headers/errors, credentials,
   provider details, configuration or local paths enter the receipt.
+  `http_stack` distinguishes `go_net_http` and `windows_winhttp`. Native
+  `proxy_mode` contains only `direct` or `environment_http_proxy`, never an address.
 - Use a private temporary directory, validate the native file, then remove it
   on normal exit. Do not persist task changes or mark attachment handoff.
   `ok=true` means this probe read and validated bytes, not user delivery.
@@ -71,6 +75,24 @@ build identity/SHA-256 JSON. Verify the recipient's bytes against that checksum.
 Do not replace the installed `puretokens-api.exe`, publish the instrument as a
 stable version, or claim cross-compilation is Windows acceptance.
 `--build-info` prints build identity without reading credentials or networking.
+
+Before a real Windows native probe, run this binary's local synthetic fixtures
+on that Windows computer. Stop if they fail. These tests use loopback only,
+synthetic credentials and generated PNG bytes; they never read host configuration
+or call the production service. They check DLL callbacks, full and chunked
+content, cancellation, idle/header/total budgets, truncated and oversized media,
+redirect/auth/throttle rejection, no POST/replay, redaction, buffer cleanup and
+rejection of an untrusted TLS certificate. This is local transport verification,
+not a passed real-host media delivery case.
+
+```powershell
+& $diagnostic -test.run '^TestContentWinHTTPNative' -test.timeout 30s
+if ($LASTEXITCODE -ne 0) { throw 'Native HTTP self-test failed; do not run the content request.' }
+```
+
+Do not run the full compiled test suite on a user's computer. Use the exact
+anchored native-only selection above. Do not change proxy/certificate settings
+or disable TLS verification to make these tests pass.
 
 ## Controlled comparison
 
@@ -115,6 +137,37 @@ Only after reviewing that pair, choose at most one additional probe at a time:
 | --- | --- | --- |
 | `http1` | Executor path restricted to HTTP/1.1 | Protocol/path interoperability, if baseline actually used HTTP/2 |
 | `long-idle` | Executor read-idle limit becomes 90 seconds; total stays 120 seconds | The 30-second stop policy prevented completion in this sample |
+| `winhttp` | Windows WinHTTP owns connections/TLS/HTTP instead of Go's HTTP transport; uses the plain reader and matched budgets | A genuinely independent transport comparison, not a proven fix |
+
+The native probe is a separately selected comparison, never an automatic fallback
+and never a fifth request after exhausting the agreed limit. If executor, plain
+and http1 have already run, select winhttp instead of long-idle. It still uses the
+same active-host credential adapter, fixed task/index and original status evidence.
+The CLI exposes no origin or proxy override. Resolve the same environment proxy
+choice as Go: direct stays direct; an unauthenticated HTTP proxy is reused only
+in memory. SOCKS, HTTPS proxies and proxy credentials are not silently converted
+or ignored; unsupported cases stop before the content GET. Windows system proxy,
+PAC, default logon credentials and certificate exceptions are not used.
+
+The native request permits HTTP/2 and reports the actual protocol. It uses the
+same user agent and gzip advertisement as the Go probe; an encoded response is
+currently unsupported and stops rather than treating compressed bytes as an image.
+TLS/certificate trust and DNS can still differ between the native and Go stacks.
+Sequential samples and those differences prevent a single success from proving
+the Go implementation is faulty or establishing general stability. Windows
+versions unable to disable internal failed-connection resends return
+diagnostic_transport_unsupported before any content request.
+
+After the native-only self-test passes, the separately authorized content
+invocation changes only the selected probe:
+
+```powershell
+& $diagnostic content-diagnose --host codex --status-receipt $statusReceipt --task-id $confirmedTaskId --index 0 --probe winhttp --confirm-one-get
+```
+
+The Windows DLL fixture suite is excluded on other operating systems. A passed
+macOS fixture suite and successful Windows cross-build do not prove these DLL
+fixtures, the affected network, or actual attachment delivery passed.
 
 A matched-budget plain success with executor failure is evidence to investigate
 the executor read/file pipeline, not a conclusive causal proof from sequential

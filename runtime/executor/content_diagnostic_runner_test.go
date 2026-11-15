@@ -48,6 +48,8 @@ type contentDiagnostic struct {
 	OS                     string           `json:"os"`
 	Arch                   string           `json:"arch"`
 	Probe                  string           `json:"probe"`
+	HTTPStack              string           `json:"http_stack,omitempty"`
+	ProxyMode              string           `json:"proxy_mode,omitempty"`
 	TargetSource           string           `json:"target_source,omitempty"`
 	Requests               int              `json:"requests"`
 	Protocol               string           `json:"protocol,omitempty"`
@@ -152,8 +154,11 @@ func runContentDiagnostic(args []string, output io.Writer) int {
 	index := flags.Int("index", 0, "")
 	confirm := flags.Bool("confirm-one-get", false, "")
 	if flags.Parse(args) != nil || flags.NArg() != 0 || !*confirm || *host == "" ||
-		!contains([]string{"executor", "plain", "http1", "long-idle"}, *probe) {
+		!contains([]string{"executor", "plain", "http1", "long-idle", "winhttp"}, *probe) {
 		return fail("diagnostic_request_invalid")
+	}
+	if *probe == "winhttp" && runtime.GOOS != "windows" {
+		return fail("diagnostic_transport_unsupported")
 	}
 	var record taskRecord
 	var err error
@@ -232,7 +237,7 @@ func (transport *diagnosticTransport) RoundTrip(request *http.Request) (*http.Re
 
 func diagnoseContent(ctx context.Context, svc service, record taskRecord, index int, probe string, budgets diagnosticBudgets) contentDiagnostic {
 	result := contentDiagnostic{Format: "puretokens-content-diagnostic-v1", ExecutorVersion: executorVersion, DiagnosticSourceSHA256: diagnosticSourceSHA256, OS: runtime.GOOS, Arch: runtime.GOARCH, Probe: probe, NextStep: "await_user", TotalBudgetMS: budgets.total.Milliseconds(), IdleBudgetMS: budgets.idle.Milliseconds()}
-	if !diagnosticRecordAllowed(record, index) || !contains([]string{"executor", "plain", "http1", "long-idle"}, probe) {
+	if !diagnosticRecordAllowed(record, index) || !contains([]string{"executor", "plain", "http1", "long-idle", "winhttp"}, probe) {
 		result.LocalErrorCode = "diagnostic_request_invalid"
 		return result
 	}
@@ -240,26 +245,38 @@ func diagnoseContent(ctx context.Context, svc service, record taskRecord, index 
 	ctx, cancel := context.WithCancelCause(ctx)
 	defer cancel(nil)
 	client := fixedClient(svc.client)
-	base := client.Transport
-	if base == nil {
-		base = http.DefaultTransport
-	}
-	transport, ok := base.(*http.Transport)
-	if !ok {
-		result.LocalErrorCode = "diagnostic_transport_unsupported"
-		return result
-	}
-	transport = transport.Clone()
-	defer transport.CloseIdleConnections()
-	if probe == "http1" {
-		transport.Protocols = new(http.Protocols)
-		transport.Protocols.SetHTTP1(true)
-		if transport.TLSClientConfig != nil {
-			transport.TLSClientConfig = transport.TLSClientConfig.Clone()
-			transport.TLSClientConfig.NextProtos = []string{"http/1.1"}
+	if probe == "winhttp" {
+		result.HTTPStack = "windows_winhttp"
+		transport, cleanup, err := diagnosticNativeFactory(svc.baseURL+contentPath("image", record.TaskID, index), &result, budgets)
+		if err != nil {
+			result.LocalErrorCode = "diagnostic_transport_unsupported"
+			return result
 		}
+		defer cleanup()
+		client.Transport = transport
+	} else {
+		result.HTTPStack = "go_net_http"
+		base := client.Transport
+		if base == nil {
+			base = http.DefaultTransport
+		}
+		transport, ok := base.(*http.Transport)
+		if !ok {
+			result.LocalErrorCode = "diagnostic_transport_unsupported"
+			return result
+		}
+		transport = transport.Clone()
+		defer transport.CloseIdleConnections()
+		if probe == "http1" {
+			transport.Protocols = new(http.Protocols)
+			transport.Protocols.SetHTTP1(true)
+			if transport.TLSClientConfig != nil {
+				transport.TLSClientConfig = transport.TLSClientConfig.Clone()
+				transport.TLSClientConfig.NextProtos = []string{"http/1.1"}
+			}
+		}
+		client.Transport = &diagnosticTransport{base: transport, result: &result, cancel: cancel}
 	}
-	client.Transport = &diagnosticTransport{base: transport, result: &result, cancel: cancel}
 	client.Timeout = budgets.total
 	svc.client = client
 	svc.support = &supportReceiptWriter{command: "content", host: svc.host}
@@ -274,17 +291,24 @@ func diagnoseContent(ctx context.Context, svc service, record taskRecord, index 
 	defer os.RemoveAll(directory)
 	path := contentPath("image", record.TaskID, index)
 	status := 0
-	if probe == "plain" {
+	if probe == "plain" || probe == "winhttp" {
 		status, err = diagnosticPlainDownload(ctx, svc, path, directory, budgets)
 	} else {
 		_, status, _, _, _, err = svc.download(ctx, path, "image", directory)
 	}
-	result.HTTPStatus, result.RequestID = svc.support.httpStatus, svc.support.requestID
+	if svc.support.httpStatus != 0 {
+		result.HTTPStatus = svc.support.httpStatus
+	}
+	result.RequestID = svc.support.requestID
 	result.Transfer = svc.support.contentTransfer
 	result.ElapsedMS = time.Since(started).Milliseconds()
 	result.OK = err == nil && status == 200 && result.Transfer != nil && result.Transfer.ReadComplete && result.Transfer.FileVerified
 	if !result.OK {
-		if errors.Is(context.Cause(ctx), errDiagnosticReplay) {
+		if errors.Is(err, errDiagnosticNativeUnsupported) {
+			result.LocalErrorCode = "diagnostic_transport_unsupported"
+		} else if errors.Is(err, errDiagnosticNativeEncoding) {
+			result.LocalErrorCode = "diagnostic_content_encoding_unsupported"
+		} else if errors.Is(context.Cause(ctx), errDiagnosticReplay) {
 			result.LocalErrorCode = "diagnostic_transport_replay_blocked"
 		} else if (status != 0 && status != 200) || (result.HTTPStatus != 0 && result.HTTPStatus != 200) {
 			result.LocalErrorCode = "content_request_rejected"
