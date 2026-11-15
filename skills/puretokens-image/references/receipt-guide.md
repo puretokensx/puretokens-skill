@@ -91,3 +91,16 @@
 更不证明文件持续传输。`media_content_response_timeout` 表示响应等待超限，
 `media_download_stalled` 表示读取无字节进展超限；两者都保留原任务且停止自动取回。
 HTTP 200 只证明收到响应状态，不证明完整图片／音视频已经取回或交付。
+
+## 取回失败诊断
+
+可选顶层 `content_transfer` 只描述本次响应正文：`bytes_received` 是已读取字节，
+`expected_bytes` 仅在长度已知且未自动解压时提供；`first_byte_ms`、`last_progress_ms`
+是响应正文开始观测后首次／最后一次读到字节的时间，零字节时省略。
+`read_wait_ms` 为正文 Read 调用累计等待，不含落盘和文件校验。
+`read_complete` 只表示读到正常 EOF；`file_verified` 表示最终本地文件通过校验，
+仍不代表客户端附件已交付。头部等待失败或复用本地文件时不生成正文诊断。
+这些字段不进入任务记录、support 或运维上报；不增加请求、重试或持久化。
+同一索引重复取回失败后，不再反复建议“继续取图”；保留现有 support、timings_ms
+和 content_transfer 脱敏字段供排查，不索要 Key、完整配置、原始日志或下载地址，
+也不为补诊断重跑。已有图片已交付就结束，不重复取回。

@@ -1262,8 +1262,12 @@ func (svc service) download(ctx context.Context, path, kind, outputDir string) (
 	}
 	finishTiming := svc.timePhase("download")
 	defer finishTiming()
+	transfer := newContentTransfer(response)
+	if svc.support != nil {
+		svc.support.contentTransfer = transfer
+	}
 	reader := bufio.NewReader(&contentProgressReader{reader: response.Body, ctx: ctx, cancel: cancel,
-		budget: svc.contentIdleBudget(), remaining: svc.contentIdleBudget()})
+		budget: svc.contentIdleBudget(), remaining: svc.contentIdleBudget(), transfer: transfer})
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
 		body, _ := io.ReadAll(io.LimitReader(reader, maxResponseBytes))
 		code, message := publicAPIError(sanitizeResponseJSON(body, svc.token))
@@ -1333,6 +1337,7 @@ func (svc service) download(ctx context.Context, path, kind, outputDir string) (
 	if !svc.checkDownloadProof(destination, proof) {
 		return "", response.StatusCode, 0, "", "", errors.New("download changed during finalization")
 	}
+	transfer.FileVerified = true
 	if svc.downloadProofs != nil {
 		svc.downloadProofs[destination] = proof
 	}

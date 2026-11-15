@@ -52,6 +52,7 @@ type contentProgressReader struct {
 	cancel    context.CancelCauseFunc
 	budget    time.Duration
 	remaining time.Duration
+	transfer  *contentTransfer
 }
 
 func (reader *contentProgressReader) Read(buffer []byte) (int, error) {
@@ -65,6 +66,7 @@ func (reader *contentProgressReader) Read(buffer []byte) (int, error) {
 	started := time.Now()
 	stop := contentDeadline(reader.cancel, reader.remaining, errContentIdleTimeout)
 	n, err := reader.reader.Read(buffer)
+	reader.transfer.observeRead(n, err, time.Since(started))
 	stop()
 	if cause := context.Cause(reader.ctx); cause != nil {
 		return n, cause

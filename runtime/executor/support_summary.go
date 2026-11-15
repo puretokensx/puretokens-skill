@@ -25,6 +25,7 @@ type supportReceiptWriter struct {
 	transportErrorCode string
 	operationsEvent    string
 	timings            *commandTimings
+	contentTransfer    *contentTransfer
 }
 
 func (writer *supportReceiptWriter) Write(data []byte) (int, error) {
@@ -38,6 +39,7 @@ func (writer *supportReceiptWriter) beginRequest(method, path string) {
 	writer.attempted = true
 	writer.requestID, writer.requestPhase, writer.httpStatus = "", "", 0
 	writer.transportErrorCode = ""
+	writer.contentTransfer = nil
 	path, _, _ = strings.Cut(path, "?")
 	switch {
 	case path == "/v1":
@@ -97,6 +99,9 @@ func (writer *supportReceiptWriter) writeJSON(value any) {
 	document["support"], _ = json.Marshal(summary)
 	if timings := writer.timings.snapshot(); timings != nil {
 		document["timings_ms"], _ = json.Marshal(timings)
+	}
+	if writer.contentTransfer != nil {
+		document["content_transfer"], _ = json.Marshal(writer.contentTransfer)
 	}
 	writeJSON(writer.output, document)
 }

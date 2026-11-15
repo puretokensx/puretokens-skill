@@ -4,6 +4,11 @@
 
 # Changelog
 
+## 1.0.5 - 2026-11-15
+
+- Add privacy-safe download progress to media retrieval receipts: received bytes, expected length when known, first-byte and last-progress timing, normal read completion, and local file verification. No URLs, credentials, media contents or local paths are included in this diagnostic block.
+- Clarify repeated retrieval failures: preserve the original task and escalate existing sanitized evidence instead of repeatedly requesting continuation. Generation, download timeouts and automatic retry behavior remain unchanged; local file verification does not claim client attachment delivery.
+
 ## 1.0.4 - 2026-11-10
 
 - Send the selected image model's declared default dimensions in new generation and editing requests instead of using them only during validation. GPT 2.6 supplies `1K` and `1:1` when omitted; explicit dimensions and each model's size rules remain authoritative.

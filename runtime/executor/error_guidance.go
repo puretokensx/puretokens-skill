@@ -92,7 +92,7 @@ func guideFailure(result receipt) receipt {
 	case result.TaskID != "" && result.ReconciliationRequired:
 		boundary = "Keep this task ID. Stop automatic waiting; on explicit continuation check this same task once. Never submit a replacement or infer a refund."
 	case result.TaskID != "" && result.FailurePhase == "content":
-		boundary = "Stop automatic retrieval. Keep this task ID and index; another retrieval requires an explicit user request. Reuse a verified local file when available. Do not submit a replacement or switch models."
+		boundary = "Stop automatic retrieval. Keep this task ID and index; another retrieval requires an explicit user request. Repeated failure requires investigation of existing sanitized support, timings_ms and content_transfer, not repeated continuation prompts or diagnostic refetches. Reuse a verified local file when available. Do not submit a replacement or switch models."
 	case result.TaskID != "" && terminalFailure(result.Status):
 		boundary = "Keep this task ID and its failed state. Do not continue polling a terminal failure or automatically create another task."
 	case result.TaskID != "":

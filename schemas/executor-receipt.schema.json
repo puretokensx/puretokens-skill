@@ -6,6 +6,21 @@
     "ok"
   ],
   "properties": {
+    "content_transfer": {
+      "description": "Invocation-local response-body evidence; never proof of host delivery or a remote export. Byte counts follow the decoded reader. Expected bytes are omitted for unknown lengths or transparent decompression.",
+      "type": "object",
+      "required": ["bytes_received", "read_wait_ms", "read_complete", "file_verified"],
+      "properties": {
+        "bytes_received": {"type": "integer", "minimum": 0},
+        "expected_bytes": {"type": "integer", "minimum": 0},
+        "first_byte_ms": {"type": "integer", "minimum": 0},
+        "last_progress_ms": {"type": "integer", "minimum": 0},
+        "read_wait_ms": {"type": "integer", "minimum": 0},
+        "read_complete": {"type": "boolean"},
+        "file_verified": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
     "timings_ms": {
       "$ref": "timings.schema.json"
     },

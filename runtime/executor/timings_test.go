@@ -175,13 +175,17 @@ func TestLocalRedeliveryMeasuresVerificationWithoutHandoffOrNetwork(t *testing.T
 		t.Fatal(err)
 	}
 	clock, _ = timingClockFixture()
-	writer.timings = clock
+	writer = &supportReceiptWriter{output: &output, command: "redeliver", timings: clock}
+	svc.support = writer
 	output.Reset()
 	if err := executeRecordedTask("redeliver", path, taskRequest{}, 0, "", writer, svc); err != nil {
 		t.Fatal(err)
 	}
 	var receipt map[string]any
 	json.Unmarshal(output.Bytes(), &receipt)
+	if receipt["content_transfer"] != nil {
+		t.Fatal("local handoff invented network body evidence")
+	}
 	timing := receipt["timings_ms"].(map[string]any)
 	if _, exists := timing["verification"]; !exists || timing["download"] != nil || timing["request"] != nil || timing["host_handoff"] != nil || networkCalls != 1 {
 		t.Fatalf("local verified handoff timings invented work: %s", output.Bytes())

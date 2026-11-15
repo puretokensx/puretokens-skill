@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
-  "version": "1.0.4",
+  "version": "1.0.5",
   "toolchain": "go1.26.0",
-  "sourceSha256": "58a19a767b89d575efaac39cfdc09b75cdbd64ec5fed74646c575593efdc6fda",
+  "sourceSha256": "ea99f7bc06ab2b008a20dea840ca4eccb1066ba6e76e68ecc042cd1e679efd62",
   "inputs": {
-    "package.json": "0bc329352813d22746bf7ac185591546df876f8e2a7464e9204df98391751d2b",
+    "package.json": "d04875f17b173b3554a49a55bcb8f3e0acc032a2ccdb540b82b8f23d39a328f8",
     "runtime/executor/async_audio.go": "407c29aacda31db901aa574a775c9d42e460c547b37da45fa1125e0368a24b61",
     "runtime/executor/attachment_stream.go": "13a7a2b7fa599e4cc79ef1401b022a6a20e78f21fb9c4c34034a4c78ae449884",
     "runtime/executor/audio-profiles.json": "87be9782e0545c17ebe51035602c249735cd43ca7770934e48c3df8cb945c62e",
@@ -19,13 +19,14 @@
     "runtime/executor/client_file_unix.go": "c4c8bac0ecd8e19f89222c009f9d1e568c293e100c50b6fc7dd7a03d26b7f80a",
     "runtime/executor/client_file_windows.go": "9ffe95f7ff3dc74d28230460d72d0b48b65af61a1bcac1c53052901970dc5cf2",
     "runtime/executor/config_json.go": "4a02e70da728d9af04f5488d13a516fb2515711339eb71b7f79c11a45fe7c61b",
+    "runtime/executor/content_transfer.go": "6fdb9a06083a4a0aa61631312d973537cd8e9fc169131b20453a8e9885656b5c",
     "runtime/executor/credentials.go": "e6ec982d0d411cd8d6125002855197b77c331ac162d775ede7252fbfcda406d8",
     "runtime/executor/deepseek_harness_credentials.go": "48d6c328e3640c86c2ae050c0dd4b627b0ee5b3c6bd57c9a730f2c6fea67dc43",
     "runtime/executor/desktop_credentials.go": "205d9bf7703ad17d27d14a0e2c4515780501724f25fd2a33b13ca75be7476ba6",
     "runtime/executor/diagnostics.go": "7d02f94312c5670ab6c2fbdfdf65a637b7f93b49e77b1e9971ab420530f3f369",
-    "runtime/executor/download_deadlines.go": "95f2795eb1f3b7aa206f17ab3548d4081c8fb14dbbcab4cb4a26b01ffd0e2378",
+    "runtime/executor/download_deadlines.go": "5652e4c815149ce034a9aba546e219f17d35377ea0c1705bebf0f7e429a52df8",
     "runtime/executor/download_proof.go": "4bf96d79cb9cfd35d56f0d2f089ed184d28cf0a343ca7814876f39d233830862",
-    "runtime/executor/error_guidance.go": "063eea601104a495f85517eaaac65ea0d99f21167e786a7e6f510f75fb2ba8f9",
+    "runtime/executor/error_guidance.go": "b434e753f4b4bbd1e3c115964e176fa34970d40870bd779d2aa5d0d2a52959c4",
     "runtime/executor/evaluation.go": "1501f7b4188e3494597fbf591a37d9cee86f42df2e94848433848312e6e6e247",
     "runtime/executor/go.mod": "ac5ffd7f347945d2431984e11603ba09c2353bc9ad0e0c4d06ea00e3e462b09d",
     "runtime/executor/go.sum": "61610778bc9c3f204cc9fa67ece26fd895ab8e2a578bbcdda600dd4eca8c6b7d",
@@ -34,7 +35,7 @@
     "runtime/executor/installation_guard.go": "65bc63498adbc93b6ef2510cdc71a54f349cd29a72e99c8df981dcc8394feafb",
     "runtime/executor/kling_constraints.go": "3716ec9041c12398edde3ca7d8fb3b249dcb2331bb0fea7da91a52734f8786e3",
     "runtime/executor/kling_native.go": "23f0340b23ba8492bbcdae64e8a047e7ea3e6bdb7131873c8ff750386a8944c8",
-    "runtime/executor/main.go": "c214efc49196501b2a19863fa3ecf30cfff017775acac3ad78f2e3f8510dbbf2",
+    "runtime/executor/main.go": "fc7d61b76dd1adadbfe3f55df039cb58d299d3159632a9d105622af335ce9f35",
     "runtime/executor/media_containers.go": "87d05189cc12108aca250bc7e76d2fc5e8cab200d080e12f66058fd5241e62f6",
     "runtime/executor/media_diagnostics.go": "5380a269cae150e7c8060e719f210c1d42ed0351f2b2b433db8d52d70a3bb288",
     "runtime/executor/media_validation.go": "030e9c123ad1a2441ab3fef4190ff1c3717fa078bb2a5595defd4fc41f6f8cb2",
@@ -59,7 +60,7 @@
     "runtime/executor/reviewed-video-profiles.json": "44bc3d7d7350b6a4ef155a7c12b7a78a1434a95b9ec42465d5a93748d340c2c4",
     "runtime/executor/reviewed_media_policy.go": "3bcca32f132af9493d279bcb01d37450a5b2db0baac16feaaa472941b0d4a56b",
     "runtime/executor/reviewed_video_profiles.go": "46cabbeececeb7539f20594df788544206581d829109f3b44be3c15b53509425",
-    "runtime/executor/support_summary.go": "fa14102faf209e13738612ec4811de7677a33f72c6ecd0beecd2fcd1f3c445e0",
+    "runtime/executor/support_summary.go": "74019f547f4b34537e3eddd28dd5e0d0287a8b2716cb729b9b9211e7bef8cf22",
     "runtime/executor/svg_validation.go": "947df53a412c99534290037fdfed04b7bc0f2a118ac1aeca5e8b348e0e0312e2",
     "runtime/executor/switch_cli_credentials.go": "83b33d90963ee9af6c222d90d32c398be627c3ab6865c02b92e4e4765b04a5d7",
     "runtime/executor/task_record_failures.go": "b64da13b74a47575f1928d9d98b6239baa5058e4498b9075c2778ab0e7ca8885",
@@ -79,27 +80,27 @@
   "artifacts": {
     "darwin-amd64": {
       "path": "bin/puretokens-api-darwin-amd64",
-      "sha256": "c9aa5bf424930ae7b2c0b32b4dd062ed3fa42af6dab25ac0a41676713d8a8b29"
+      "sha256": "b06d86c9df6f49fd427a3fcb136b006bd04d062b11895672cedaafd772167a16"
     },
     "darwin-arm64": {
       "path": "bin/puretokens-api-darwin-arm64",
-      "sha256": "22df40e297201d02c59720faf0e1cc56eb44cd0ffb9ac05511b1e17a3a98bc04"
+      "sha256": "469bedef3d346ffa259cb961970dd5c82e87a396a879253a3cc8f0665534d492"
     },
     "linux-amd64": {
       "path": "bin/puretokens-api-linux-amd64",
-      "sha256": "0d43875547c9289a4db93d1b5d49bc2e432ebdb0ae5abe4910a6e47a7ccb12c9"
+      "sha256": "dc8e857e9b831801785e5c0a20ac3f057f77f32bbfe4346287583dcfa2e8a12b"
     },
     "linux-arm64": {
       "path": "bin/puretokens-api-linux-arm64",
-      "sha256": "54a364bb5ee1236ded5d366e9293542c2a9115c6a47ffa32adb46e62902d942b"
+      "sha256": "b9e7fb88097e96f2dca8f2e69161ffe782bad4676651a333693924a876ac20e2"
     },
     "windows-amd64": {
       "path": "bin/puretokens-api-windows-amd64.exe",
-      "sha256": "2146597299bb17378d08ab9b429a8e8cfc6aa06261c10b6b2261f2a8bbc8b77b"
+      "sha256": "cd969d1a2f7396beffc5a4b8685681a0345407af5264b0e724691de7ef18cfd2"
     },
     "windows-arm64": {
       "path": "bin/puretokens-api-windows-arm64.exe",
-      "sha256": "8c97f890d44444bf75a6c2e1ab0dd587407c158780a422b3fd2edecb2bbd4b80"
+      "sha256": "aed444034304c40db81ac5c351ba467602943d2bf49bc3f43711cbda6df2b07f"
     }
   }
 }

@@ -57,7 +57,7 @@ description: 当前宿主使用 Pure Tokens 连接时，生成或编辑图片、
 - **wait**：有记录用 `resume --host <host> --record <文件>`，否则用 `wait --host <host> --request <同任务文件>`。执行器按 retry_not_before 等待（首次默认 5 秒，其后每 3 秒），窗口最多 40 次读取／120 秒，含网络耗时；遵守 Retry-After，不另加 sleep。
 - **窗口结束**：`ok=true`、`wait_outcome=window_ended` 仍为生成中。仅 `next_step=wait` 且原授权和前台会话仍有效可自动再续一个窗口；累计两个窗口、retry_deferred 或 await_user 时暂停。取消、失败回执、网络超时、未知状态或对账均停止自动续接，不重置计数或后台循环。窗口内 429 只由执行器按剩余预算处理。
 - **content**：只取已完成原任务：`content --host <host> --record <文件> --index <索引> --output-dir <现有绝对目录>`；无记录用含 completed 和确认数量的同任务请求。按 0..n-1 逐索引交付后再取下一个。
-- **取回停止**：响应等待 90 秒／连续 30 秒无字节／总计 10 分钟超限停止。失败或 `await_user` 不自动重跑；报告原任务仍在、取回未完成，明确继续才取同索引。无字节证据不声称正在传输。
+- **取回停止**：响应90秒／无字节30秒／总计10分钟超限停止。失败或 `await_user` 不自动重跑；明确继续只取原任务同索引。重复失败交已有脱敏回执，不为取证重跑。无证据不称传输中。
 - **deliver**：用当前宿主已声明的附件方式交付 downloaded_paths 原文件；不明确才读 [客户端交付](references/host-delivery.md)。路径／任务号不算交付，不用 URL、HTML、手写 SVG 替代。实际交接后才执行 `delivered --record <文件> --index <索引>`；不提前确认，也不要求用户每次确认看见。done 后结束本项，仅明确的独立清单继续下一项；不自动审美检查或追加创作。
 
 交付失败只重交已有文件；明确再次发送用 `redeliver --host <host> --record <原记录> --index <索引>`，先校验原文件。缺失或不满足原请求格式／完整性才按授权换目录取同索引，不重新生成。交付失败、跨会话、旧记录或对账读 [续接与恢复](references/executor-usage.md#continuation-record)；无记录仅重交本会话未变文件，无 ID 未知提交不能恢复。

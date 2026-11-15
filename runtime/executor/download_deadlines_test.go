@@ -109,6 +109,26 @@ func TestContentDeadlinesStopOnceAndPreserveTask(t *testing.T) {
 			if support["local_error_code"] != wantCode || support["timings_ms"] != nil {
 				t.Fatalf("unsafe or missing support diagnosis: %v", support)
 			}
+			transfer, present := envelope["content_transfer"].(map[string]any)
+			if stage == "response" {
+				if present {
+					t.Fatal("response timeout invented body evidence")
+				}
+			} else {
+				wantBytes := 0
+				if stage == "mid_body" {
+					wantBytes = len(image)
+				}
+				if !present || transfer["bytes_received"] != float64(wantBytes) || transfer["read_complete"] != false || transfer["file_verified"] != false || transfer["expected_bytes"] != nil {
+					t.Fatalf("missing or misleading transfer evidence: %v", transfer)
+				}
+				if (transfer["first_byte_ms"] != nil) != (wantBytes > 0) || (transfer["last_progress_ms"] != nil) != (wantBytes > 0) {
+					t.Fatalf("invented or missing byte progress: %v", transfer)
+				}
+			}
+			if support["content_transfer"] != nil {
+				t.Fatal("invocation diagnostics entered support export")
+			}
 			entries, err := os.ReadDir(dir)
 			if err != nil || len(entries) != 0 {
 				t.Fatalf("partial output retained: %v %v", entries, err)

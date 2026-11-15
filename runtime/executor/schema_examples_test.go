@@ -161,7 +161,7 @@ func TestContractExamples(t *testing.T) {
 				if stage == "body" {
 					body = contentSchemaErrorReader{}
 				}
-				return &http.Response{StatusCode: 200, Header: http.Header{"Content-Type": {"image/png"}}, Body: &timingBody{reader: body, advance: advance}}, nil
+				return &http.Response{StatusCode: 200, ContentLength: -1, Header: http.Header{"Content-Type": {"image/png"}}, Body: &timingBody{reader: body, advance: advance}}, nil
 			})}}
 			request := taskRequest{Kind: "image", Operation: "continue", TaskID: "fixture-task", TaskStatus: "completed", RequestedCount: 1, OutputDir: t.TempDir()}
 			err := deliverTask(writer, svc, request, taskReceipt(request, request.TaskID, "completed"))

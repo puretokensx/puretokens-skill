@@ -57,6 +57,19 @@ function rejects(schema, document, keyword) {
   if (keyword) assert.ok(errors.some((error) => error.includes(keyword)), errors.join("\n"));
 }
 
+test("content transfer evidence stays numeric and invocation-local", () => {
+  const receipt = example("content-stage-complete");
+  assert.equal(receipt.content_transfer.read_complete, true);
+  assert.equal(receipt.content_transfer.file_verified, true);
+  assert.ok(receipt.content_transfer.bytes_received > 0);
+  assert.equal(receipt.support.content_transfer, undefined);
+  assert.equal(example("content-stage-response").content_transfer, undefined);
+  assert.equal(example("content-stage-body").content_transfer.read_complete, false);
+  for (const extra of [{url: "https://private.invalid"}, {bytes_received: -1}, {expected_bytes: "123"}, {read_complete: "true"}]) {
+    rejects("executor-receipt.schema.json", {...receipt, content_transfer: {...receipt.content_transfer, ...extra}});
+  }
+});
+
 test("Voyage request schema isolates dedicated controls from Qwen and rerank", () => {
   const request = { model: "voyage-4-large", input: ["fixture document"], input_type: "document", output_dimension: 256, output_file: "/workspace/embeddings.jsonl" };
   assert.deepEqual(validators.get("embedding-request.schema.json")(request), []);
