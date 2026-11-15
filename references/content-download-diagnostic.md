@@ -86,9 +86,18 @@ rejection of an untrusted TLS certificate. This is local transport verification,
 not a passed real-host media delivery case.
 
 ```powershell
-& $diagnostic -test.run '^TestContentWinHTTPNative' -test.timeout 30s
+& $diagnostic '-test.run=^TestContentWinHTTPNative' '-test.timeout=30s' '-test.v'
 if ($LASTEXITCODE -ne 0) { throw 'Native HTTP self-test failed; do not run the content request.' }
 ```
+
+Keep each complete `-test.*` argument quoted, including its value. Windows
+PowerShell can tokenize an unquoted dotted flag before the native executable
+receives it. The diagnostic entrypoint then rejects the command before running
+any fixture. A minimal `diagnostic_request_invalid` receipt at this step is an
+entrypoint rejection, not a failed WinHTTP transfer or a production API result.
+Correct the quoting; do not reinstall Skills, change a task record, install
+Node/Python, or run the online probe to bypass a failed self-test. The existing
+diagnostic binary already accepts these quoted arguments.
 
 Do not run the full compiled test suite on a user's computer. Use the exact
 anchored native-only selection above. Do not change proxy/certificate settings
