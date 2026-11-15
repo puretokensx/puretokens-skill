@@ -12,6 +12,7 @@ import (
 	"net/http/httptrace"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -227,7 +228,8 @@ func TestContentDiagnosticCLIUsesSameHostConnection(t *testing.T) {
 	var calls atomic.Int32
 	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		calls.Add(1)
-		if r.Host != "api.puretokensx.com" || r.Header.Get("Authorization") != "Bearer synthetic-fixture-token" {
+		if r.Host != "api.puretokensx.com" || r.Header.Get("Authorization") != "Bearer synthetic-fixture-token" ||
+			r.Method != http.MethodGet || r.URL.Path != "/v1/images/pic-fixture/content" || r.URL.RawQuery != "index=0" {
 			t.Error("wrong active connection")
 		}
 		w.Header().Set("Content-Type", "image/png")
@@ -265,5 +267,101 @@ func TestContentDiagnosticCLIUsesSameHostConnection(t *testing.T) {
 		if !bytes.Equal(data, after) || strings.Contains(output.String(), "synthetic-fixture-token") {
 			t.Fatal("record or credential exposed")
 		}
+	}
+	// A saved successful status receipt is usable even when the original
+	// submission record is unknown; it must not reconcile or rewrite that record.
+	unknown := []byte(`{"format":"puretokens-task-v1","kind":"image","submission_outcome":"unknown"}`)
+	unknownPath := writeFixture(t, "original-unknown.json", string(unknown))
+	evidence := diagnosticStatusFixture(t)
+	evidencePath := writeFixture(t, "completed-status.json", evidence)
+	for _, mode := range []string{"executor", "plain"} {
+		var output bytes.Buffer
+		before := calls.Load()
+		code := runContentDiagnostic([]string{"--host", "codex", "--status-receipt", evidencePath, "--task-id", "pic-fixture", "--probe", mode, "--confirm-one-get"}, &output)
+		if code != 0 || calls.Load() != before+1 {
+			t.Fatalf("completed receipt did not permit one GET: %s", &output)
+		}
+		var result map[string]any
+		if json.Unmarshal(output.Bytes(), &result) != nil || result["target_source"] != "status_receipt" {
+			t.Fatal("receipt-based diagnosis lost evidence scope")
+		}
+		for path, want := range map[string][]byte{unknownPath: unknown, evidencePath: []byte(evidence)} {
+			after, err := os.ReadFile(path)
+			if err != nil || !bytes.Equal(after, want) {
+				t.Fatal("diagnosis altered input evidence")
+			}
+		}
+		for _, forbidden := range []string{"synthetic-fixture-token", server.URL, unknownPath, evidencePath, "pic-fixture"} {
+			if strings.Contains(output.String(), forbidden) {
+				t.Fatal("diagnosis exposed private input")
+			}
+		}
+	}
+}
+
+func diagnosticStatusFixture(t *testing.T) string {
+	t.Helper()
+	data, err := json.Marshal(map[string]any{"support": map[string]any{
+		"api_request_attempted": true, "arch": runtime.GOARCH, "command": "status",
+		"executor_version": "1.0.5", "format": "puretokens-support-v1", "host": "codex",
+		"http_status": 200, "kind": "image", "next_step": "content",
+		"observed_at": "2026-11-15T12:58:46Z", "ok": true, "os": runtime.GOOS,
+		"request_id": "11111111-1111-4111-8111-111111111111", "request_phase": "status",
+		"status": "completed", "task_id": "pic-fixture",
+	}, "timings_ms": map[string]int{"preparation": 1, "request": 1660, "total": 1661}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(data)
+}
+
+func TestContentDiagnosticStatusEvidenceValidationBeforeCredentials(t *testing.T) {
+	t.Setenv("CODEX_HOME", filepath.Join(t.TempDir(), "absent"))
+	base := diagnosticStatusFixture(t)
+	cases := map[string]string{
+		"pending":            strings.Replace(base, `"status":"completed"`, `"status":"pending"`, 1),
+		"unknown-submission": strings.Replace(base, `"command":"status"`, `"command":"submit"`, 1),
+		"failed":             strings.Replace(base, `"ok":true`, `"ok":false`, 1),
+		"wrong-host":         strings.Replace(base, `"host":"codex"`, `"host":"claude-desktop"`, 1),
+		"wrong-task":         strings.Replace(base, `"task_id":"pic-fixture"`, `"task_id":"pic-other"`, 1),
+		"bad-path":           strings.Replace(base, `"task_id":"pic-fixture"`, `"task_id":"../other"`, 1),
+		"rejected":           strings.Replace(base, `"http_status":200`, `"http_status":403`, 1),
+		"unattempted":        strings.Replace(base, `"api_request_attempted":true`, `"api_request_attempted":false`, 1),
+		"next-step":          strings.Replace(base, `"next_step":"content"`, `"next_step":"await_user"`, 1),
+		"wrong-phase":        strings.Replace(base, `"request_phase":"status"`, `"request_phase":"content"`, 1),
+		"invalid-time":       strings.Replace(base, "2026-11-15T12:58:46Z", "invalid", 1),
+		"missing-request-id": strings.Replace(base, "11111111-1111-4111-8111-111111111111", "", 1),
+		"wrong-platform":     strings.Replace(base, `"os":"`+runtime.GOOS+`"`, `"os":"unknown"`, 1),
+		"wrong-architecture": strings.Replace(base, `"arch":"`+runtime.GOARCH+`"`, `"arch":"unknown"`, 1),
+		"duplicate":          strings.Replace(base, `"ok":true`, `"ok":false,"ok":true`, 1),
+		"unknown-field":      strings.Replace(base, `"ok":true`, `"ok":true,"submission_outcome":"unknown"`, 1),
+		"extra-json":         base + `{}`,
+		"oversize":           base + strings.Repeat(" ", 16<<10),
+	}
+	for name, body := range cases {
+		t.Run(name, func(t *testing.T) {
+			path := writeFixture(t, "status.json", body)
+			var output bytes.Buffer
+			if runContentDiagnostic([]string{"--host", "codex", "--status-receipt", path, "--task-id", "pic-fixture", "--probe", "executor", "--confirm-one-get"}, &output) == 0 || !strings.Contains(output.String(), "diagnostic_request_invalid") {
+				t.Fatalf("unsafe evidence reached credentials: %s", &output)
+			}
+		})
+	}
+	path := writeFixture(t, "status.json", base)
+	for name, extra := range map[string][]string{
+		"index":          {"--index", "1"},
+		"mixed":          {"--record", filepath.Join(t.TempDir(), "unknown.json")},
+		"no-id":          {"--task-id", ""},
+		"different-host": {"--host", "claude-desktop"},
+		"relative-path":  {"--status-receipt", "status.json"},
+		"no-consent":     {"--confirm-one-get=false"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			args := []string{"--host", "codex", "--status-receipt", path, "--task-id", "pic-fixture", "--probe", "executor", "--confirm-one-get"}
+			var output bytes.Buffer
+			if runContentDiagnostic(append(args, extra...), &output) == 0 || !strings.Contains(output.String(), "diagnostic_request_invalid") {
+				t.Fatalf("unsafe arguments reached credentials: %s", &output)
+			}
+		})
 	}
 }

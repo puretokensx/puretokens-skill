@@ -10,10 +10,23 @@ Normal executables exclude the `content_diagnostic` test build tag.
 - Run in the affected client's terminal on the affected computer and network.
   Keep its launch context and configuration unchanged between probes. Do not
   borrow another client's Key or copy configuration into a test script.
-- Read one existing absolute task record; require a confirmed completed image,
+- Normally read one existing absolute task record; require a confirmed completed image,
   known index, no unknown submission, reconciliation, deferred retry, downloaded
   output or delivered output. Invalid records stop before credentials/networking.
   Never insert a guessed task ID or edit a record to make it eligible.
+- Codex-only missing-record investigation may instead read an existing sanitized
+  successful `status` support receipt with `--status-receipt` and an explicitly
+  matching `--task-id`. Require the same host/OS/architecture, HTTP 200, image,
+  `completed`, `next_step=content`, and a canonical request ID. Accept only the
+  `support` block and optional `timings_ms` in a bounded regular JSON file; reject
+  duplicate/unknown fields, mixed record input and indexes other than zero.
+  An exact copy of an already captured receipt is allowed; inventing or changing
+  its values is not. No extra status request is made.
+  This historical receipt is not signed evidence, does not prove a link to an
+  unknown submission, and does not prove the historical and current Key match.
+  The content GET still uses only the current Codex connection and the gateway's
+  normal task authorization. A mapped connection cannot use this mode without
+  its original task binding. Never create or modify a task record from it.
 - Resolve only the active host's existing credential adapter and connection
   binding. Make one fixed same-task content GET per authorized invocation.
   No status/model/preflight requests, POST, redirect, retry loop, credential
@@ -31,6 +44,9 @@ Normal executables exclude the `content_diagnostic` test build tag.
   `ok=true` means this probe read and validated bytes, not user delivery.
   The affected user's explicit workspace outputs remain untouched. A forced
   process kill cannot guarantee temporary-directory cleanup.
+- Receipt mode reports `target_source=status_receipt`. It can establish native
+  raster-byte validity only, not the original requested format/count or delivery;
+  SVG remains unavailable without the original record's explicit format policy.
 
 ## Build and offline checks
 
@@ -76,6 +92,18 @@ PowerShell template, after selecting the actual binary and unchanged record:
 ```powershell
 & $diagnostic content-diagnose --host codex --record $record --index 0 --probe executor --confirm-one-get
 ```
+
+If only a successful status receipt is available, use the newly built diagnostic
+binary (older copies do not have this option), preserve the unknown record and
+select the copied receipt instead:
+
+```powershell
+& $diagnostic content-diagnose --host codex --status-receipt $statusReceipt --task-id $confirmedTaskId --index 0 --probe executor --confirm-one-get
+```
+
+This replaces the record-based baseline, not an additional probe. Use the same
+evidence file, task ID, host context and index for any separately authorized
+comparison. It is not a new stable executor command or recovery feature.
 
 Change only `executor` to `plain` for the second authorized invocation. This
 command exists only in the diagnostic binary, not in released Skills v1.0.5.

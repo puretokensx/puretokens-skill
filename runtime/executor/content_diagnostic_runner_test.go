@@ -3,7 +3,9 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"io"
@@ -46,6 +48,7 @@ type contentDiagnostic struct {
 	OS                     string           `json:"os"`
 	Arch                   string           `json:"arch"`
 	Probe                  string           `json:"probe"`
+	TargetSource           string           `json:"target_source,omitempty"`
 	Requests               int              `json:"requests"`
 	Protocol               string           `json:"protocol,omitempty"`
 	HTTPStatus             int              `json:"http_status,omitempty"`
@@ -64,6 +67,76 @@ func diagnosticRecordAllowed(record taskRecord, index int) bool {
 		record.SubmissionOutcome != "unknown" && len(record.Downloaded) == 0 && len(record.Delivered) == 0
 }
 
+// This is historical status evidence, not a task record or proof that an
+// earlier unknown submission was reconciled. The one GET still uses the
+// current Codex connection and the gateway's normal task authorization.
+func diagnosticStatusTarget(path, host, taskID string, index int) (taskRecord, error) {
+	invalid := errors.New("invalid diagnostic status evidence")
+	if host != "codex" || !filepath.IsAbs(path) || index != 0 || !validTaskID(taskID) {
+		return taskRecord{}, invalid
+	}
+	info, err := os.Lstat(path)
+	if err != nil || !info.Mode().IsRegular() {
+		return taskRecord{}, invalid
+	}
+	data, err := readBoundedFile(path, 16<<10)
+	if err != nil {
+		return taskRecord{}, invalid
+	}
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	if _, err = decodeUniqueConfigValue(decoder, 0); err != nil {
+		return taskRecord{}, invalid
+	}
+	if _, err = decoder.Token(); err != io.EOF {
+		return taskRecord{}, invalid
+	}
+	var evidence struct {
+		Support struct {
+			Format              string `json:"format"`
+			ExecutorVersion     string `json:"executor_version"`
+			OS                  string `json:"os"`
+			Arch                string `json:"arch"`
+			ObservedAt          string `json:"observed_at"`
+			OK                  bool   `json:"ok"`
+			APIRequestAttempted bool   `json:"api_request_attempted"`
+			Host                string `json:"host"`
+			Command             string `json:"command"`
+			RequestPhase        string `json:"request_phase"`
+			RequestID           string `json:"request_id"`
+			HTTPStatus          int    `json:"http_status"`
+			Kind                string `json:"kind"`
+			TaskID              string `json:"task_id"`
+			Status              string `json:"status"`
+			NextStep            string `json:"next_step"`
+		} `json:"support"`
+		TimingsMS map[string]int64 `json:"timings_ms,omitempty"`
+	}
+	decoder = json.NewDecoder(bytes.NewReader(data))
+	decoder.DisallowUnknownFields()
+	if decoder.Decode(&evidence) != nil {
+		return taskRecord{}, invalid
+	}
+	support := evidence.Support
+	if support.Format != "puretokens-support-v1" || support.Host != host || support.OS != runtime.GOOS || support.Arch != runtime.GOARCH ||
+		support.ExecutorVersion == "" || len(support.ExecutorVersion) > 64 || !support.OK || !support.APIRequestAttempted ||
+		support.Command != "status" || support.RequestPhase != "status" || support.HTTPStatus != 200 ||
+		support.Kind != "image" || support.TaskID != taskID || support.Status != "completed" || support.NextStep != "content" ||
+		!canonicalRequestID.MatchString(support.RequestID) {
+		return taskRecord{}, invalid
+	}
+	if _, err := time.Parse(time.RFC3339, support.ObservedAt); err != nil {
+		return taskRecord{}, invalid
+	}
+	for name, value := range evidence.TimingsMS {
+		if !contains([]string{"preparation", "request", "total"}, name) || value < 0 {
+			return taskRecord{}, invalid
+		}
+	}
+	// Only index zero is exposed. Count one is a diagnostic bound, not an
+	// assertion about the original generation or its requested output format.
+	return taskRecord{Kind: "image", TaskID: taskID, Status: "completed", RequestedCount: 1}, nil
+}
+
 func runContentDiagnostic(args []string, output io.Writer) int {
 	fail := func(code string) int {
 		writeJSON(output, map[string]any{"format": "puretokens-content-diagnostic-v1", "ok": false, "requests": 0, "local_error_code": code, "next_step": "await_user"})
@@ -73,6 +146,8 @@ func runContentDiagnostic(args []string, output io.Writer) int {
 	flags.SetOutput(io.Discard)
 	host := flags.String("host", "", "")
 	path := flags.String("record", "", "")
+	statusPath := flags.String("status-receipt", "", "")
+	taskID := flags.String("task-id", "", "")
 	probe := flags.String("probe", "", "")
 	index := flags.Int("index", 0, "")
 	confirm := flags.Bool("confirm-one-get", false, "")
@@ -80,7 +155,21 @@ func runContentDiagnostic(args []string, output io.Writer) int {
 		!contains([]string{"executor", "plain", "http1", "long-idle"}, *probe) {
 		return fail("diagnostic_request_invalid")
 	}
-	record, err := loadTaskRecord(*path)
+	var record taskRecord
+	var err error
+	targetSource := "task_record"
+	if *statusPath != "" {
+		if *path != "" {
+			return fail("diagnostic_request_invalid")
+		}
+		record, err = diagnosticStatusTarget(*statusPath, *host, *taskID, *index)
+		targetSource = "status_receipt"
+	} else {
+		if *taskID != "" {
+			return fail("diagnostic_request_invalid")
+		}
+		record, err = loadTaskRecord(*path)
+	}
 	if err != nil || !diagnosticRecordAllowed(record, *index) {
 		return fail("diagnostic_request_invalid")
 	}
@@ -99,6 +188,7 @@ func runContentDiagnostic(args []string, output io.Writer) int {
 		budgets.idle = 90 * time.Second
 	}
 	result := diagnoseContent(context.Background(), svc, record, *index, *probe, budgets)
+	result.TargetSource = targetSource
 	writeJSON(output, result)
 	if !result.OK {
 		return 1
