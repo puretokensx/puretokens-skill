@@ -179,6 +179,11 @@ rebinding. A copied record never supplies authentication on the new machine.
 
 ## Delivery latency measurements
 
+For repeated completed-image download failures, maintainers may use the
+[same-machine content diagnostic](content-download-diagnostic.md) after explicit
+authorization. It is separate from installed commands and real-host acceptance;
+it never submits media or changes task records.
+
 Measure installation separately: stable manifest/selector resolution, archive
 transfer, verification/synchronization, and the shared init deadline. Retain
 same-version install and update cases with zero archive reads, zero installed
