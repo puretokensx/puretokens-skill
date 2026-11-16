@@ -27,6 +27,21 @@ func TestMain(m *testing.M) {
 		writeJSON(os.Stdout, map[string]string{"format": "puretokens-content-diagnostic-v1", "executor_version": executorVersion, "diagnostic_source_sha256": diagnosticSourceSHA256})
 		os.Exit(0)
 	}
+	if len(os.Args) > 1 && os.Args[1] == "self-test" {
+		code := ""
+		if len(os.Args) != 2 {
+			code = "diagnostic_request_invalid"
+		} else if runtime.GOOS != "windows" {
+			code = "diagnostic_transport_unsupported"
+		}
+		if code != "" {
+			writeJSON(os.Stdout, map[string]any{"format": "puretokens-content-diagnostic-v1", "ok": false, "requests": 0, "local_error_code": code, "next_step": "await_user"})
+			os.Exit(1)
+		}
+		// Keep shell-sensitive test flags internal and never run credential fixtures.
+		os.Args = []string{os.Args[0], "-test.run=^TestContentWinHTTPNative(Fixtures|BlocksReplayAndPOST)$", "-test.timeout=30s", "-test.v=true"}
+		os.Exit(m.Run())
+	}
 	if len(os.Args) > 1 && strings.HasPrefix(os.Args[1], "-test.") {
 		os.Exit(m.Run())
 	}
@@ -312,6 +327,8 @@ func diagnoseContent(ctx context.Context, svc service, record taskRecord, index 
 			result.LocalErrorCode = "diagnostic_transport_replay_blocked"
 		} else if (status != 0 && status != 200) || (result.HTTPStatus != 0 && result.HTTPStatus != 200) {
 			result.LocalErrorCode = "content_request_rejected"
+		} else if errors.Is(err, errContentResponseTimeout) {
+			result.LocalErrorCode = contentFailure(err, status, 0, "", "").LocalErrorCode
 		} else if result.HTTPStatus == 0 {
 			result.LocalErrorCode = transportErrorCode(err)
 		} else {

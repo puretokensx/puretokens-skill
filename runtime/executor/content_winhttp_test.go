@@ -5,6 +5,8 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -67,6 +69,41 @@ func TestContentDiagnosticNativeProxyPolicy(t *testing.T) {
 
 // This tests selection and validation at the native factory boundary, not
 // Windows acceptance. Native DLL tests live in the Windows-only test file.
+func TestContentDiagnosticWinHTTPResponseErrors(t *testing.T) {
+	previous := diagnosticNativeFactory
+	t.Cleanup(func() { diagnosticNativeFactory = previous })
+	for _, tc := range []struct {
+		name string
+		err  error
+		want string
+	}{
+		{"response-deadline", errContentResponseTimeout, "media_content_response_timeout"},
+		{"cancellation", context.Canceled, "api_request_cancelled"},
+		{"unclassified", errors.New("private-native-error"), "api_transport_failed"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			diagnosticNativeFactory = func(target string, result *contentDiagnostic, budgets diagnosticBudgets) (http.RoundTripper, func(), error) {
+				return evaluationTransport(func(r *http.Request) (*http.Response, error) {
+					result.Requests++
+					return nil, tc.err
+				}), func() {}, nil
+			}
+			result := diagnoseContent(context.Background(), service{baseURL: apiOrigin, client: &http.Client{}, token: "synthetic-fixture-token"},
+				taskRecord{Kind: "image", TaskID: "pic-fixture", Status: "completed", RequestedCount: 1},
+				0, "winhttp", diagnosticBudgets{time.Second, time.Second, time.Second})
+			if result.OK || result.Requests != 1 || result.HTTPStatus != 0 || result.Transfer != nil || result.LocalErrorCode != tc.want {
+				t.Fatalf("native response error misclassified: %+v", result)
+			}
+			encoded, _ := json.Marshal(result)
+			for _, forbidden := range []string{"private-native-error", "synthetic-fixture-token", apiOrigin} {
+				if bytes.Contains(encoded, []byte(forbidden)) {
+					t.Fatal("native error receipt exposed private details")
+				}
+			}
+		})
+	}
+}
+
 func TestContentDiagnosticWinHTTPUsesIndependentTransport(t *testing.T) {
 	payload := fixturePNG(t)
 	calls := 0

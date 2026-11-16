@@ -86,18 +86,30 @@ rejection of an untrusted TLS certificate. This is local transport verification,
 not a passed real-host media delivery case.
 
 ```powershell
-& $diagnostic '-test.run=^TestContentWinHTTPNative' '-test.timeout=30s' '-test.v'
+& $diagnostic self-test
 if ($LASTEXITCODE -ne 0) { throw 'Native HTTP self-test failed; do not run the content request.' }
 ```
 
-Keep each complete `-test.*` argument quoted, including its value. Windows
-PowerShell can tokenize an unquoted dotted flag before the native executable
-receives it. The diagnostic entrypoint then rejects the command before running
-any fixture. A minimal `diagnostic_request_invalid` receipt at this step is an
-entrypoint rejection, not a failed WinHTTP transfer or a production API result.
-Correct the quoting; do not reinstall Skills, change a task record, install
-Node/Python, or run the online probe to bypass a failed self-test. The existing
-diagnostic binary already accepts these quoted arguments.
+`self-test` selects only the two native WinHTTP fixture groups with a fixed
+30-second limit. It accepts no extra arguments, reads no host connection and
+makes no production request. Non-Windows platforms return
+`diagnostic_transport_unsupported` with zero requests instead of claiming a
+successful test without the native fixtures. This entrypoint belongs only to
+newly rebuilt maintainer diagnostics, not the installed Skill.
+
+Older diagnostic binaries still require each complete `-test.*` argument to
+be quoted, including its value:
+
+```powershell
+& $diagnostic '-test.run=^TestContentWinHTTPNative' '-test.timeout=30s' '-test.v'
+```
+
+Windows PowerShell can tokenize an unquoted dotted flag before the native
+executable receives it. A minimal `diagnostic_request_invalid` at this step is
+an entrypoint rejection, not a failed WinHTTP transfer or a production API
+result. Use the rebuilt instrument's `self-test` command or correct the older
+command's quoting; do not reinstall Skills, change a task record, install
+Node/Python, or run the online probe to bypass a failed self-test.
 
 Do not run the full compiled test suite on a user's computer. Use the exact
 anchored native-only selection above. Do not change proxy/certificate settings
@@ -117,6 +129,11 @@ The plain path uses an independent idle supervisor and ordinary response-body
 read, followed by the existing native-file validator. It bypasses the production
 progress reader, buffering and file-finalization pipeline, not authentication
 or TLS. Thus it isolates that pipeline, not the entire Go HTTP implementation.
+Reuse existing receipts for the same investigation: do not restart this
+sequence merely because the diagnostic entrypoint or documentation changed.
+An offline self-test rejection sends no content GET and does not provide a
+native transport result; correct that step before the remaining authorized
+comparison, without rerunning already captured probes.
 
 PowerShell template, after selecting the actual binary and unchanged record:
 
@@ -186,6 +203,39 @@ the possibility of shared Go transport, proxy, server/edge, or intermittent path
 behavior. Chat/status success does not prove full binary-response delivery.
 Use request IDs to correlate existing server evidence; HTTP 200 without written
 byte evidence cannot establish complete downstream receipt.
+
+Missing `http_status` or `content_transfer` means the probe did not record a
+usable HTTP response or body-progress evidence; it does not prove that the
+server never received the request. `requests=1` counts the local attempt, not
+server acceptance. A known response-wait deadline is reported as
+`media_content_response_timeout`, including in the native probe. Older
+diagnostics collapsed that typed deadline into `api_transport_failed`; elapsed
+time near 30 seconds alone cannot recover the lost cause or establish a
+read-idle timeout. Reuse the existing evidence rather than rerunning the probe
+just to obtain a better error label. Agent/tool wall time is not HTTP elapsed
+time, and failure in both stacks does not establish a server or client root
+cause. After the authorized comparisons, correlate existing request IDs with
+server/edge transfer evidence without another generation or download attempt.
+
+When correlating existing Cloudflare records, preserve the distinction between
+origin response timing, edge writes and client receipt. `EdgeResponseBytes`
+counts bytes sent by the edge and can include bytes the client never received;
+it is not the executor's decoded `bytes_received`, file length or digest proof.
+An origin/edge HTTP 200 and a short `originResponseDurationMs` do not prove that
+the body reached the client completely. Record the exact timing field rather
+than describing it as end-to-end download time. See Cloudflare's
+[common calculations](https://developers.cloudflare.com/logs/faq/common-calculations/)
+and [HTTP request fields](https://developers.cloudflare.com/logs/logpush/logpush-job/datasets/zone/http_requests/).
+
+A rejected Logpull request or restricted GraphQL field is an evidence-access
+limit, not a transfer fault and not proof that all edge analytics are unavailable.
+Retain the already available aggregate fields, sampling information and exact
+UTC/request correlations. Do not turn a missing record from an estimated time
+window into proof that the request never arrived. Escalate the existing evidence
+for authorized operator review instead of changing DNS/proxies/TLS, relaxing
+security, increasing production timeouts or asking for another user download.
+No case-specific task IDs, customer information or diagnostic receipts belong
+in the distributed Skill or public acceptance files.
 
 Local TLS fixtures cover complete/chunked/paused data under HTTP/1.1 and HTTP/2,
 matching idle limits, truncation, oversize data, rejection/redirect, active-host

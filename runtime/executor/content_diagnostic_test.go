@@ -196,6 +196,26 @@ func TestContentDiagnosticMatchedIdleBudgets(t *testing.T) {
 	}
 }
 
+func TestContentDiagnosticResponseDeadlineKeepsClassification(t *testing.T) {
+	for _, mode := range []string{"executor", "plain", "http1"} {
+		t.Run(mode, func(t *testing.T) {
+			var calls atomic.Int32
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				calls.Add(1)
+				<-r.Context().Done()
+			}))
+			defer server.Close()
+			result := diagnoseContent(context.Background(), fixtureService(server),
+				taskRecord{Kind: "image", TaskID: "pic-fixture", Status: "completed", RequestedCount: 1},
+				0, mode, diagnosticBudgets{total: time.Second, response: 100 * time.Millisecond, idle: time.Second})
+			if result.OK || calls.Load() != 1 || result.Requests != 1 || result.HTTPStatus != 0 ||
+				result.Transfer != nil || result.LocalErrorCode != "media_content_response_timeout" {
+				t.Fatalf("response deadline lost its classification: %+v", result)
+			}
+		})
+	}
+}
+
 func TestContentDiagnosticRejectsTruncatedAndOversizedBody(t *testing.T) {
 	payload := fixturePNG(t)
 	for _, mode := range []string{"executor", "plain"} {
