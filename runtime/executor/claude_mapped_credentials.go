@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 )
 
@@ -16,9 +17,6 @@ const claudeSkillsConnectionFile = "puretokens-skills-connection.json"
 // The companion belongs to this host's applied configuration, not to Switch's
 // current login or another host. No request is sent to the local chat mapper.
 func credentialFromClaudeMappedConnection(root, id string, connectionID *string) (string, error) {
-	if id != claudeManagedProfile {
-		return "", clientSelectionFailure()
-	}
 	paths := []string{
 		filepath.Join(root, "claude_desktop_config.json"),
 		filepath.Join(root, "configLibrary", "_meta.json"),
@@ -63,16 +61,31 @@ func credentialFromClaudeMappedConnection(root, id string, connectionID *string)
 		!strings.HasPrefix(jsonString(profile["inferenceGatewayApiKey"]), "pts-local-") {
 		return "", clientSelectionFailure()
 	}
-	if len(record) != 8 || record["version"] != json.Number("1") || record["host"] != "claude-desktop" ||
-		record["state"] != "active" || record["profile_id"] != id {
+	version := record["version"]
+	if record["host"] != "claude-desktop" || record["state"] != "active" {
 		return "", clientFormatFailure()
 	}
 	if !desktopProfileID.MatchString(jsonString(record["connection_id"])) {
 		return "", clientFormatFailure()
 	}
-	digest := sha256.Sum256(snapshots[2])
-	if record["profile_sha256"] != hex.EncodeToString(digest[:]) {
-		return "", clientSelectionFailure()
+	switch version {
+	case json.Number("1"):
+		if len(record) != 8 || id != claudeManagedProfile || record["profile_id"] != id {
+			return "", clientFormatFailure()
+		}
+		digest := sha256.Sum256(snapshots[2])
+		if record["profile_sha256"] != hex.EncodeToString(digest[:]) {
+			return "", credentialFailure("active_connection_selection_unconfirmed", "The legacy byte-bound Claude Desktop record no longer matches its profile file. This does not prove the Key or service is invalid. Apply this client's configuration with a compatible Switch version to update the connection automatically; do not edit a fingerprint or reinstall Skills. No API request was sent.", "")
+		}
+	case json.Number("2"):
+		if len(record) != 7 || jsonString(record["local_gateway_token"]) == "" {
+			return "", clientFormatFailure()
+		}
+		if record["local_gateway_token"] != profile["inferenceGatewayApiKey"] {
+			return "", credentialFailure("active_connection_selection_unconfirmed", "The saved Skills credential does not belong to the current Claude Desktop connection. Apply this client's configuration in Switch to update the connection automatically; do not edit configuration files or reinstall Skills. No API request was sent.", "")
+		}
+	default:
+		return "", clientFormatFailure()
 	}
 	key := jsonString(record["api_key"])
 	if strings.HasPrefix(strings.TrimSpace(key), "pts-local-") || strings.ContainsAny(key, "\r\n") {
@@ -89,6 +102,10 @@ func credentialFromClaudeMappedConnection(root, id string, connectionID *string)
 		}
 		after, err := readClientBytes(path)
 		same := err == nil && bytes.Equal(snapshots[i], after)
+		if err == nil && !same && version == json.Number("2") {
+			value, parseErr := parseClientJSON(after, false)
+			same = parseErr == nil && sameClaudeConnectionFields(i, documents[i], jsonObject(value))
+		}
 		clear(after)
 		if !same {
 			return "", clientSelectionFailure()
@@ -98,6 +115,28 @@ func credentialFromClaudeMappedConnection(root, id string, connectionID *string)
 		*connectionID = jsonString(record["connection_id"])
 	}
 	return token, nil
+}
+
+// A concurrent model/preference update must not invalidate an unchanged
+// connection. Compare only routing/auth fields; the credential record is exact.
+func sameClaudeConnectionFields(index int, before, after map[string]any) bool {
+	if before == nil || after == nil {
+		return false
+	}
+	fields := [][]string{
+		{"deploymentMode"},
+		{"appliedId"},
+		{"inferenceProvider", "inferenceCredentialKind", "inferenceGatewayAuthScheme", "inferenceGatewayBaseUrl", "inferenceGatewayApiKey"},
+	}
+	if index == 3 {
+		return reflect.DeepEqual(before, after)
+	}
+	for _, field := range fields[index] {
+		if !reflect.DeepEqual(before[field], after[field]) {
+			return false
+		}
+	}
+	return true
 }
 
 func credentialForConnection(host string) (string, string, error) {

@@ -52,7 +52,7 @@ func (writer *supportReceiptWriter) beginRequest(method, path string) {
 		writer.requestPhase = "balance_metadata"
 	case method == http.MethodPost:
 		writer.requestPhase = "submission"
-	case strings.HasSuffix(path, "/content"):
+	case strings.HasSuffix(path, "/content") || strings.HasSuffix(path, "/download-link"):
 		writer.requestPhase = "content"
 	default:
 		writer.requestPhase = "status"
@@ -122,7 +122,7 @@ func (writer *supportReceiptWriter) summary(document map[string]json.RawMessage)
 	}
 	switch writer.command {
 	case "init", "doctor", "connection", "balance", "models", "model-groups", "preflight", "submit",
-		"status", "wait", "content", "resume", "redeliver", "delivered", "evaluate", "audio", "audio-verify", "embedding", "rerank":
+		"status", "wait", "content", "download-link", "resume", "redeliver", "delivered", "evaluate", "audio", "audio-verify", "embedding", "rerank":
 		summary["command"] = writer.command
 	}
 	if writer.attempted {
@@ -152,7 +152,7 @@ func (writer *supportReceiptWriter) summary(document map[string]json.RawMessage)
 		"kind":               "|image|video|music|audio_task|",
 		"failure_phase":      "|validation|submission|status|content|",
 		"submission_outcome": "|accepted|rejected|unknown|not_submitted|",
-		"next_step":          "|wait|content|deliver|correct_request|await_user|done|",
+		"next_step":          "|wait|content|deliver|download_link|present_link|correct_request|await_user|done|",
 		"status":             "|pending|queued|processing|running|in_progress|completed|succeeded|success|failed|cancelled|canceled|expired|error|unknown|",
 	} {
 		if value := text(key); value != "" && !strings.Contains(value, "|") && strings.Contains(allowed, "|"+value+"|") {
@@ -199,6 +199,7 @@ var supportLocalErrorCodes = map[string]bool{
 	"original_count_unknown": true, "media_download_incomplete": true, "media_size_limit_exceeded": true,
 	"invalid_media_content": true, "media_output_format_mismatch": true, "output_permission_denied": true, "media_download_timeout": true, "output_file_conflict": true,
 	"media_content_response_timeout": true, "media_download_stalled": true,
+	"download_link_unavailable": true, "download_link_invalid": true,
 	"media_request_invalid":   true,
 	"api_response_unreadable": true, "api_network_unavailable": true, "api_identity_rejected": true,
 	"api_identity_unreadable": true, "credential_unverified": true, "api_identity_unconfirmed": true,

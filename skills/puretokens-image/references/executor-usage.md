@@ -87,7 +87,15 @@ preview is unavailable; attachment success does not prove animation playback.
 
 ## Continuation record
 
-Content retrieval waits at most 90 seconds for response headers, stops a blocked body read after 30 seconds without bytes, and retains a 10-minute total transfer ceiling. Byte progress resets only the read-idle budget, not the overall ceiling. A content failure returns `await_user`: stop automatic content/resume attempts and offer a same-task/index retrieval only on explicit user request. Reuse verified local files instead of downloading again. Never claim bytes are moving merely because a command is running.
+Content retrieval waits at most 90 seconds for response headers, stops a blocked body read after 30 seconds without bytes, and retains a 10-minute total transfer ceiling. Byte progress resets only the read-idle budget, not the overall ceiling. Stop automatic content/resume attempts after failure. Only `next_step=download_link` permits the bounded image fallback below; `await_user` stops. Reuse verified local files instead of downloading again. Never claim bytes are moving merely because a command is running.
+
+For `download_link`, execute once for the original completed image and index:
+
+```text
+<executor> download-link --host codex --record <absolute-task-json> --index 0
+```
+
+Without a record, use `download-link --host codex --request <same-task-json>` with the original task_status=completed, requested_count and index. It makes one fixed authenticated GET with a 20-second budget, not a content fetch or inference request. Present only the validated `download_link.url` when `next_step=present_link`, with its expiry and a do-not-forward warning. The link lasts 10 minutes and grants only that original artifact; the browser still needs working connectivity. Do not fetch/open it, persist it in records/support/telemetry, call delivered, or claim attachment delivery. Stop after presenting it; failed issuance stops, and expiry refresh requires explicit user request. Preserve the original content receipt and diagnostics.
 
 Use `--record <absolute-task-json>` in an explicit workspace/user location for videos, multiple outputs or cross-session recovery. A short single-image flow may use `--request` alone. Choose before submitting. Both modes submit exactly once; do not create a second task to switch modes. Choose the output location with `content --output-dir <existing-absolute-directory>`; it can also be retained from an explicit submission output_dir. The record contains task ID, kind, model, original operation, requested count, validated safe parameters, progress and per-index download proofs (`sha256`, `bytes`, `media_type`); no prompt, credentials, reference URL or media bytes. Do not edit it by hand.
 
@@ -130,7 +138,7 @@ only one index, deliver and acknowledge that index, then stop even when other
 indexes remain. Wrong-format historical files do not block explicit recovery of
 another index and are not exposed as verified requested output.
 
-Machine `next_step` is one of `wait`, `content`, `deliver`, `correct_request`, `await_user`, `done`. It never independently authorizes a paid request or bypasses user cancellation or host policy. `correct_request` applies only to a fresh `validation` + `not_submitted` + `media_request_invalid` receipt with controlled `validation` and no task ID/reconciliation: correct one agent-authored assembly mistake while preserving the original authorized model, content, attachments and output scope. Ask if the user's choice would change, ambiguity remains, or correction fails again. Existing records, unknown submissions, permission/attachment/transport failures never qualify.
+Machine `next_step` is one of `wait`, `content`, `deliver`, `download_link`, `present_link`, `correct_request`, `await_user`, `done`. It never independently authorizes a paid request or bypasses user cancellation or host policy. `correct_request` applies only to a fresh `validation` + `not_submitted` + `media_request_invalid` receipt with controlled `validation` and no task ID/reconciliation: correct one agent-authored assembly mistake while preserving the original authorized model, content, attachments and output scope. Ask if the user's choice would change, ambiguity remains, or correction fails again. Existing records, unknown submissions, permission/attachment/transport failures never qualify for request correction.
 
 A normal bounded wait ending returns `ok=true`, the actual pending status and `wait_outcome=window_ended`. Carry `wait_windows_completed` (0..2, saturated) into every same-task request; records preserve it automatically. At count 1, the active authorized delivery may continue one more foreground window without asking again. At count 2, pause and offer explicit continuation. An explicit later resume allows one bounded window but does not reset that counter. No background timers or queues.
 

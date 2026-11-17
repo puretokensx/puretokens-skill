@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-index.schema.json",
   "schemaVersion": 1,
   "capability": "image",
-  "catalogUpdatedAt": "2026-11-08",
-  "catalogCapturedAt": "2026-11-08T13:27:39.712Z",
+  "catalogUpdatedAt": "2026-11-17",
+  "catalogCapturedAt": "2026-11-17T09:08:37.678Z",
   "defaultModel": "gpt-image-2.6",
   "models": [
     {
@@ -12,9 +12,19 @@
       "profile": "profiles/dola-seedream-5-0-pro-260628.json"
     },
     {
+      "id": "dola-seedream-5.5",
+      "aliases": [],
+      "profile": "profiles/dola-seedream-5.5.json"
+    },
+    {
       "id": "gemini-3.0-pro-image",
       "aliases": [],
       "profile": "profiles/gemini-3.0-pro-image.json"
+    },
+    {
+      "id": "gemini-3.1-flash-image",
+      "aliases": [],
+      "profile": "profiles/gemini-3.1-flash-image.json"
     },
     {
       "id": "gemini-nano-banana-2.1",

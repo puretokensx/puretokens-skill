@@ -57,6 +57,18 @@ function rejects(schema, document, keyword) {
   if (keyword) assert.ok(errors.some((error) => error.includes(keyword)), errors.join("\n"));
 }
 
+test("image download link cannot masquerade as attachment delivery or leak into support", () => {
+  const receipt = example("image-download-link");
+  assert.equal(receipt.next_step, "present_link");
+  assert.equal(receipt.delivery_status, "link_available");
+  assert.equal(receipt.support.download_link, undefined);
+  for (const changes of [{ok:false}, {kind:"video"}, {status:"pending"}, {next_step:"done"}, {delivery_status:"delivered"}, {downloaded_paths:["/tmp/invented.png"]}, {delivered_indexes:[0]}, {reconciliation_required:true}]) {
+    rejects("executor-receipt.schema.json", {...receipt, ...changes});
+  }
+  rejects("support-summary.schema.json", {...receipt.support, download_link:receipt.download_link});
+  rejects("executor-receipt.schema.json", {...receipt, download_link:{...receipt.download_link, url:"https://private.invalid/media"}});
+});
+
 test("content transfer evidence stays numeric and invocation-local", () => {
   const receipt = example("content-stage-complete");
   assert.equal(receipt.content_transfer.read_complete, true);
@@ -387,13 +399,13 @@ test("invocation timings are measured phases without private or unobserved label
   }
 });
 
-test("content stage diagnostics remain safe and require explicit continuation", () => {
+test("content stage diagnostics retain failure and allow only bounded image link recovery", () => {
   for (const [stage, code] of [["response", "media_content_response_timeout"], ["body", "media_download_stalled"]]) {
     const result = example(`content-stage-${stage}`);
     assert.equal(result.local_error_code, code);
     assert.equal(result.support.local_error_code, code);
-    assert.equal(result.next_step, "await_user");
-    assert.match(result.next_action, /Stop automatic retrieval/);
+    assert.equal(result.next_step, "download_link");
+    assert.match(result.next_action, /Do not fetch the link, retry content/);
     assert.match(result.next_action, /explicit user request/);
     assert.equal(result.timings_ms.content_response, 7);
     assert.equal(result.timings_ms.download, stage === "body" ? 11 : undefined);

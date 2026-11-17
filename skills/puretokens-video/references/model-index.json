@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-index.schema.json",
   "schemaVersion": 1,
   "capability": "video",
-  "catalogUpdatedAt": "2026-11-08",
-  "catalogCapturedAt": "2026-11-08T13:27:39.712Z",
+  "catalogUpdatedAt": "2026-11-17",
+  "catalogCapturedAt": "2026-11-17T09:08:37.678Z",
   "defaultModel": "MiniMax-H3",
   "models": [
     {
@@ -150,6 +150,12 @@
       "id": "viduq4-preview",
       "aliases": [],
       "profile": "profiles/viduq4-preview.json",
+      "supportScope": "reviewed_source"
+    },
+    {
+      "id": "seedance-2.5-flash",
+      "aliases": [],
+      "profile": "profiles/seedance-2.5-flash.json",
       "supportScope": "reviewed_source"
     }
   ]

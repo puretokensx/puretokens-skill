@@ -72,7 +72,7 @@ async function main() {
     throw new Error("Invalid reviewed source profile document");
   }
   for (const model of reviewed.models) {
-    const sourceReview = { reviewedAt: reviewed.reviewedAt, scope: reviewed.scope, source: reviewed.source };
+    const sourceReview = model.sourceReview || { reviewedAt: reviewed.reviewedAt, scope: reviewed.scope, source: reviewed.source };
     const published = catalog.models.find(row => row.id === model.id);
     if (published) {
       // Public visibility must not replace the executor's reviewed boundary.

@@ -172,6 +172,24 @@ func TestContractExamples(t *testing.T) {
 		}
 	})
 
+	t.Run("same image download link", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != http.MethodGet || r.URL.RequestURI() != "/v1/images/fixture-task/download-link?index=0" {
+				t.Fatal("link command fetched media or changed task")
+			}
+			json.NewEncoder(w).Encode(map[string]any{"task_id": "fixture-task", "index": 0, "url": apiOrigin + "/v1/tasks/fixture-task/artifacts/image-0/content?access=v2." + base64.RawURLEncoding.EncodeToString(make([]byte, 44)), "expires_at": time.Now().Add(9 * time.Minute).UTC().Format(time.RFC3339)})
+		}))
+		defer server.Close()
+		var output bytes.Buffer
+		writer := &supportReceiptWriter{output: &output, command: "download-link", host: "codex"}
+		svc := fixtureService(server)
+		svc.support = writer
+		if err := executeExistingTask("download-link", strings.NewReader(`{"kind":"image","operation":"continue","task_id":"fixture-task","task_status":"completed","requested_count":1}`), writer, svc); err != nil {
+			t.Fatal(err)
+		}
+		capture("image-download-link", "executor-receipt.schema.json", output.Bytes())
+	})
+
 	t.Run("ElevenLabs dedicated audio", func(t *testing.T) {
 		for model, operation := range map[string]string{
 			"eleven_v3": "speech", "eleven_v4": "speech", "eleven_multilingual_v2": "speech", "eleven_flash_v2_5": "speech",

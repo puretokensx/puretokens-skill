@@ -351,3 +351,44 @@ func TestDesktopDataRoots(t *testing.T) {
 		}
 	}
 }
+
+func TestClaudeDesktopWindowsUsesLocalAppDataNotRoaming(t *testing.T) {
+	home := t.TempDir()
+	local := filepath.Join(home, "redirected-local")
+	roaming := filepath.Join(home, "roaming")
+	t.Setenv("LOCALAPPDATA", local)
+	t.Setenv("APPDATA", roaming)
+	root, err := desktopHostDataRoot("windows", home, "Claude-3p")
+	if err != nil || root != filepath.Join(local, "Claude-3p") {
+		t.Fatal("Claude third-party connection did not use redirected Local AppData")
+	}
+	for _, location := range []struct{ root, key string }{
+		{root, "synthetic-local-key"},
+		{filepath.Join(roaming, "Claude-3p"), "synthetic-stale-roaming-key"},
+	} {
+		desktopFixtureFile(t, location.root, "claude_desktop_config.json", `{"deploymentMode":"3p"}`)
+		desktopFixtureFile(t, location.root, "configLibrary/_meta.json", `{"appliedId":"`+fixtureDesktopProfile+`"}`)
+		desktopFixtureFile(t, location.root, "configLibrary/"+fixtureDesktopProfile+".json", `{"inferenceProvider":"gateway","inferenceCredentialKind":"static","inferenceGatewayAuthScheme":"bearer","inferenceGatewayBaseUrl":"https://api.puretokensx.com","inferenceGatewayApiKey":"`+location.key+`"}`)
+	}
+	root, err = filepath.EvalSymlinks(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if token, err := credentialFromClaudeDesktopRoot(root); err != nil || token != "synthetic-local-key" {
+		t.Fatal("stale Roaming configuration displaced the active Local connection")
+	}
+	dsh, err := desktopHostDataRoot("windows", home, "dsh-desktop")
+	if err != nil || dsh != filepath.Join(roaming, "dsh-desktop") {
+		t.Fatal("unrelated Desktop host root changed")
+	}
+	for _, invalid := range []string{"", "relative"} {
+		t.Setenv("LOCALAPPDATA", invalid)
+		if _, err := desktopHostDataRoot("windows", home, "Claude-3p"); err == nil {
+			t.Fatal("missing or relative Local AppData fell back to Roaming")
+		}
+	}
+	root, err = desktopHostDataRoot("darwin", home, "Claude-3p")
+	if err != nil || root != filepath.Join(home, "Library", "Application Support", "Claude-3p") {
+		t.Fatal("macOS root changed")
+	}
+}

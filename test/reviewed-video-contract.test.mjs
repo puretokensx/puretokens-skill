@@ -14,19 +14,20 @@ test("reviewed video profiles preserve source scope separately from the public s
   const validateProfile = compileSchema(profileSchema, [profileSchema]);
   const validateIndex = compileSchema(indexSchema, [indexSchema]);
   assert.deepEqual(validateIndex(index), []);
-  assert.equal(source.models.length, 9);
+  assert.ok(source.models.some(row => row.id === "seedance-2.5-flash"));
   for (const model of source.models) {
     const row = index.models.find(row => row.id === model.id);
     assert.equal(row.supportScope, "reviewed_source");
     const installed = await read(`skills/puretokens-video/references/${row.profile}`);
     assert.equal(installed.sourceReview.scope, "reviewed_source_not_live_availability");
-    assert.equal(installed.sourceReview.reviewedAt, source.reviewedAt);
+    assert.equal(installed.sourceReview.reviewedAt, model.sourceReview?.reviewedAt || source.reviewedAt);
     assert.deepEqual(installed.parameterSchema, model.parameterSchema);
     assert.deepEqual(validateProfile(installed), []);
-    for (const operation of Object.values(model.parameterSchema.operations)) {
+    for (const [name, operation] of Object.entries(model.parameterSchema.operations)) {
       assert.equal(operation.request.method, "POST");
       assert.ok(["/v1/videos", "/v1/videos/edits"].includes(operation.request.path));
-      assert.equal(operation.request.contentType, "application/json");
+      assert.equal(operation.request.contentType, model.id === "seedance-2.5-flash" && name !== "video_generation"
+        ? "multipart/form-data" : "application/json");
     }
   }
   for (const id of ["MiniMax-H3", "viduq3-pro", "viduq3-turbo",
@@ -48,6 +49,14 @@ test("reviewed video profiles preserve source scope separately from the public s
     assert.ok(!index.models.some(row => row.id === id), "retired routes must leave new selection");
   }
   assert.equal(index.defaultModel, "MiniMax-H3");
+  assert.ok(!catalog.models.some(row => row.id === "seedance-2.5-flash"),
+    "source-only Flash must not be invented in the public snapshot");
+  const flash = await read("skills/puretokens-video/references/profiles/seedance-2.5-flash.json");
+  assert.equal(flash.sourceReview.reviewedAt, "2026-11-17");
+  assert.equal(flash.parameterSchema.properties.duration.default, 5);
+  assert.equal(flash.parameterSchema.properties.resolution.default, "720p");
+  assert.equal(flash.parameterSchema.properties.aspect_ratio.default, "9:16");
+  assert.equal(flash.parameterSchema.properties.generate_audio, undefined);
 });
 
 test("synchronous music duration schema enforces millisecond precision and route separation", async () => {

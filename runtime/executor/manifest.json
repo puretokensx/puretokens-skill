@@ -1,31 +1,31 @@
 {
   "schemaVersion": 1,
   "name": "puretokens-api-executor",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "artifacts": {
     "darwin-amd64": {
       "path": "bin/puretokens-api-darwin-amd64",
-      "sha256": "e52cb8c256f52100573fd777898a643f3dcc79a370d9a0ff1698da036cddcd8e"
+      "sha256": "153c6d9ecb5233e7328b6981c638617c21ca3db5969d9df3dce1ac5879654315"
     },
     "darwin-arm64": {
       "path": "bin/puretokens-api-darwin-arm64",
-      "sha256": "249aa283536cd49f6956d96559e3b9628a5e8c9c65aa0175d72127f6bdf0950a"
+      "sha256": "7a02afdee6853becba03ebbf58a759a858cd9d6b0d82d4d64757b89e22d0c3df"
     },
     "linux-amd64": {
       "path": "bin/puretokens-api-linux-amd64",
-      "sha256": "7f75cb22de04031f016fdf9604ae57a753c0c4915e117783b065d97f043aa9e6"
+      "sha256": "81401ef013342f770c52afd3ab627199c89c4112aba456929584980f0bccc105"
     },
     "linux-arm64": {
       "path": "bin/puretokens-api-linux-arm64",
-      "sha256": "4fe3363540d967cd762d77d021dfbc30e52541251c9876f31e6ca55b632934ae"
+      "sha256": "1f0f73d8f73a8dfaee9375a067d7a6f2ad71fac9d30c0f6d80fe25c82225414d"
     },
     "windows-amd64": {
       "path": "bin/puretokens-api-windows-amd64.exe",
-      "sha256": "bc1babda4c9de9678730d747657daf2ad33b0eefdbdacb4240a4a30b3a5f2db3"
+      "sha256": "35ea8e2b4529e97b29b01c5e0c935324dbcdd59ca5d7e3f60dcc9ec461e5eb7d"
     },
     "windows-arm64": {
       "path": "bin/puretokens-api-windows-arm64.exe",
-      "sha256": "f827da3b5454b9b4ac8abcdc584095bd47176a85654b502c7c041b97f6ad5672"
+      "sha256": "7d65f4f5083f5c619c98c1380baf826aeeb41f3a121d60a844987a624add2e4f"
     }
   }
 }

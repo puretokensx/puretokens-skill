@@ -240,7 +240,7 @@ The selected installed profile governs ordinary requests. An explicit authentica
 <!-- media-model-catalog:start -->
 ## Media model catalog
 
-Synchronized with the base model catalog: 2026-11-08T13:27:39.712Z.
+Synchronized with the base model catalog: 2026-11-17T09:08:37.678Z.
 
 This list is an installed selection aid, not a per-request authorization check. Ordinary generation reads only the selected profile; live discovery is limited to explicit requests, profile gaps or rejection diagnosis. Reviewed local compatibility supplements are separately sourced.
 
@@ -251,7 +251,9 @@ README is generated only from base-catalog models with explicit image/video capa
 | Model ID | Provider | You can also say | Good for | Example |
 | --- | --- | --- | --- | --- |
 | `dola-seedream-5-0-pro-260628` | ByteDance | Exact ID only | Image generation | `Use dola-seedream-5-0-pro-260628 to generate an image.` |
+| `dola-seedream-5.5` | ByteDance | Exact ID only | Image generation | `Use dola-seedream-5.5 to generate an image.` |
 | `gemini-3.0-pro-image` | Google | Exact ID only | Image generation | `Use gemini-3.0-pro-image to generate an image.` |
+| `gemini-3.1-flash-image` | Google | Exact ID only | Image generation | `Use gemini-3.1-flash-image to generate an image.` |
 | `gemini-nano-banana-2.1` | Google | Exact ID only | Image generation | `Use gemini-nano-banana-2.1 to generate an image.` |
 | `gpt-image-2` | OpenAI | `image2` | Image generation | `Use gpt-image-2 to generate an image.` |
 | `gpt-image-2.5` | OpenAI | Exact ID only | Image generation | `Use gpt-image-2.5 to generate an image.` |

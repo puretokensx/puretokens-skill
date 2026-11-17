@@ -203,7 +203,8 @@
     "handoffBeforeNextContentRead": true,
     "existingOutputReuse": "explicit_record_matching_sha256_bytes_media_type_only_otherwise_preserve_and_choose_another_directory",
     "neverAutomaticallyPrefetchOrRefetchDeliveredContent": true,
-    "explicitRedelivery": "user_requested_same_task_index_verify_local_first_otherwise_content_get_never_post_preserve_historical_delivery"
+    "explicitRedelivery": "user_requested_same_task_index_verify_local_first_otherwise_content_get_never_post_preserve_historical_delivery",
+    "downloadLinkFallback": "only_next_step_download_link_one_same_task_index_GET_20_seconds_validated_api_origin_10_minute_link_present_only_not_attachment_delivery_no_fetch_refresh_or_resubmission"
   },
   "polling": {
     "serverDelay": "honor_valid_positive_retry_after_before_fallback",

@@ -10,6 +10,17 @@ import (
 )
 
 func TestSVGDownloadAndRecordedRecovery(t *testing.T) {
+	t.Run("static", func(t *testing.T) { testSVGDownloadAndRecordedRecovery(t, staticSVGFixture) })
+	for _, format := range []string{"png", "jpeg"} {
+		t.Run(format, func(t *testing.T) {
+			payload := `<svg xmlns="http://www.w3.org/2000/svg"><image href="` + svgRasterFixture(t, format, 2, 2, true) + `"/></svg>`
+			testSVGDownloadAndRecordedRecovery(t, payload)
+		})
+	}
+}
+
+func testSVGDownloadAndRecordedRecovery(t *testing.T, payload string) {
+	t.Helper()
 	dir := t.TempDir()
 	recordPath := filepath.Join(dir, "task.json")
 	record := taskRecord{Format: taskRecordFormat, Kind: "image", Model: "gpt-image-2.6", TaskID: "svg-fixture", OriginalOperation: "generate", RequestedCount: 1, Status: "completed", Parameters: map[string]any{"output_format": "svg"}, OutputDir: dir}
@@ -23,7 +34,7 @@ func TestSVGDownloadAndRecordedRecovery(t *testing.T) {
 			t.Error("unexpected SVG request")
 		}
 		w.Header().Set("Content-Type", "image/svg+xml")
-		w.Write([]byte(staticSVGFixture))
+		w.Write([]byte(payload))
 	}))
 	defer server.Close()
 	var out bytes.Buffer
@@ -35,7 +46,7 @@ func TestSVGDownloadAndRecordedRecovery(t *testing.T) {
 		t.Fatal(result)
 	}
 	data, err := os.ReadFile(result.DownloadedPaths[0])
-	if err != nil || string(data) != staticSVGFixture {
+	if err != nil || string(data) != payload {
 		t.Fatal("SVG bytes changed")
 	}
 	out.Reset()

@@ -16,6 +16,11 @@ func guideReceipt(result receipt) receipt {
 	case !result.OK:
 		result.WaitOutcome = ""
 		result.NextStep = "await_user"
+		if imageLinkFallbackEligible(result) {
+			result.NextStep = "download_link"
+		}
+	case result.DownloadLink != nil && result.DeliveryStatus == "link_available":
+		result.NextStep = "present_link"
 	case result.DeliveryStatus == "delivered":
 		result.NextStep = "done"
 	case len(result.DownloadedPaths) > 0:
@@ -91,6 +96,8 @@ func guideFailure(result receipt) receipt {
 		boundary = "Submission may have started. Do not repeat the POST automatically or infer billing; a new paid request requires explicit user agreement."
 	case result.TaskID != "" && result.ReconciliationRequired:
 		boundary = "Keep this task ID. Stop automatic waiting; on explicit continuation check this same task once. Never submit a replacement or infer a refund."
+	case imageLinkFallbackEligible(result):
+		boundary = "The image is generated but attachment download failed. Preserve these download diagnostics. Run download-link once for this same task and index, then present only the validated temporary link for the user to click. Do not fetch the link, retry content, mark delivered or generate again. Link failure stops; refresh only on explicit user request."
 	case result.TaskID != "" && result.FailurePhase == "content":
 		boundary = "Stop automatic retrieval. Keep this task ID and index; another retrieval requires an explicit user request. Repeated failure requires investigation of existing sanitized support, timings_ms and content_transfer, not repeated continuation prompts or diagnostic refetches. Reuse a verified local file when available. Do not submit a replacement or switch models."
 	case result.TaskID != "" && terminalFailure(result.Status):

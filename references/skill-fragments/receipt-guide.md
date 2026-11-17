@@ -6,7 +6,7 @@
 ## 先判断是否必须停止
 
 优先处理 `reconciliation_required=true`、`submission_outcome=unknown`、
-`ok=false` 或 `next_step=await_user`，不能被 `status=completed`、已有路径或编号覆盖。下述明确的新请求本地拼装修正是唯一窄例外。
+`ok=false` 或 `next_step=await_user`，不能被 `status=completed`、已有路径或编号覆盖。仅下述新请求本地拼装修正与已完成图片的 download_link 提示是窄例外。
 有编号仅表示能关联原任务，不证明已完成或已扣费。回执缺失／无法解析时也可能已经提交，
 停止自动操作，不重发；保留用户原任务及已有记录。
 
@@ -25,6 +25,8 @@
 | next_step=wait，正常窗口结束 | 仍在生成，已保留原任务 | 仅按该操作剩余前台窗口继续，不重置计数 |
 | next_step=content | 已生成，接下来取回文件 | 只下载原任务；此时不能说已交付 |
 | next_step=deliver，文件已校验 | 文件已下载 | 实际附加原生文件；失败只恢复交付 |
+| 图片 next_step=download_link | 图片已生成，但本次附件下载失败 | 原任务同索引执行一次 download-link，20秒上限，不重取图片 |
+| next_step=present_link，delivery_status=link_available | 可点击临时链接下载，有效期10分钟，请勿转发 | 只展示 download_link.url，不自动访问；不称附件已交付、不执行 delivered；停止自动流程 |
 | 本次宿主已确认实际附件交付 | 已交付本次附件 | 异步记录才执行 delivered；同步音频没有该命令 |
 | 异步 next_step=done | 原记录显示已完成交付 | 不重复下载、不声称本次又附加了文件 |
 | 用户明确要求再次发送已交付的文件 | 按原记录、原索引执行 redeliver | 优先校验原本地文件；需要时只取同任务结果，实际交付后再 delivered |
@@ -49,7 +51,7 @@
 | submission + unknown | 提交结果未确认，可能已处理；不自动再提交或承诺未扣费 |
 | submission + rejected | 本次请求被拒绝；按 next_action 处理，不擅自换模型或删参数 |
 | status 失败／对账 | 原任务保留，当前状态未确认；停止自动等待，不报生成失败或退款 |
-| 异步 content 失败 | 原任务不重做；按回执在用户明确继续后取原结果 |
+| 异步 content 失败 | 原任务不重做；仅图片 download_link 提示允许单次取链接，其他按回执在用户明确继续后取原结果 |
 | 同步音频 accepted + content 失败 | 响应已接受但未保存为可用文件；没有结果查询，不能照搬异步 content 恢复 |
 | 宿主附件未交付 | 执行器未证明宿主交付；异步用原记录 resume，同步音频用原 artifact 的 audio-verify |
 
@@ -91,6 +93,10 @@
 更不证明文件持续传输。`media_content_response_timeout` 表示响应等待超限，
 `media_download_stalled` 表示读取无字节进展超限；两者都保留原任务且停止自动取回。
 HTTP 200 只证明收到响应状态，不证明完整图片／音视频已经取回或交付。
+
+图片链接兜底保留原 content 的 support、timings_ms 和 content_transfer，不用链接请求覆盖取图诊断。
+链接是单个原任务产物的临时访问凭证，只在当前用户交付回复展示；不复制进支持日志、遥测或任务文件。
+它不含 API Key 或上游地址。签发失败即停止，过期仅按用户要求刷新；不自动打开网页、下载链接或重新生成。
 
 ## 取回失败诊断
 

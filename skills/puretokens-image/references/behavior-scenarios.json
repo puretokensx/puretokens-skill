@@ -286,7 +286,7 @@
     {
       "id": "image-content-delivery-failure",
       "when": "content retrieval fails before a verified local file is available",
-      "then": "Keep the task ID and offer only a same-task content retry when requested; never resubmit. If the download already succeeded and only host handoff failed, use completed-record resume to verify the existing file locally and reattach it without another content GET."
+      "then": "Keep the task ID and original download diagnostics. Only next_step=download_link allows one separate 20-second download-link read for that exact task/index. Present only the validated ten-minute link with expiry; do not fetch it, mark delivered, continue other indexes or resubmit. Link failure stops; refresh requires explicit user request. Other failures await the user. If only host handoff failed after download, verify the existing file locally and reattach without another content GET."
     },
     {
       "id": "image-content-delivery-location",

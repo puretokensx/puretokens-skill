@@ -203,6 +203,9 @@ func executeExistingTask(command string, input io.Reader, output io.Writer, svc 
 		writeReceipt(output, result)
 		return errors.New("retry wait required")
 	}
+	if command == "download-link" {
+		return executeImageDownloadLink(output, svc, request, result)
+	}
 	if command == "content" {
 		// The caller must supply the completed state from the last same-task receipt.
 		// The content endpoint itself is authoritative and rejects unfinished tasks.

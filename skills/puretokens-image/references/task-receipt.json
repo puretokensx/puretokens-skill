@@ -15,7 +15,7 @@
       "task_id",
       "status"
     ],
-    "nextAction": "Follow next_step while preserving wait_windows_completed. A normal window ending is still processing, not a task failure; allow one more authorized foreground window, then ask. Errors and deferred retries stop automatic continuation."
+    "nextAction": "Follow next_step while preserving wait_windows_completed. A normal window ending is still processing; allow one more authorized foreground window, then ask. Errors and deferred retries stop, except download_link permits one same-task/index link request. For present_link show only the validated temporary URL and expiry, warn against forwarding, and stop without claiming attachment delivery or calling delivered."
   },
   "reconciliation": {
     "requiredFields": [

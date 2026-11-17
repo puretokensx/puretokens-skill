@@ -49,3 +49,30 @@ func TestFailureGuidanceCategoriesAndTaskBoundaries(t *testing.T) {
 		t.Fatal("429 mistaken for balance failure")
 	}
 }
+
+func TestImageDownloadFailureOffersOnlySameTaskLink(t *testing.T) {
+	base := receipt{Kind: "image", TaskID: "image-existing", Status: "completed", RequestedCount: 1, FailurePhase: "content", LocalErrorCode: "media_download_stalled", HTTPStatus: 200}
+	if got := guideReceipt(base); got.NextStep != "download_link" {
+		t.Fatalf("completed image download did not offer bounded link recovery: %s", got.NextStep)
+	}
+	for _, change := range []func(*receipt){
+		func(r *receipt) { r.Kind = "video" },
+		func(r *receipt) { r.Status = "pending" },
+		func(r *receipt) { r.ReconciliationRequired = true },
+		func(r *receipt) { r.HTTPStatus = 403 },
+		func(r *receipt) { r.HTTPStatus = 429 },
+		func(r *receipt) { r.LocalErrorCode = "invalid_media_content" },
+		func(r *receipt) { r.LocalErrorCode = "media_output_format_mismatch" },
+		func(r *receipt) { r.LocalErrorCode = "download_link_unavailable" },
+		func(r *receipt) { r.SubmissionOutcome = "unknown" },
+		func(r *receipt) { r.RequestedCount = 0 },
+		func(r *receipt) { r.RetryAfterSecs = 30 },
+		func(r *receipt) { r.APIErrorCode = "permission_denied" },
+	} {
+		in := base
+		change(&in)
+		if got := guideReceipt(in); got.NextStep != "await_user" {
+			t.Fatalf("unsupported recovery continued: %+v", got)
+		}
+	}
+}

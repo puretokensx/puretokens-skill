@@ -2,6 +2,20 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { supplementReviewedParameters } from "../scripts/reviewed-media-supplements.mjs";
 
+test("Flash receives frame operations only when its own schema declares both frame fields", () => {
+  const model = { id: "seedance-2.5-flash", parameterSchema: { properties: {
+    first_frame_image: { type: "string" }, last_frame_image: { type: "string" },
+    resolution: { type: "string", enum: ["480p", "720p"], default: "720p" }
+  } } };
+  const result = supplementReviewedParameters(model);
+  assert.deepEqual(result.operations?.first_last_frame_video.requiredBodyFields,
+    ["model", "prompt", "first_frame_image", "last_frame_image"]);
+  assert.deepEqual(result.properties.resolution, model.parameterSchema.properties.resolution);
+  assert.equal(result.properties.generate_audio, undefined);
+  delete model.parameterSchema.properties.last_frame_image;
+  assert.equal(supplementReviewedParameters(model).operations, undefined);
+});
+
 test("reviewed frame supplements preserve live authority and do not restore absent fields", () => {
   const model = { id: "seedance-2.0", parameterSchema: {
     properties: { first_frame_image: { type: "string" }, last_frame_image: { type: "string" } }

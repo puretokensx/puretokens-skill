@@ -13,8 +13,10 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"mime"
 	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -76,24 +78,25 @@ type pollRequest struct {
 }
 
 type receipt struct {
-	Validation           *mediaValidation `json:"validation,omitempty"`
-	RequestedCount       int              `json:"requested_count,omitempty"`
-	Parameters           map[string]any   `json:"parameters,omitempty"`
-	SubmissionOutcome    string           `json:"submission_outcome,omitempty"`
-	DownloadedPaths      []string         `json:"downloaded_paths,omitempty"`
-	DownloadedIndexes    []int            `json:"downloaded_indexes,omitempty"`
-	DeliveryStatus       string           `json:"delivery_status,omitempty"`
-	LocalErrorCode       string           `json:"local_error_code,omitempty"`
-	OriginalOperation    string           `json:"original_operation,omitempty"`
-	RetryNotBefore       string           `json:"retry_not_before,omitempty"`
-	RecordPath           string           `json:"record_path,omitempty"`
-	DeliveredIndexes     []int            `json:"delivered_indexes,omitempty"`
-	WaitWindowsCompleted int              `json:"wait_windows_completed,omitempty"`
-	WaitOutcome          string           `json:"wait_outcome,omitempty"`
-	NextStep             string           `json:"next_step,omitempty"`
-	FailureCategory      string           `json:"failure_category,omitempty"`
-	FailureSource        string           `json:"failure_source,omitempty"`
-	RedeliveryIndex      *int             `json:"redelivery_index,omitempty"`
+	DownloadLink         *imageDownloadLink `json:"download_link,omitempty"`
+	Validation           *mediaValidation   `json:"validation,omitempty"`
+	RequestedCount       int                `json:"requested_count,omitempty"`
+	Parameters           map[string]any     `json:"parameters,omitempty"`
+	SubmissionOutcome    string             `json:"submission_outcome,omitempty"`
+	DownloadedPaths      []string           `json:"downloaded_paths,omitempty"`
+	DownloadedIndexes    []int              `json:"downloaded_indexes,omitempty"`
+	DeliveryStatus       string             `json:"delivery_status,omitempty"`
+	LocalErrorCode       string             `json:"local_error_code,omitempty"`
+	OriginalOperation    string             `json:"original_operation,omitempty"`
+	RetryNotBefore       string             `json:"retry_not_before,omitempty"`
+	RecordPath           string             `json:"record_path,omitempty"`
+	DeliveredIndexes     []int              `json:"delivered_indexes,omitempty"`
+	WaitWindowsCompleted int                `json:"wait_windows_completed,omitempty"`
+	WaitOutcome          string             `json:"wait_outcome,omitempty"`
+	NextStep             string             `json:"next_step,omitempty"`
+	FailureCategory      string             `json:"failure_category,omitempty"`
+	FailureSource        string             `json:"failure_source,omitempty"`
+	RedeliveryIndex      *int               `json:"redelivery_index,omitempty"`
 	taskFailureConfirmed bool
 	recordedFailure      *taskFailure
 
@@ -183,7 +186,7 @@ func run(args []string, input io.Reader, output io.Writer) error {
 	defer func() { dispatchOperationsReceipt(support.operationsEvent) }()
 	output = support
 	if len(args) < 1 {
-		writeReceipt(output, validationFailure("Choose init, doctor, connection, balance, models, model-groups, evaluate, audio, audio-verify, embedding, rerank, preflight, submit, status, wait, content, resume, redeliver or delivered."))
+		writeReceipt(output, validationFailure("Choose init, doctor, connection, balance, models, model-groups, evaluate, audio, audio-verify, embedding, rerank, preflight, submit, status, wait, content, download-link, resume, redeliver or delivered."))
 		return errors.New("missing command")
 	}
 
@@ -213,7 +216,7 @@ func run(args []string, input io.Reader, output io.Writer) error {
 		}
 		return errors.New("invalid command")
 	}
-	isTask := command == "submit" || command == "status" || command == "wait" || command == "content" || command == "resume" || command == "redeliver" || command == "delivered" || command == "preflight"
+	isTask := command == "submit" || command == "status" || command == "wait" || command == "content" || command == "download-link" || command == "resume" || command == "redeliver" || command == "delivered" || command == "preflight"
 	if !isTask && command != "init" && command != "doctor" && command != "connection" && command != "balance" && command != "models" && command != "evaluate" && command != "audio" && command != "audio-verify" && !isRetrievalCommand(command) {
 		writeReceipt(output, validationFailure("Choose init, doctor, connection, balance, models, model-groups, evaluate, audio, audio-verify, embedding, rerank, preflight, submit, status, wait, content, resume, redeliver or delivered."))
 		return errors.New("unknown command")
@@ -241,7 +244,7 @@ func run(args []string, input io.Reader, output io.Writer) error {
 			return errors.New("incompatible synchronous command options")
 		}
 	}
-	if (*recordFile != "" && (!isTask || command == "preflight")) || ((*index != 0 || *outputDir != "") && (*recordFile == "" || (command != "content" && command != "delivered" && command != "redeliver"))) || ((command == "resume" || command == "redeliver" || command == "delivered") && *recordFile == "") || (*recordFile != "" && *requestFile != "" && command != "submit") || (!isTask && command != "models" && command != "evaluate" && command != "audio" && command != "audio-verify" && !isRetrievalCommand(command) && *requestFile != "") {
+	if (*recordFile != "" && (!isTask || command == "preflight")) || ((*index != 0 || *outputDir != "") && (*recordFile == "" || (command != "content" && command != "download-link" && command != "delivered" && command != "redeliver"))) || (command == "download-link" && *outputDir != "") || ((command == "resume" || command == "redeliver" || command == "delivered") && *recordFile == "") || (*recordFile != "" && *requestFile != "" && command != "submit") || (!isTask && command != "models" && command != "evaluate" && command != "audio" && command != "audio-verify" && !isRetrievalCommand(command) && *requestFile != "") {
 		writeReceipt(output, validationFailure("Use --request for media JSON, --record for same-task recovery, and --index/--output-dir only for recorded content. Never submit into an existing record."))
 		return errors.New("incompatible command options")
 	}
@@ -283,7 +286,7 @@ func run(args []string, input io.Reader, output io.Writer) error {
 				return err
 			}
 		}
-		if command == "status" || command == "wait" || command == "content" || command == "resume" || command == "redeliver" || command == "delivered" {
+		if command == "status" || command == "wait" || command == "content" || command == "download-link" || command == "resume" || command == "redeliver" || command == "delivered" {
 			request.Operation = "continue"
 		}
 	}
@@ -366,7 +369,7 @@ func run(args []string, input io.Reader, output io.Writer) error {
 		return executePreflight(output, svc, request)
 	case "submit":
 		return executeTask(input, output, svc)
-	case "status", "wait", "content":
+	case "status", "wait", "content", "download-link":
 		return executeExistingTask(command, input, output, svc)
 	default:
 		writeReceipt(output, validationFailure("This command is unavailable."))
@@ -872,7 +875,10 @@ func taskRequestBody(request taskRequest) (string, string, io.Reader, error) {
 			}
 		}
 		for i, attachment := range request.Attachments {
-			part, err := writer.CreateFormFile(attachment.Field, filepath.Base(attachment.Path))
+			header := make(textproto.MIMEHeader)
+			header.Set("Content-Disposition", mime.FormatMediaType("form-data", map[string]string{"name": attachment.Field, "filename": filepath.Base(attachment.Path)}))
+			header.Set("Content-Type", files[i].mimeType)
+			part, err := writer.CreatePart(header)
 			if err == nil {
 				err = files[i].copyTo(part)
 			}
@@ -1190,7 +1196,7 @@ func (svc service) requestWithBearer(ctx context.Context, method, path string, b
 	if readErr != nil || len(bodyBytes) > maxResponseBytes {
 		return nil, response.StatusCode, retryAfter(response), "", "", errAPIResponseUnreadable
 	}
-	if (path == evaluationPath || path == "/v1/embeddings" || path == "/v1/rerank" || strings.HasSuffix(path, "/artifacts")) && response.StatusCode >= 200 && response.StatusCode < 300 {
+	if (path == evaluationPath || path == "/v1/embeddings" || path == "/v1/rerank" || strings.HasSuffix(path, "/artifacts") || strings.Contains(path, "/download-link?")) && response.StatusCode >= 200 && response.StatusCode < 300 {
 		// Validate before sanitization can collapse duplicate object keys.
 		if _, err := strictEvaluationJSON(bodyBytes, maxResponseBytes); err != nil {
 			return nil, response.StatusCode, retryAfter(response), "", "", errAPIResponseUnreadable

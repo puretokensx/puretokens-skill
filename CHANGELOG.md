@@ -4,9 +4,18 @@
 
 # Changelog
 
-## Unreleased
+## 1.0.6 - 2026-11-17
 
-- Stop rejecting unchanged TRAE connections for display or generation preference edits. Preserve account-scoped receipt, endpoint, authentication, credential and transaction checks. Allow reviewed Oh My Pi model/tool preferences, filters retaining the saved default and unrelated dotenv assignments; reject path/profile/credential overrides and malformed files without importing values or changing host configuration. Source and fixture validation only; real-host acceptance remains separate.
+- Accept bounded PNG/JPEG data images inside explicitly requested GPT 2.6 SVG output, preserving original bytes through download and local recovery. Keep MIME/full-decode, pixel, XML/CSS and external-resource safety checks; this does not diagnose unrelated raster download stalls.
+- Refresh the public image catalog with exact `dola-seedream-5.5` and `gemini-3.1-flash-image` profiles, preserving their distinct edit routes and URL/local-reference limits. Defaults remain `gpt-image-2.6` and `MiniMax-H3`.
+- Add a separately labeled reviewed `seedance-2.5-flash` profile: 4-30 integer seconds, 480p/720p, explicit ratios and declared frame/reference transports. This profile does not enable the model for an account or imply public catalog availability.
+
+- Add an image-only, same-task temporary download-link fallback after eligible content-transfer failures. The executor requests one 10-minute API-origin link without fetching media, changing the task record or claiming attachment delivery. Requires the matching gateway endpoint; no regeneration, automatic retries, new runtime or audio/video expansion.
+
+- Correct local PNG/JPEG/WebP image-edit multipart Content-Type from verified file bytes while preserving original references, masks and ordering.
+- Stop rejecting unchanged TRAE connections for display or generation preference edits. Preserve account-scoped receipt, endpoint, authentication, credential and transaction checks. Allow reviewed Oh My Pi model/tool preferences, filters retaining the saved default and unrelated dotenv assignments; reject path/profile/credential overrides and malformed files without importing values or changing host configuration.
+- Align Windows Claude Desktop third-party credential lookup with Switch's Local AppData directory, including redirected roots. Do not read stale Roaming copies or fall back when Local AppData is missing. Other desktop hosts retain their existing paths.
+- Simplify Claude Desktop mapped credentials: v2 removes profile fingerprints and fixed profile IDs, matching only the existing local connection token before using its dedicated Key. Formatting, custom profile IDs and unrelated preferences no longer block an unchanged connection, including during concurrent reads. Preserve strict legacy v1 checks, private-file protection and task connection identity. Switch maintains this record automatically through Apply; no user-managed fingerprint, server change or additional runtime. Release the compatible reader before the matching writer.
 
 ## 1.0.5 - 2026-11-15
 

@@ -2,7 +2,11 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,6 +14,102 @@ import (
 )
 
 const staticSVGFixture = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="120" height="80" viewBox="0 0 120 80"><title>Static &amp; original</title><defs><linearGradient id="paint"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#123456"/></linearGradient><path id="curve" d="M0 10h100"/><clipPath id="crop"><rect width="120" height="80"/></clipPath></defs><style>.shape { fill: url('#paint'); stroke: rgb(12, 30, 40); stroke-width: 2 }</style><g clip-path="url(#crop)"><rect class="shape" width="120" height="80"/><circle cx="10" cy="10" r="5"/><ellipse cx="30" cy="10" rx="10" ry="5"/><line x1="0" y1="0" x2="10" y2="10"/><polyline points="0,0 4,5 8,0"/><polygon points="0,0 2,4 4,0"/><text xml:space="preserve" style="font-family: 'Noto Sans'; font-size: 12px"><tspan>Hello &amp; world</tspan><textPath xlink:href="#curve">Local text</textPath></text><use href="#curve" transform="translate(0 30)"/></g></svg>`
+
+func svgRasterFixture(t *testing.T, format string, width, height int, noise bool) string {
+	t.Helper()
+	picture := image.NewRGBA(image.Rect(0, 0, width, height))
+	if noise {
+		state := uint32(17)
+		for i := range picture.Pix {
+			state ^= state << 13
+			state ^= state >> 17
+			state ^= state << 5
+			picture.Pix[i] = byte(state)
+		}
+	}
+	var encoded bytes.Buffer
+	var err error
+	if format == "jpeg" {
+		err = jpeg.Encode(&encoded, picture, nil)
+	} else {
+		err = png.Encode(&encoded, picture)
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+	return "data:image/" + format + ";base64," + base64.StdEncoding.EncodeToString(encoded.Bytes())
+}
+
+func TestSVGEmbeddedRasterPreservesOriginalBytes(t *testing.T) {
+	for _, format := range []string{"png", "jpeg"} {
+		raster := svgRasterFixture(t, format, 2, 2, true)
+		for _, content := range []string{
+			`<image width="2" height="2" href="` + raster + `"/>`,
+			`<image xlink:href="` + raster + `"/>`,
+			`<defs><image id="raster" href="` + raster + `"/></defs><use href="#raster"/>`,
+		} {
+			payload := `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">` + content + `</svg>`
+			if !svgFileAccepts(t, []byte(payload)) {
+				t.Errorf("valid embedded %s rejected", format)
+			}
+		}
+	}
+	large := svgRasterFixture(t, "png", 160, 160, true)
+	if len(large) <= 64<<10 {
+		t.Fatal("fixture must exceed the ordinary attribute limit")
+	}
+	if !svgFileAccepts(t, []byte(`<svg xmlns="http://www.w3.org/2000/svg"><image href="`+large+`"/></svg>`)) {
+		t.Fatal("bounded raster href incorrectly uses the drawing attribute limit")
+	}
+}
+
+func TestSVGEmbeddedRasterRejectsUnsafeOrDamagedInputs(t *testing.T) {
+	pngURL := svgRasterFixture(t, "png", 2, 2, true)
+	jpegURL := svgRasterFixture(t, "jpeg", 2, 2, true)
+	for name, content := range map[string]string{
+		"wrong-mime":        `<image href="` + strings.Replace(pngURL, "image/png", "image/jpeg", 1) + `"/>`,
+		"truncated-png":     `<image href="` + pngURL[:len(pngURL)-16] + `"/>`,
+		"truncated-jpeg":    `<image href="` + jpegURL[:len(jpegURL)-16] + `"/>`,
+		"invalid-base64":    `<image href="data:image/png;base64,%%%"/>`,
+		"external":          `<image href="https://example.test/picture.png"/>`,
+		"nested-svg":        `<image href="data:image/svg+xml;base64,PHN2Zy8+"/>`,
+		"html":              `<image href="data:text/html;base64,PHNjcmlwdC8+"/>`,
+		"use-data":          `<use href="` + pngURL + `"/>`,
+		"foreign-namespace": `<image xml:href="` + pngURL + `"/>`,
+		"script-event":      `<image href="` + pngURL + `" onload="alert(1)"/>`,
+		"duplicate-href":    `<image href="` + pngURL + `" href="` + jpegURL + `"/>`,
+		"style-data":        `<image style="fill: url(` + pngURL + `)"/>`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if svgFileAccepts(t, []byte(`<svg xmlns="http://www.w3.org/2000/svg">`+content+`</svg>`)) {
+				t.Fatal("unsafe embedded image accepted")
+			}
+		})
+	}
+}
+
+func TestSVGEmbeddedRasterPixelBudgets(t *testing.T) {
+	for _, tc := range []struct {
+		name                 string
+		width, height, count int
+		allowed              bool
+	}{
+		{"dimension-boundary", 16384, 1, 1, true},
+		{"wide", 16385, 1, 1, false},
+		{"tall", 1, 16385, 1, false},
+		{"pixel-boundary", 4000, 4000, 2, true},
+		{"single-image-budget", 4001, 4000, 1, false},
+		{"total-image-budget", 4000, 4000, 3, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			raster := svgRasterFixture(t, "png", tc.width, tc.height, false)
+			payload := `<svg xmlns="http://www.w3.org/2000/svg">` + strings.Repeat(`<image href="`+raster+`"/>`, tc.count) + `</svg>`
+			if svgFileAccepts(t, []byte(payload)) != tc.allowed {
+				t.Fatalf("embedded raster accepted: want %v", tc.allowed)
+			}
+		})
+	}
+}
 
 func svgFileAccepts(t *testing.T, data []byte) bool {
 	t.Helper()

@@ -23,7 +23,8 @@ test("shipped host guidance does not retain pre-release availability claims", as
   const desktop = await read("references/desktop-hosts.md");
   assert.doesNotMatch(desktop, stale);
   const mapped = await read("references/claude-mapped-connection.md");
-  assert.doesNotMatch(mapped, stale);
+  // A new binding revision can be unreleased while the host adapter has shipped.
+  assert.doesNotMatch(mapped, /(?:Claude Desktop support|Skills support|mapped Skills support)[^\n]*(?:unreleased source|source-only|not yet stable release)/i);
   assert.match(mapped, /Skills support shipped in 1\.0\.0/);
   assert.match(mapped, /compatible versions/);
   assert.match(mapped, /API\s+permission and real attachment delivery remain independent acceptance checks/);

@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 
 const policy = JSON.parse(readFileSync(new URL("../runtime/executor/reviewed-media-policy.json", import.meta.url), "utf8"));
 if (policy.schemaVersion !== 1 || !policy.models) throw new Error("Invalid reviewed media policy.");
-const seedanceModels = new Set(["seedance-2.0", "seedance-2.0-fast", "seedance-2.0-mini", "seedance-2.5"]);
+const seedanceModels = new Set(["seedance-2.0", "seedance-2.0-fast", "seedance-2.0-mini", "seedance-2.5", "seedance-2.5-flash"]);
 
 export function supplementReviewedParameters(model) {
   const schema = structuredClone(model.parameterSchema);

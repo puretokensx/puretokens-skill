@@ -212,7 +212,7 @@ Claude Desktop 请选择本地 Code 会话并使用宿主 ID `claude-desktop`；
 <!-- media-model-catalog:start -->
 ## 媒体模型清单
 
-已与基础模型目录同步：2026-11-08T13:27:39.712Z。
+已与基础模型目录同步：2026-11-17T09:08:37.678Z。
 
 这份清单用于安装后的模型选择，不是每次请求的认证检查。普通生成只读选中 profile；仅明确查询、profile 缺口或拒绝诊断时读取实时目录。经审查的本地兼容补充定义单独注明来源。
 
@@ -223,7 +223,9 @@ README 只从基础目录中带有明确图片/视频能力的模型生成，不
 | 模型 ID | 提供方 | 也可以这样说 | 适合 | 示例 |
 | --- | --- | --- | --- | --- |
 | `dola-seedream-5-0-pro-260628` | ByteDance | 仅精确 ID | 图片生成 | `用 dola-seedream-5-0-pro-260628 生成一张图片。` |
+| `dola-seedream-5.5` | ByteDance | 仅精确 ID | 图片生成 | `用 dola-seedream-5.5 生成一张图片。` |
 | `gemini-3.0-pro-image` | Google | 仅精确 ID | 图片生成 | `用 gemini-3.0-pro-image 生成一张图片。` |
+| `gemini-3.1-flash-image` | Google | 仅精确 ID | 图片生成 | `用 gemini-3.1-flash-image 生成一张图片。` |
 | `gemini-nano-banana-2.1` | Google | 仅精确 ID | 图片生成 | `用 gemini-nano-banana-2.1 生成一张图片。` |
 | `gpt-image-2` | OpenAI | `image2` | 图片生成 | `用 gpt-image-2 生成一张图片。` |
 | `gpt-image-2.5` | OpenAI | 仅精确 ID | 图片生成 | `用 gpt-image-2.5 生成一张图片。` |

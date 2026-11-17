@@ -1,10 +1,50 @@
 # Media Parameter Review
 
 The dated sections below preserve review provenance, not multiple active
-contracts. The November 7 review is the current installed baseline, included in
-1.0.0; older IDs, defaults and publication wording apply only to their dated
-snapshots. See `acceptance/1.0.0-release.md` for publication evidence and the
-current installed profiles for executable parameter rules.
+contracts. The November 17 source follow-up extends the November 7 baseline
+included in 1.0.0 and the published dimension correction in 1.0.4. The 1.0.6
+release record distinguishes publication from installed-client or production evidence. Older IDs,
+defaults and publication wording apply only to their dated snapshots. See
+the versioned acceptance records for publication evidence and the current
+profiles for executable parameter rules.
+
+## Source follow-up - 2026-11-17 (1.0.6)
+
+The anonymous fixed console `/api/product/docs/model-catalog` snapshot now
+contains 49 image/video models. Only `dola-seedream-5.5` and
+`gemini-3.1-flash-image` are new relative to the November 8 capture; retained
+schemas are unchanged after the existing reviewed projection. The first model
+uses JSON `/v1/images/generations` for both generation and editing, with 1-10
+HTTPS image references only. Gemini edits use JSON `/v1/images/edits`, with
+1-14 HTTPS references or reviewed executor-encoded local raster files. Do not
+enable local Seedream files, arbitrary caller data URLs or alternative upload
+routes. Existing default dimensions remain model-specific; image/video defaults
+remain `gpt-image-2.6` and `MiniMax-H3`.
+
+The exact `seedance-2.5-flash` is absent from this public snapshot. Its new
+embedded profile is separately source-reviewed from the Web metadata, with its
+own review date and source hash, not added to the live-catalog snapshot. It
+accepts 4-30 integer seconds, 480p/720p and 21:9, 16:9, 4:3, 1:1, 3:4, 9:16;
+declared defaults are 5 seconds, 720p and 9:16. Reject auto, 1080p/2k/4k and
+generate_audio. Reuse the reviewed Seedance frame supplement only while both
+frame fields are declared. Local references use only declared multipart roles;
+mixed HTTPS references use JSON `/v1/videos`. Frame inputs and mixed references
+remain mutually exclusive. Limits are 30 images, 10 videos, 10 audios and 50
+total; these direct-API bounds do not override the narrower Switch Product API
+limit. Source profile fallback must not invent live discovery or change
+historical tasks. No paid generation or real-host acceptance was performed.
+
+SVG output now matches the Web's bounded embedded-raster contract: only
+`image` elements may contain PNG/JPEG base64 data in href/xlink:href. Verify
+strict base64, matching decoded format and complete image decode before
+acceptance. Bound each dimension to 16384, each raster to 16 million pixels
+and the document's embedded rasters to 32 million pixels; retain the 8 MiB SVG
+limit. Only raster href bypasses the ordinary 64 KiB attribute limit. Existing
+XML/CSS, depth, token, attribute, reference-cycle and expansion limits remain;
+scripts, external resources, nested SVG/HTML and damaged bytes remain rejected.
+Only exact reviewed GPT 2.6 IDs with explicit output_format=svg qualify, and
+download/recovery preserve original bytes. This source incompatibility is
+separate from historical JPEG transfer stalls and is not evidence of their cause.
 
 ## Published dimension follow-up - 2026-11-10
 
@@ -84,6 +124,24 @@ roles. This avoids the gateway multipart decoder's collapsed roles without
 changing the gateway. Each file is at most 14 MiB; the complete encoded body
 is at most 20 MiB. Arbitrary caller-supplied data URLs remain rejected.
 No rehosting, new upload endpoint or silent text-only downgrade is permitted.
+Multipart PNG/JPEG/WebP parts declare their native `Content-Type` from the same
+byte snapshot used for the attachment digest, never from the filename or a
+caller-provided MIME value. Preserve every reference's field, order and original
+bytes (including masks); do not convert or rehost files. Unrecognized bytes keep
+the generic binary type and are not relabeled as images. The 1.0.4/1.0.5 serializer
+used a generic binary type for these parts, which is rejected by the current
+image-edit protocol decoder. Local serialization and decoder regression tests
+are not a paid production image-edit acceptance result.
+The MIME correction alone does not establish end-to-end acceptance. The
+gateway decoder emits `{__fileRef, mimeType}`, which older staging code rejects.
+The companion local gateway fix (patch 333 in PureTokenPlus_web) accepts only
+optional PNG/JPEG/WebP MIME metadata alongside a request-resolved file ref; it
+retains unknown-field, unknown-reference and native-byte validation. Its
+regression exercises the real decoder, two-file local storage staging,
+replacement and driver serialization; JSON references remain unchanged.
+Neither fix is a production acceptance result. The Skill and gateway need
+separate releases; installing a Skill does not update the gateway. Preserve
+the declared multipart route, reference order and bytes, without a workaround.
 
 Exact gpt-image-2.6, gpt-image-2.6-flare and gpt-image-2.6-sunburst also support
 JSON `masked_image_edit`: 1-10 declared HTTPS originals plus one local PNG mask.

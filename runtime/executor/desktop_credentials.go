@@ -34,7 +34,15 @@ func currentDesktopRoot(app string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return desktopDataRoot(runtime.GOOS, home, os.Getenv("APPDATA"), app)
+	return desktopHostDataRoot(runtime.GOOS, home, app)
+}
+
+func desktopHostDataRoot(platform, home, app string) (string, error) {
+	data := os.Getenv("APPDATA")
+	if platform == "windows" && app == "Claude-3p" {
+		data = os.Getenv("LOCALAPPDATA")
+	}
+	return desktopDataRoot(platform, home, data, app)
 }
 
 func credentialFromClaudeDesktop() (string, error) {

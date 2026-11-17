@@ -2,8 +2,8 @@
   "$schema": "https://puretokensx.com/schemas/model-profile.schema.json",
   "schemaVersion": 1,
   "capability": "video",
-  "catalogUpdatedAt": "2026-11-08",
-  "catalogCapturedAt": "2026-11-08T13:27:39.712Z",
+  "catalogUpdatedAt": "2026-11-17",
+  "catalogCapturedAt": "2026-11-17T09:08:37.678Z",
   "id": "kling-video-motion-control-v3.0",
   "parameterSchema": {
     "properties": {

@@ -8,6 +8,22 @@ import { supplementReviewedParameters } from "../scripts/reviewed-media-suppleme
 
 const read = async file => JSON.parse(await readFile(new URL(`../${file}`, import.meta.url)));
 
+test("new image selections retain exact routes and model-specific reference transports", async () => {
+  const index = await read("skills/puretokens-image/references/model-index.json");
+  for (const [id, route, maxItems, transports] of [
+    ["dola-seedream-5.5", "/v1/images/generations", 10, ["https_url"]],
+    ["gemini-3.1-flash-image", "/v1/images/edits", 14, ["https_url", "local_file_data_url"]]
+  ]) {
+    assert.ok(index.models.some(row => row.id === id), `${id} missing from selection`);
+    const profile = await read(`skills/puretokens-image/references/profiles/${id}.json`);
+    assert.equal(profile.parameterSchema.operations.image_edit.request.path, route);
+    assert.equal(profile.parameterSchema.operations.image_edit.request.contentType, "application/json");
+    assert.equal(profile.parameterSchema.operations.image_edit.inputs.images.maxItems, maxItems);
+    assert.deepEqual(profile.parameterSchema.operations.image_edit.inputs.images.transports, transports);
+  }
+  assert.equal(index.defaultModel, "gpt-image-2.6");
+});
+
 test("published Kling models have exact dedicated profiles without replacing historical IDs", async () => {
   const index = await read("skills/puretokens-video/references/model-index.json");
   for (const id of ["kling-video-v4", "kling-video-v3", "kling-video-v3-turbo", "kling-video-v3-omni",

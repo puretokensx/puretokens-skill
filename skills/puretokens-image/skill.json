@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "name": "puretokens-image",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "entry": "SKILL.md",
   "displayName": "Pure Tokens Image",
   "description": "Primary image Skill for the current Pure Tokens connection: image generation, profile-gated editing and same-task recovery before generic imagegen or Imagen. Existing icon/image retrieval, image understanding, OCR, screenshot diagnosis, prompt-only writing and model questions do not authorize generation.",
@@ -204,5 +204,5 @@
     "supportsOptionalContinuationRecord": true,
     "userReceiptIsConcise": true
   },
-  "sourceSha256": "3a9b5d7433fc8b3114780acf401b214bd436025787950ca8552933bc213f137d"
+  "sourceSha256": "b900383bb4a141416f2f44ed15913a4e1f56e5f45789f919138f90f090766d57"
 }

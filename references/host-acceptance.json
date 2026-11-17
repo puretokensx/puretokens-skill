@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "version": "1.0.5",
-  "checkedAt": "2026-11-15",
-  "method": "Version 1.0.5 publication review: add sanitized media download evidence and bounded recovery guidance. On 2026-11-15 the maintainer requested publication before testing on the affected user's computer, retaining all pending acceptance outcomes. Offline checks and publication do not establish real-host authentication, delivery or the incident root cause. See references/acceptance/1.0.5-release.md.",
+  "version": "1.0.6",
+  "checkedAt": "2026-11-17",
+  "method": "Version 1.0.6 publication review: client connection compatibility, bounded image download links, multipart MIME and SVG fixes, and reviewed model synchronization. The maintainer authorized stable publication on 2026-11-17 while retaining pending acceptance outcomes. Offline and release verification do not establish real-host delivery or the historical Windows stall root cause. See references/acceptance/1.0.6-release.md.",
   "stablePublicationException": {
     "kind": "maintainer-approved-pending-acceptance",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "approved": true,
-    "approvedAt": "2026-11-15",
-    "reason": "The maintainer explicitly authorized the proposed 1.0.5 release on 2026-11-15 and will validate on the affected user's computer after publication. All 268 pending host/OS checks and existing evidence are retained. This version-specific decision is not real-host or paid API acceptance."
+    "approvedAt": "2026-11-17",
+    "reason": "The maintainer explicitly requested stable publication of the current reviewed Skills changes on 2026-11-17, retaining the existing internal acceptance-gap policy. All 268 pending host/OS checks and existing evidence are unchanged. This version-specific approval is not real-host or paid API acceptance."
   },
   "guide": "references/host-acceptance-guide.md",
   "evidence": [],

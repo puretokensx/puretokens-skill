@@ -2,26 +2,33 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/xml"
+	"image"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"regexp"
 	"strings"
 )
 
 const (
-	maxSVGBytes         = 8 << 20
-	maxSVGDepth         = 128
-	maxSVGTokens        = 200000
-	maxSVGAttributes    = 64
-	maxSVGAttributeSize = 64 << 10
-	maxSVGStyleSize     = 256 << 10
-	maxSVGExpandedNodes = 200000
-	svgNamespace        = "http://www.w3.org/2000/svg"
-	xlinkNamespace      = "http://www.w3.org/1999/xlink"
-	xmlNamespace        = "http://www.w3.org/XML/1998/namespace"
+	maxSVGBytes             = 8 << 20
+	maxSVGDepth             = 128
+	maxSVGTokens            = 200000
+	maxSVGAttributes        = 64
+	maxSVGAttributeSize     = 64 << 10
+	maxSVGStyleSize         = 256 << 10
+	maxSVGExpandedNodes     = 200000
+	maxSVGRasterDimension   = 16384
+	maxSVGRasterPixels      = 16_000_000
+	maxSVGTotalRasterPixels = 32_000_000
+	svgNamespace            = "http://www.w3.org/2000/svg"
+	xlinkNamespace          = "http://www.w3.org/1999/xlink"
+	xmlNamespace            = "http://www.w3.org/XML/1998/namespace"
 )
 
-var svgElements = svgNameSet(`svg g defs title desc style path rect circle ellipse line polyline polygon
+var svgElements = svgNameSet(`svg g defs title desc style image path rect circle ellipse line polyline polygon
 text tspan textPath use symbol linearGradient radialGradient stop pattern clipPath mask marker
 filter feBlend feColorMatrix feComponentTransfer feComposite feConvolveMatrix feDiffuseLighting
 feDisplacementMap feDistantLight feDropShadow feFlood feFuncA feFuncB feFuncG feFuncR feGaussianBlur
@@ -95,6 +102,7 @@ func validSVG(data []byte) bool {
 	ids := make(map[string]int)
 	tokens, styleNode := 0, -1
 	var style strings.Builder
+	var rasterPixels int64
 	for {
 		token, err := decoder.Token()
 		if err == io.EOF {
@@ -130,10 +138,22 @@ func validSVG(data []byte) bool {
 			stack = append(stack, index)
 			attributes := make(map[xml.Name]bool)
 			for _, attribute := range element.Attr {
-				if attributes[attribute.Name] || len(attribute.Value) > maxSVGAttributeSize {
+				if attributes[attribute.Name] {
 					return false
 				}
 				attributes[attribute.Name] = true
+				if element.Name.Local == "image" && attribute.Name.Local == "href" &&
+					(attribute.Name.Space == "" || attribute.Name.Space == xlinkNamespace) && !svgFragment.MatchString(attribute.Value) {
+					pixels, ok := svgEmbeddedRaster(attribute.Value, maxSVGTotalRasterPixels-rasterPixels)
+					if !ok {
+						return false
+					}
+					rasterPixels += pixels
+					continue
+				}
+				if len(attribute.Value) > maxSVGAttributeSize {
+					return false
+				}
 				refs, ok := svgAttribute(attribute)
 				if !ok {
 					return false
@@ -176,6 +196,37 @@ func validSVG(data []byte) bool {
 		}
 	}
 	return len(nodes) > 0 && len(stack) == 0 && validSVGReferences(nodes, ids)
+}
+
+// Only image href may contain original, fully decoded PNG/JPEG bytes. Bound
+// dimensions before decoding so a small compressed raster cannot exhaust memory.
+func svgEmbeddedRaster(value string, remainingPixels int64) (int64, bool) {
+	header, encoded, found := strings.Cut(value, ",")
+	format := ""
+	switch header {
+	case "data:image/png;base64":
+		format = "png"
+	case "data:image/jpeg;base64":
+		format = "jpeg"
+	}
+	if !found || format == "" || len(value) > maxSVGBytes {
+		return 0, false
+	}
+	data, err := base64.StdEncoding.Strict().DecodeString(encoded)
+	if err != nil {
+		return 0, false
+	}
+	config, actual, err := image.DecodeConfig(bytes.NewReader(data))
+	pixels := int64(config.Width) * int64(config.Height)
+	if err != nil || actual != format || config.Width <= 0 || config.Height <= 0 ||
+		config.Width > maxSVGRasterDimension || config.Height > maxSVGRasterDimension ||
+		pixels > maxSVGRasterPixels || pixels > remainingPixels {
+		return 0, false
+	}
+	if _, actual, err = image.Decode(bytes.NewReader(data)); err != nil || actual != format {
+		return 0, false
+	}
+	return pixels, true
 }
 
 func svgAttribute(attribute xml.Attr) ([]string, bool) {

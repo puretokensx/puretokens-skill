@@ -431,6 +431,12 @@ func executeRecordedTask(command, path string, request taskRequest, index int, o
 	if !svc.localRecoveryOnly && command != "submit" && command != "delivered" && command != "redeliver" && record.ConnectionID != svc.connectionID {
 		return rejectChangedTaskConnection(output, request)
 	}
+	if command == "download-link" {
+		// Keep the prior download diagnosis and attachment progress untouched.
+		// A usable capability belongs only in the immediate user-facing receipt.
+		data, _ := json.Marshal(request)
+		return executeExistingTask(command, bytes.NewReader(data), output, svc)
+	}
 	svc.downloadProofs = make(map[string]downloadProof)
 	for i, proof := range record.DownloadProofs {
 		if !taskArtifactFormatMatches(request, i, proof.MediaType) {

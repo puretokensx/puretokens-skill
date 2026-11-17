@@ -155,6 +155,13 @@ func TestDSHDesktopDedicatedPermissionsAndFreshCatalog(t *testing.T) {
 }
 
 func TestClaudeMappedDedicatedPermissionsAndFreshCatalog(t *testing.T) {
+	for _, version := range []string{"v1", "v2"} {
+		t.Run(version, func(t *testing.T) { exerciseClaudeMappedDedicatedPermissions(t, version) })
+	}
+}
+
+func exerciseClaudeMappedDedicatedPermissions(t *testing.T, version string) {
+	t.Helper()
 	if runtime.GOOS != "darwin" && runtime.GOOS != "windows" {
 		t.Skip("local Desktop paths only")
 	}
@@ -162,11 +169,15 @@ func TestClaudeMappedDedicatedPermissionsAndFreshCatalog(t *testing.T) {
 	t.Setenv("HOME", home)
 	t.Setenv("USERPROFILE", home)
 	t.Setenv("APPDATA", filepath.Join(home, "roaming"))
+	t.Setenv("LOCALAPPDATA", filepath.Join(home, "local"))
 	root, err := currentDesktopRoot("Claude-3p")
 	if err != nil {
 		t.Fatal(err)
 	}
 	source, _ := mappedSkillsFixture(t)
+	if version == "v2" {
+		source, _ = mappedSkillsV2Fixture(t)
+	}
 	for _, name := range []string{"claude_desktop_config.json", "configLibrary/_meta.json", "configLibrary/" + fixtureDesktopProfile + ".json", claudeSkillsConnectionFile} {
 		data, err := os.ReadFile(filepath.Join(source, name))
 		if err != nil {

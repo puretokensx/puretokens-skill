@@ -32,7 +32,7 @@ func TestContentPrefixTimeoutIsNotInvalidMedia(t *testing.T) {
 	var out bytes.Buffer
 	err := deliverTask(&out, svc, request, taskReceipt(request, request.TaskID, "completed"))
 	result := decodeReceipt(t, &out)
-	if err == nil || result.LocalErrorCode != "media_download_timeout" || result.NextStep != "await_user" || reads.Load() != 1 || result.TaskID != request.TaskID {
+	if err == nil || result.LocalErrorCode != "media_download_timeout" || result.NextStep != "download_link" || reads.Load() != 1 || result.TaskID != request.TaskID {
 		t.Fatalf("prefix timeout lost: %+v calls=%d err=%v", result, reads.Load(), err)
 	}
 	entries, err := os.ReadDir(dir)
@@ -46,18 +46,23 @@ func TestEveryContentFailureStopsAutomaticRetry(t *testing.T) {
 		name   string
 		err    error
 		status int
+		next   string
 	}{
-		{"incomplete", io.ErrUnexpectedEOF, 200},
-		{"timeout", context.DeadlineExceeded, 0},
-		{"invalid", errInvalidMedia, 200},
-		{"permission", os.ErrPermission, 200},
-		{"conflict", errors.New("existing output"), 0},
-		{"upstream", errors.New("content request rejected"), 503},
+		{"incomplete", io.ErrUnexpectedEOF, 200, "download_link"},
+		{"timeout", context.DeadlineExceeded, 0, "download_link"},
+		{"invalid", errInvalidMedia, 200, "await_user"},
+		{"permission", os.ErrPermission, 200, "download_link"},
+		{"conflict", errors.New("existing output"), 0, "await_user"},
+		{"upstream", errors.New("content request rejected"), 503, "await_user"},
 	} {
 		t.Run(scenario.name, func(t *testing.T) {
 			request := taskRequest{Kind: "image", TaskID: "existing-task", RequestedCount: 1}
 			result := guideReceipt(mergeFailure(taskReceipt(request, request.TaskID, "completed"), contentFailure(scenario.err, scenario.status, 0, "", "")))
-			if result.NextStep != "await_user" || !strings.Contains(result.NextAction, "Stop automatic retrieval") || !strings.Contains(result.NextAction, "explicit user request") {
+			stop := strings.Contains(result.NextAction, "Stop automatic retrieval")
+			if scenario.next == "download_link" {
+				stop = strings.Contains(result.NextAction, "Do not fetch the link, retry content")
+			}
+			if result.NextStep != scenario.next || !stop || !strings.Contains(result.NextAction, "explicit user request") {
 				t.Fatalf("ambiguous retry guidance: %+v", result)
 			}
 		})
@@ -100,7 +105,7 @@ func TestContentDeadlinesStopOnceAndPreserveTask(t *testing.T) {
 			if stage == "response" {
 				wantCode, wantStatus = "media_content_response_timeout", 0
 			}
-			if err == nil || result.OK || result.LocalErrorCode != wantCode || result.HTTPStatus != wantStatus || result.TaskID != request.TaskID || result.Status != "completed" || result.NextStep != "await_user" || reads.Load() != 1 || len(result.DownloadedPaths) != 0 {
+			if err == nil || result.OK || result.LocalErrorCode != wantCode || result.HTTPStatus != wantStatus || result.TaskID != request.TaskID || result.Status != "completed" || result.NextStep != "download_link" || reads.Load() != 1 || len(result.DownloadedPaths) != 0 {
 				t.Fatalf("unsafe stalled download: %+v reads=%d err=%v", result, reads.Load(), err)
 			}
 			var envelope map[string]any

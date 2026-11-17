@@ -70,6 +70,16 @@
     "reconciliation_required": {
       "type": "boolean"
     },
+    "download_link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "expires_at", "index"],
+      "properties": {
+        "url": {"type": "string", "pattern": "^https://api[.]puretokensx[.]com/v1/tasks/[A-Za-z0-9_.:-]+/artifacts/[A-Za-z0-9][A-Za-z0-9._~-]{0,127}/content[?]access=v2[.][A-Za-z0-9_-]{59}$"},
+        "expires_at": {"type": "string", "format": "date-time"},
+        "index": {"type": "integer", "minimum": 0, "maximum": 7}
+      }
+    },
     "downloaded_paths": {
       "type": "array",
       "items": {
@@ -87,6 +97,7 @@
       "enum": [
         "downloaded_awaiting_host_delivery",
         "partially_delivered",
+        "link_available",
         "delivered"
       ]
     },
@@ -160,6 +171,7 @@
         "wait",
         "resume",
         "content",
+        "download-link",
         "redeliver",
         "delivered"
       ]
@@ -181,6 +193,8 @@
         "wait",
         "content",
         "deliver",
+        "download_link",
+        "present_link",
         "correct_request",
         "await_user",
         "done"
@@ -218,6 +232,14 @@
   "additionalProperties": false,
   "$id": "https://puretokensx.com/schemas/executor-receipt.schema.json",
   "allOf": [
+    {
+      "if": {"anyOf": [{"required": ["download_link"]}, {"required": ["delivery_status"], "properties": {"delivery_status": {"const": "link_available"}}}, {"required": ["next_step"], "properties": {"next_step": {"const": "present_link"}}}]},
+      "then": {
+        "required": ["download_link", "kind", "task_id", "status", "delivery_status", "next_step"],
+        "properties": {"ok": {"const": true}, "kind": {"const": "image"}, "status": {"const": "completed"}, "delivery_status": {"const": "link_available"}, "next_step": {"const": "present_link"}, "reconciliation_required": {"const": false}},
+        "not": {"anyOf": [{"required": ["downloaded_paths"]}, {"required": ["downloaded_indexes"]}, {"required": ["delivered_indexes"]}, {"required": ["failure_phase"]}]}
+      }
+    },
     {
       "if": {"anyOf": [{"required": ["validation"]}, {"required": ["next_step"], "properties": {"next_step": {"const": "correct_request"}}}]},
       "then": {
