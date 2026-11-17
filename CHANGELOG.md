@@ -4,6 +4,10 @@
 
 # Changelog
 
+## Unreleased
+
+- Stop rejecting unchanged TRAE connections for display or generation preference edits. Preserve account-scoped receipt, endpoint, authentication, credential and transaction checks. Allow reviewed Oh My Pi model/tool preferences, filters retaining the saved default and unrelated dotenv assignments; reject path/profile/credential overrides and malformed files without importing values or changing host configuration. Source and fixture validation only; real-host acceptance remains separate.
+
 ## 1.0.5 - 2026-11-15
 
 - Add privacy-safe download progress to media retrieval receipts: received bytes, expected length when known, first-byte and last-progress timing, normal read completion, and local file verification. No URLs, credentials, media contents or local paths are included in this diagnostic block.

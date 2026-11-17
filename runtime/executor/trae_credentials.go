@@ -230,17 +230,22 @@ func credentialFromTraeDatabase(path string) (string, error) {
 }
 
 func verifyTraeModel(model, observed map[string]any) error {
-	// Match native receipt metadata BEFORE retaining the matching API key.
-	for _, key := range []string{"name", "provider", "display_name", "base_url", "status", "multimodal"} {
+	// Bind the saved connection, not its display or generation preferences.
+	for _, key := range []string{"name", "provider", "base_url", "status"} {
 		if !reflect.DeepEqual(model[key], observed[key]) {
 			return clientSelectionFailure()
 		}
 	}
-	settings := make([]any, 0, 11)
-	for _, key := range []string{"auth_type", "region", "custom_model_type", "max_tokens", "prompt_max_tokens", "thinking_enable", "temperature", "top_p", "top_k", "max_turn", "config_detail"} {
-		settings = append(settings, model[key])
+	settings := jsonArray(observed["settings"])
+	if len(settings) != 11 {
+		return clientSelectionFailure()
 	}
-	if !reflect.DeepEqual(settings, jsonArray(observed["settings"])) {
+	for index, key := range []string{"auth_type", "region", "custom_model_type"} {
+		if !reflect.DeepEqual(model[key], settings[index]) {
+			return clientSelectionFailure()
+		}
+	}
+	if !reflect.DeepEqual(traeConnectionDetail(model["config_detail"], false), traeConnectionDetail(settings[10], false)) {
 		return clientSelectionFailure()
 	}
 	// Switch computes JSON.stringify([ak ?? null, sk ?? null]). Valid bearer
@@ -263,4 +268,32 @@ func verifyTraeModel(model, observed map[string]any) error {
 		return clientSelectionFailure()
 	}
 	return nil
+}
+
+// Remove only reviewed chat preferences; unknown/nested connection fields
+// remain part of the receipt check. Never mutate the native cache or receipt.
+func traeConnectionDetail(value any, hyperParams bool) any {
+	detail, ok := value.(map[string]any)
+	if !ok {
+		return value
+	}
+	connection := make(map[string]any)
+	for key, item := range detail {
+		switch key {
+		case "multimodal", "max_tokens", "prompt_max_tokens", "thinking_enable", "temperature", "top_p", "top_k", "max_turn":
+			continue
+		case "model_hyper_params":
+			if !hyperParams {
+				item = traeConnectionDetail(item, true)
+				if item == nil {
+					continue
+				}
+			}
+		}
+		connection[key] = item
+	}
+	if len(connection) == 0 {
+		return nil
+	}
+	return connection
 }

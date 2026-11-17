@@ -669,6 +669,19 @@ func switchQwenSystemSettings(goos string) error {
 }
 
 func switchQwenDotenv(file string) error {
+	return clientDotenvAssignments(file, func(key string) error {
+		for _, blocked := range []string{"PURETOKENS_SWITCH_QWEN_API_KEY", "QWEN_HOME", "QWEN_SETTINGS_PATH", "QWEN_SYSTEM_SETTINGS_PATH", "QWEN_SYSTEM_SETTINGS_DEFAULTS_PATH", "QWEN_CODE_SYSTEM_SETTINGS_PATH", "QWEN_CODE_SYSTEM_DEFAULTS_PATH", "OPENAI_MODEL", "QWEN_MODEL", "ANTHROPIC_MODEL", "HOME", "USERPROFILE"} {
+			if key == blocked || runtime.GOOS == "windows" && strings.EqualFold(key, blocked) {
+				return clientFormatFailure()
+			}
+		}
+		return nil
+	})
+}
+
+// Inspect names only; never evaluate or expose dotenv values. Each adapter
+// owns its connection/selection names, while bounded parsing stays shared.
+func clientDotenvAssignments(file string, inspect func(string) error) error {
 	if _, err := os.Lstat(file); os.IsNotExist(err) {
 		return nil
 	} else if err != nil {
@@ -712,10 +725,8 @@ func switchQwenDotenv(file string) error {
 		} else {
 			return clientFormatFailure()
 		}
-		for _, blocked := range []string{"PURETOKENS_SWITCH_QWEN_API_KEY", "QWEN_HOME", "QWEN_SETTINGS_PATH", "QWEN_SYSTEM_SETTINGS_PATH", "QWEN_SYSTEM_SETTINGS_DEFAULTS_PATH", "QWEN_CODE_SYSTEM_SETTINGS_PATH", "QWEN_CODE_SYSTEM_DEFAULTS_PATH", "OPENAI_MODEL", "QWEN_MODEL", "ANTHROPIC_MODEL", "HOME", "USERPROFILE"} {
-			if key == blocked || runtime.GOOS == "windows" && strings.EqualFold(key, blocked) {
-				return clientFormatFailure()
-			}
+		if err := inspect(key); err != nil {
+			return err
 		}
 		text = strings.TrimLeft(text, " \t")
 		if len(text) > 0 && (text[0] == '\'' || text[0] == '"' || text[0] == '`') {

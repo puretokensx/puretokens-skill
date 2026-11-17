@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 )
 
@@ -85,11 +86,6 @@ func credentialFromOhMyPi() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	for _, p := range []string{filepath.Join(home, ".env"), filepath.Join(configRoot, ".env"), filepath.Join(configRoot, "agent", ".env"), filepath.Join(root, ".env")} {
-		if _, err := os.Lstat(p); !os.IsNotExist(err) {
-			return "", clientSelectionFailure()
-		}
-	}
 	cwd, err := os.Getwd()
 	if err != nil {
 		return "", clientSelectionFailure()
@@ -97,11 +93,47 @@ func credentialFromOhMyPi() (string, error) {
 	if err := ohMyPiProjectScope(cwd, home); err != nil {
 		return "", err
 	}
+	dotenvNames := make(map[string]bool)
+	seen := make(map[string]bool)
+	for _, dir := range []string{home, configRoot, filepath.Join(configRoot, "agent"), root, cwd} {
+		if seen[dir] {
+			continue
+		}
+		seen[dir] = true
+		if err := ohMyPiDotenv(filepath.Join(dir, ".env"), dotenvNames); err != nil {
+			return "", err
+		}
+	}
 	overlays, err := ohMyPiConfigFiles(os.Getenv("PI_CONFIG_FILES"))
 	if err != nil {
 		return "", err
 	}
-	return credentialFromOhMyPiLayers(root, overlays)
+	token, err := credentialFromOhMyPiLayers(root, overlays)
+	if err != nil {
+		return "", err
+	}
+	// A literal config key can itself be an environment lookup name. Do not
+	// load the value or return a different credential from dotenv.
+	for name := range dotenvNames {
+		if name == token || runtime.GOOS == "windows" && strings.EqualFold(name, token) {
+			return "", clientSelectionFailure()
+		}
+	}
+	return token, nil
+}
+
+func ohMyPiDotenv(file string, names map[string]bool) error {
+	return clientDotenvAssignments(file, func(key string) error {
+		for _, blocked := range []string{"PI_CONFIG_DIR", "OMP_CONFIG_DIR", "PI_CODING_AGENT_DIR", "OMP_CODING_AGENT_DIR", "PI_PROFILE", "OMP_PROFILE", "PI_CONFIG_FILES", "HOME", "USERPROFILE"} {
+			if key == blocked || runtime.GOOS == "windows" && strings.EqualFold(key, blocked) {
+				return clientSelectionFailure()
+			}
+		}
+		if names != nil {
+			names[key] = true
+		}
+		return nil
+	})
 }
 
 func ohMyPiConfigFiles(raw string) ([]string, error) {
@@ -118,15 +150,15 @@ func ohMyPiConfigFiles(raw string) ([]string, error) {
 	return files, nil
 }
 
-// Check only known native project settings locations, never their contents or
-// another client's configuration. Compatibility-provider/session overrides
+// Check only known native project settings locations and dotenv assignment
+// names, not values or another client's configuration. Session overrides
 // still require the caller's explicit saved-default host binding.
 func ohMyPiProjectScope(cwd, home string) error {
 	if !clientAbsoluteRoot(cwd) {
 		return clientSelectionFailure()
 	}
-	if _, err := os.Lstat(filepath.Join(cwd, ".env")); !os.IsNotExist(err) {
-		return clientSelectionFailure()
+	if err := ohMyPiDotenv(filepath.Join(cwd, ".env"), nil); err != nil {
+		return err
 	}
 	for depth := 0; depth < 64; depth++ {
 		for _, name := range []string{"config.yml", "config.yaml", "settings.json"} {
@@ -182,16 +214,34 @@ func credentialFromOhMyPiLayers(root string, overlays []string) (string, error) 
 	if hasClientOverride(settings, "model", "provider", "baseUrl", "apiKey", "session", "modelOverrides") {
 		return "", clientSelectionFailure()
 	}
-	for _, key := range []string{"enabledModels", "enabledProviders", "disabledProviders"} {
-		if value, ok := settings[key]; ok && value != nil {
-			if items, ok := value.([]any); !ok || len(items) != 0 {
-				return "", clientSelectionFailure()
-			}
-		}
-	}
 	providerID, modelID, ok := strings.Cut(jsonString(jsonObject(settings["modelRoles"])["default"]), "/")
 	if !ok || providerID == "" || modelID == "" {
 		return "", clientSelectionFailure()
+	}
+	for _, key := range []string{"enabledModels", "enabledProviders", "disabledProviders"} {
+		value := settings[key]
+		if value == nil {
+			continue
+		}
+		items, ok := value.([]any)
+		if !ok {
+			return "", clientSelectionFailure()
+		}
+		matched := false
+		for _, item := range items {
+			selector, ok := item.(string)
+			if !ok || strings.TrimSpace(selector) == "" {
+				return "", clientSelectionFailure()
+			}
+			if key == "enabledModels" {
+				matched = matched || selector == providerID+"/"+modelID || selector == providerID+"/*" || selector == "*"
+			} else {
+				matched = matched || selector == providerID
+			}
+		}
+		if key == "disabledProviders" && matched || key != "disabledProviders" && len(items) > 0 && !matched {
+			return "", clientSelectionFailure()
+		}
 	}
 	models, err := ohMyPiYAML(root, "models")
 	if err != nil {
@@ -207,7 +257,7 @@ func credentialFromOhMyPiLayers(root string, overlays []string) (string, error) 
 	}
 	for key := range provider {
 		switch key {
-		case "api", "auth", "baseUrl", "apiKey", "models":
+		case "api", "auth", "baseUrl", "apiKey", "models", "disableStrictTools":
 		default:
 			return "", clientFormatFailure()
 		}
@@ -231,7 +281,7 @@ func credentialFromOhMyPiLayers(root string, overlays []string) (string, error) 
 		}
 		for key := range entry {
 			switch key {
-			case "id", "name", "input":
+			case "id", "name", "input", "reasoning", "contextWindow", "maxTokens", "cost":
 			default:
 				return "", clientFormatFailure()
 			}
